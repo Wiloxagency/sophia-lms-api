@@ -1,7 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { createContentTable } from "../shared/createContentTable";
+import { paragraphCreation } from "../interfaces/paragraph";
+
 import { Db } from "mongodb";
+import { createContentCycle } from "./cycle";
 
 const database = createConnection()
 var currentCourse = {}
@@ -75,6 +78,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     )
                 })
 
+                const payload: paragraphCreation = {
+                    context: courseTitle,
+                    key: "",
+                    text: syllabus[1],
+                    index:0,
+                    maxParagraphs:10,
+                    courseStructure: syllabus,
+                    language: "es"
+                }
+
+                createContentCycle(currentCourse)
+
                 context.res = {
                     "status": 201,
                     "headers": {
@@ -82,6 +97,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     },
                     "body": currentCourse
                 }
+
+                
+
             } else {
                 context.res = {
                     "status": 500,
