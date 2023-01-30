@@ -9,7 +9,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db =  await database
-        const collection =  db.collection("movies");
+        const collection =  db.collection("course");
 
         const results = await collection.find({}).limit(10).toArray();
         courses = results
