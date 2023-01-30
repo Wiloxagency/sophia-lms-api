@@ -9,20 +9,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db =  await database
-        const collection =  db.collection("course");
+        const Users = db.collection('user')
+        const typedEmail = req.body.email
+        const typedPassword = req.body.password
+        const resp = Users.aggregate([
+            {
+                '$match': {
+                  'email': typedEmail,
+                  'password': typedPassword
+                }
+              }])
 
-        const results = await collection.find({}).limit(10).toArray();
-        courses = results
+        const body = await resp.toArray()
 
-        context.res = {
+        if (body) {
 
-            "headers": {
-
-                "Content-Type": "application/json"
-
-            },
-
-            "body": courses
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": body[0]
+            }
+        } else {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "no user found"
+                }
+            }
 
         }
 
