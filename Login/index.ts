@@ -21,9 +21,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
               }])
 
         const body = await resp.toArray()
-
-        if (body) {
-
+        
+        if (body && body.length > 0) {
             context.res = {
                 "status": 200,
                 "headers": {
@@ -31,22 +30,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 "body": body[0]
             }
+            
         } else {
             context.res = {
-                "status": 500,
+                "status": 404,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "no user found"
+                    "message": "User not found"
                 }
+            
             }
-
         }
-
     } catch (error) {
-
-        context.res = {
+             context.res = {
 
             "status": error.status,
 
@@ -58,7 +56,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             "body": {
 
-                "message": error.toString()
+                "message": "Authentication error"
 
             }
 
