@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-
+const bcrypt = require("bcrypt")
 const database =  createConnection()
 var courses = []
 
@@ -12,6 +12,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const Users = db.collection('user')
         const typedEmail = req.body.email
         const typedPassword = req.body.password
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(typedPassword, salt);
+        req.body.password = hash
+        bcrypt.compareSync(typedEmail, typedPassword, hash); // true
         const resp = Users.aggregate([
             {
                 '$match': {

@@ -12,11 +12,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db =  await database
-
-        var pass = req.body.password
-        const hash = bcrypt.hashSync(pass, 10)
+        var receivedPassword = req.body.password
+        const hash = bcrypt.hashSync(receivedPassword, 10)
         req.body.password = hash
-        
         const Users = db.collection('user')
         const resp = Users.insertOne(req.body)
         const body = await resp
@@ -30,6 +28,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": "User Created"
             }
         }
+        
 
     } catch (error) {
              context.res = {
