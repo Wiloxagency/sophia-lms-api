@@ -12,21 +12,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db =  await database
+
+        var pass = req.body.password
+        const hash = bcrypt.hashSync(pass, 10)
+        req.body.password = hash
+        
         const Users = db.collection('user')
         const resp = Users.insertOne(req.body)
-        var pass = req.body.password
         const body = await resp
-        const hash = bcrypt.hashSync(pass, 10);
-        bcrypt.compareSync(pass, hash);
+        
         if (body) {
             context.res = {
                 "status": 201,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": hash
+                "body": "User Created"
             }
-            
         }
 
     } catch (error) {
