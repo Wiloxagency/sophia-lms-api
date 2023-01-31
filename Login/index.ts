@@ -33,12 +33,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         } else {
             context.res = {
-                "status": 500,
+                "status": 404,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "no user found"
+                    "message": "User not found"
                 }
             }
 
@@ -48,7 +48,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         context.res = {
 
-            "status": error.status,
+            "status": 500,
 
             "headers": {
 
@@ -58,7 +58,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             "body": {
 
-                "message": error.toString()
+                "message": "Authentication error"
 
             }
 

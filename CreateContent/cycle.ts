@@ -1,11 +1,11 @@
-import { createParagraphs } from "../shared/createParagrahs";
-import { paragraphCreation } from "../interfaces/paragraph";
+import { createAudio } from "../shared/createAudios";
+import { createParagraphs } from "../shared/createParagrahs"
+import { paragraphCreation } from "../interfaces/paragraph"
 
 
 export async function createContentCycle(course: any) {
 
     let payload: paragraphCreation
-    let sectionNumber: number = 0
     if (!(course.sections && course.sections.length > 0)) {
         console.error("Course has not sections")
         return
@@ -30,16 +30,49 @@ export async function createContentCycle(course: any) {
             }
 
             console.info("payload -->", payload)
-            const currentParagraphs = await createParagraphs(payload)
-            console.info("Title -->", syllabus[currentParagraphs.index])
-            console.info("currentParagraphs -->", currentParagraphs)
 
-        });
+            // Create Content
+
+            const contentCycle = async (sectionCounter: number) => {
+
+                const currentParagraphs = await createParagraphs(payload)
+                console.info("Title -->", syllabus[currentParagraphs.sectionIndex])
+                console.info("currentParagraphs -->", currentParagraphs)
+                course.sections[currentParagraphs.sectionIndex].elements[0].paragraphs = currentParagraphs
+                sectionCounter++
+
+                // Create Audios
+                const audioCycle = async (paragraphCounter: number) => {
+                    const currentAudio = await createAudio(currentParagraphs.content[paragraphCounter], "JorgeNeural", "es", currentParagraphs.sectionIndex, 0, paragraphCounter)
+                    console.info("currentAudio -->", currentAudio)
+                    course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex] = currentAudio.url
+                    paragraphCounter++
+                    if (paragraphCounter == currentParagraphs.content.length) {
+                        console.info("Paragraphs Finished -->", currentParagraphs.sectionIndex, sectionCounter, paragraphCounter)
+                        if (sectionCounter == syllabus.length) {
+                            console.info("Course Finished ")
+                            console.info(course)
+                        } else {
+                            contentCycle(sectionCounter)
+                        }
+                        
+                    } else {
+                        audioCycle(paragraphCounter)
+                    }
+                }
+                audioCycle(0)
+
+
+            }
+            contentCycle(0)
+
+
+        })
 
 
     } catch (error) {
-        console.error("Bad structure in current course");
-        console.error(error);
+        console.error("Bad structure in current course")
+        console.error(error)
         return
     }
 

@@ -54,7 +54,7 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
     return paragraphs
 }
 
-export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; index: number; }> {
+export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
@@ -130,5 +130,5 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     const formattedData = formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1)
     const paragraphs = splitParagraphs(formattedData, true)
     //console.info("paragraphs --->", paragraphs)
-    return { "content": paragraphs, "index": index }
+    return { "content": paragraphs, "sectionIndex": index }
 }
