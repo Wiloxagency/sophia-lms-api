@@ -15,17 +15,19 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(typedPassword, salt);
         req.body.password = hash
-        bcrypt.compareSync(typedEmail, typedPassword, hash); // true
+       
         const resp = Users.aggregate([
             {
                 '$match': {
-                  'email': typedEmail,
-                  'password': typedPassword
+                  'email': typedEmail
                 }
               }])
 
         const body = await resp.toArray()
-        
+        console.info(body)
+        const savedPassword = body[0].password
+        const found = bcrypt.compareSync(savedPassword, hash); // true
+
         if (body && body.length > 0) {
             context.res = {
                 "status": 200,
