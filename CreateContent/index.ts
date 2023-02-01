@@ -60,6 +60,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case "generateByTitle":
 
             const syllabus = await createContentTable(courseTitle, maxSections, language)
+            console.info("syllabus of createContentTable --> ", syllabus)
             if (syllabus) {
 
                 syllabus.forEach( item =>{
@@ -77,16 +78,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             }
                     )
                 })
-
-                const payload: paragraphCreation = {
-                    context: courseTitle,
-                    key: "",
-                    text: syllabus[1],
-                    index:0,
-                    maxParagraphs:10,
-                    courseStructure: syllabus,
-                    language: "es"
-                }
 
                 createContentCycle(currentCourse)
 
