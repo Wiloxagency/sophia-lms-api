@@ -11,11 +11,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const db =  await database
         const Users = db.collection('user')
         const typedEmail = req.body.email
-        const typedPassword = req.body.password
-        const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync(typedPassword, salt);
-        req.body.password = hash
-       
         const resp = Users.aggregate([
             {
                 '$match': {
@@ -24,8 +19,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
               }])
 
         const body = await resp.toArray()
-        console.info(body)
         const savedPassword = body[0].password
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(savedPassword, salt);
+        //req.body.password = hash
         const found = bcrypt.compareSync(savedPassword, hash); // true
 
         if (body && body.length > 0) {
@@ -52,7 +49,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } catch (error) {
              context.res = {
 
-            "status": error.status,
+            "status": 500,
 
             "headers": {
 
