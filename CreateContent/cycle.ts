@@ -13,11 +13,14 @@ export async function createContentCycle(course: any) {
         return
     }
 
+    console.info("course.sections ---> ", course.sections)
     try {
 
         let syllabus = course.sections.map((item: any) => {
             return item.title
         })
+
+        console.info("syllabus ---> ", syllabus)
 
         //syllabus.forEach(async (title: string, sectionIndex: number) => {
 
@@ -47,6 +50,7 @@ export async function createContentCycle(course: any) {
 
                 // Create Audios
                 const audioCycle = async (paragraphCounter: number) => {
+                    console.info("Go to text to speech -->", currentParagraphs.content[paragraphCounter])
                     const currentAudio = await createAudio(currentParagraphs.content[paragraphCounter], "JorgeNeural", "es", currentParagraphs.sectionIndex, 0, paragraphCounter)
                     console.info("currentAudio -->", currentAudio)
                     course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["audioUrl"] = currentAudio.url
