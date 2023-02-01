@@ -54,13 +54,13 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
     return paragraphs
 }
 
-export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; index: number; }> {
+export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const text: string = payload.text.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const index = payload.index
-    //console.info("payload.courseStructure: ", payload.courseStructure)
+    console.info("payload.courseStructure: ", payload.courseStructure)
     const courseStructure = payload.courseStructure.map((tableItem: string, idx: number) => {
         return `${tableItem.trim()}\n`
     }).join("\n")
@@ -113,7 +113,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     }
 
 
-    //console.info("Prompt --->", prompt)
+    console.info("Prompt --->", prompt)
     const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt: prompt,
@@ -130,5 +130,5 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     const formattedData = formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1)
     const paragraphs = splitParagraphs(formattedData, true)
     //console.info("paragraphs --->", paragraphs)
-    return { "content": paragraphs, "index": index }
+    return { "content": paragraphs, "sectionIndex": index }
 }

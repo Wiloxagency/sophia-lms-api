@@ -52,7 +52,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } catch (error) {
              context.res = {
 
-            "status": error.status,
+            "status": 500,
 
             "headers": {
 

@@ -32,6 +32,7 @@ export async function createContentTable(text: string, maxSections: number, lang
             
             return splittedcontentTable
         } catch (error) {
+            console.error(error)
             return undefined
         }
     
