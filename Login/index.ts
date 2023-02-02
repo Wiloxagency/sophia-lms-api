@@ -45,7 +45,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "User not found"
+                    "message": "User with specified email does not exist"
                 }
 
             }
