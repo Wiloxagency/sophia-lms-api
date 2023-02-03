@@ -22,7 +22,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         console.info("body -->", body)
 
         if (body && body.length > 0) {
-            const hash = bcrypt.hashSync(receivedPassword, 10)
             const savedPassword = body[0].password
             const found = bcrypt.compareSync(savedPassword, hash)
             
