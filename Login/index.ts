@@ -8,13 +8,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db = await database
-        const receivedPassword = req.body.password
-        const receivedEmail = req.body.email
+        var {email, password} = req.body
         const Users = db.collection('user')
         const resp = Users.aggregate([
             {
                 '$match': {
-                    'email': receivedEmail
+                    'email': email
                 }
             }])
 
@@ -23,19 +22,28 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         if (body && body.length > 0) {
             const savedPassword = body[0].password
-            const found = bcrypt.compareSync(savedPassword, hash)
-            
-            console.info("hashDB -->", savedPassword)
-            console.info("hashBody -->", hash)
-            console.info("found -->", found)
+            const found = bcrypt.compareSync(password, savedPassword)
+            //console.info ("hashDB -->", savedPassword)
+            //console.info ("found -->", found)
 
-            context.res = {
+            if (found === false) {
+                context.res = {
+                    "status": 203,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {"message": "Invalid password"}
+                }
+
+            } else {
+                delete body[0].password,
+                context.res = {
                 "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": body[0]
-            }
+            }}
 
         } else {
             context.res = {
