@@ -8,35 +8,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
 
         const db = await database
+        var {email, password} = req.body
         const Users = db.collection('user')
-        const typedEmail = req.body.email
-        const typedPassword = req.body.password
         const resp = Users.aggregate([
             {
                 '$match': {
-                    'email': typedEmail
+                    'email': email
                 }
             }])
 
         const body = await resp.toArray()
-        //console.info("body -->", body)
+        console.info("body -->", body)
 
         if (body && body.length > 0) {
-
             const savedPassword = body[0].password
-            const salt = bcrypt.genSaltSync(10);
-            const hash = bcrypt.hashSync(typedPassword, salt);
-            //req.body.password = hash
-            const found = bcrypt.compareSync(savedPassword, hash); // true
+            const found = bcrypt.compareSync(password, savedPassword)
+            //console.info ("hashDB -->", savedPassword)
+            //console.info ("found -->", found)
 
-            //console.info("found -->", found)
-            context.res = {
+            if (found === false) {
+                context.res = {
+                    "status": 203,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {"message": "Invalid password"}
+                }
+
+            } else {
+                delete body[0].password,
+                context.res = {
                 "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": body[0]
-            }
+            }}
 
         } else {
             context.res = {
@@ -45,7 +52,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "User not found"
+                    "message": "User with specified email does not exist"
                 }
 
             }
