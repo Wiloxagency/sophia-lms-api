@@ -5,6 +5,7 @@ import {
     conclusionsGeneration
 } from "./gpt3.prompt";
 import { paragraphCreation } from "../interfaces/paragraph";
+import { saveLog } from './saveLog';
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -128,6 +129,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
         return { "content": paragraphs, "sectionIndex": index }
 
     } catch (error) {
+        await saveLog(`Error creating Paragraph for course: ${payload.courseCode}.`, "Error", "createParagraphs()", "Courses/{courseCode}/CreateContent")
         console.error(error)
         return { "content": null, "sectionIndex": index }
     }

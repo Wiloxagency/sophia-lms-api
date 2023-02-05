@@ -3,6 +3,7 @@ import { isoLanguage } from "./gpt3.prompt"
 import rp = require('request-promise')
 import { v4 as uuidv4 } from 'uuid'
 import xmlbuilder = require("xmlbuilder")
+import { saveLog } from "./saveLog"
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
@@ -65,6 +66,7 @@ export async function createAudio(
     text: string,
     voice: string,
     language: string,
+    courseCode: string,
     sectionIndex: number,
     elementIndex: number,
     paragraphIndex: number
@@ -89,7 +91,7 @@ export async function createAudio(
         return {url:audioUrl, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex}
 
     } catch (err) {
-        console.error(`Something went wrong with audio --> `,sectionIndex,  elementIndex, paragraphIndex)
+        await saveLog(`Error creating audio for course: ${courseCode}, sectionIndex ${sectionIndex}, elementIndex ${elementIndex}, paragraphIndex ${paragraphIndex}.`, "Error", "createAudio()", "Courses/{courseCode}/CreateContent")
         return {url:undefined, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex}
     }
 }

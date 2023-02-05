@@ -5,6 +5,7 @@ export interface paragraphCreation {
     index: number
     maxParagraphs: number
     courseStructure: string[]
-    language: string
+    language: string,
+    courseCode: string
     options?: { courseLevel: number, fromAge: number, toAge: number }
 }

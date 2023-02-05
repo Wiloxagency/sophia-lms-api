@@ -4,6 +4,7 @@ import { Configuration, OpenAIApi } from 'openai'
 import { titleExtraction } from "./gpt3.prompt"
 import sharp = require('sharp')
 import { v4 as uuidv4 } from 'uuid'
+import { saveLog } from './saveLog'
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -25,17 +26,27 @@ const configBing = {
     }
 }
 
-async function searchBingImages(urlBing: string) {
+async function searchBingImages(urlBing: string, courseCode: string) {
     try {
         return await axios.get(urlBing, configBing).then(async result => { return result })
     } catch (error) {
+    
         console.error("Error searching Bing images --> ", error)
+        await saveLog(`Error creating an image for course: ${courseCode}.`, "Error", "searchBingImages()", "Courses/{courseCode}/CreateContent")
+
         return { data: { value: [] } }
     }
 
 }
 
-export async function findImages(paragraph: string, sectionTitle: string, courseTitle: string, imageAspect: string, language: string, imagesIds: string[]): Promise<{ image: {}, thumb: {}, finalImage:{}, imagesIds: string[], urlBing: string }> {
+export async function findImages(
+    paragraph: string, 
+    sectionTitle: string, 
+    courseTitle: string, 
+    imageAspect: string, 
+    language: string, 
+    imagesIds: string[], 
+    courseCode:string): Promise<{ image: {}, thumb: {}, finalImage:{}, imagesIds: string[], urlBing: string }> {
     /*
     imageAspect	Filter images by the following aspect ratios:
     Square — Return images with standard aspect ratio.
@@ -61,6 +72,7 @@ export async function findImages(paragraph: string, sectionTitle: string, course
         imgByKeyword = titleAIObj.data.choices[0].text.replace(/[\r\n]/gm, '').trim()
     } catch (error) {
         console.error("Error trying to extract a title --> ", error)
+        await saveLog(`Error trying to extract a title for course: ${courseCode}.`, "Error", "findImages()", "Courses/{courseCode}/CreateContent")
     }
 
     const imgQueryOptions = "&minWidth=1200&aspect=Wide&imageType=Photo"
@@ -81,7 +93,7 @@ export async function findImages(paragraph: string, sectionTitle: string, course
 
     ]
 
-    const searchImages = await searchBingImages(urlsBing[0])
+    const searchImages = await searchBingImages(urlsBing[0], courseCode)
 
     let images: string[] = searchImages.data["value"]
 
@@ -107,12 +119,13 @@ export async function findImages(paragraph: string, sectionTitle: string, course
             //console.info("finalImage: 1", finalImage)
             return { image: foundImage, thumb: foundThumb, finalImage: finalImage, imagesIds: [], urlBing: urlsBing[0] }
         } catch (error) {
-            console.error("Error procesando imagen de sección: ", sectionTitle, foundImage.url)
+            await saveLog(`Error processing image for course: ${courseCode}, sectionTitle: ${sectionTitle}, foundImage.url: ${foundImage.url}`, "Error", "findImages()", "Courses/{courseCode}/CreateContent")
             return { image: foundImage, thumb: foundThumb, finalImage: {}, imagesIds: [], urlBing: urlsBing[0] }
         }
         
     } else {
-        console.info("Imagen no encontrada en sección: ", sectionTitle)
+        await saveLog(`Image not found for course: ${courseCode}, sectionTitle: ${sectionTitle}`, "Warning", "findImages()", "Courses/{courseCode}/CreateContent")
+
         return { image: {}, thumb: {}, finalImage: {}, imagesIds: [], urlBing: urlsBing[0] }
 
     }

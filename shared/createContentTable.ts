@@ -1,11 +1,12 @@
 import { Configuration, OpenAIApi } from 'openai'
 import { contentTable } from "./gpt3.prompt";
+import { saveLog } from './saveLog';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function createContentTable(text: string, maxSections: number, language: string): Promise<string[]> {
+export async function createContentTable(text: string, maxSections: number, language: string, courseCode: string): Promise<string[]> {
 
     const openai = new OpenAIApi(configuration);
 
@@ -34,6 +35,7 @@ export async function createContentTable(text: string, maxSections: number, lang
             return splittedcontentTable
         } catch (error) {
             console.error(error)
+            await saveLog(`Error creating Content Table for course: ${courseCode}.`, "Error", "createContentTable()", "Courses/{courseCode}/CreateContent")
             return undefined
         }
     
