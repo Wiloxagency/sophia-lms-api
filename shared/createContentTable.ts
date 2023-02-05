@@ -1,11 +1,12 @@
 import { Configuration, OpenAIApi } from 'openai'
 import { contentTable } from "./gpt3.prompt";
-// OpenAI Credentials
+
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function createContentTable(text: string, maxSections: number, language: string): Promise<string[]> {
+
     const openai = new OpenAIApi(configuration);
 
     const prompt = contentTable[language]["prompt"].

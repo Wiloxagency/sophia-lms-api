@@ -16,7 +16,6 @@ const options = {
 async function createConnection() {
   const connection = await MongoClient.connect(config.url, options)
   const db = connection.db(config.dbName);
-
   return db
 }
 

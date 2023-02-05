@@ -3,17 +3,17 @@ export const contentGeneration = {
     es: {
         matches: [], 
         age: "\nEl lenguaje utilizado debe ser v{courseLevel} y apropiado para alumnos de edades comprendidas entre los v{fromAge} hasta los v{toAge} años.",
-        notInclude: "NO INCLUIR",
+        notInclude: "NO INCLUIR información relacionada con: ",
         prompt: "Tienes un curso con el siguiente título:\n\nv{context}\n\nEl índice del curso contiene las siguientes secciones:\n\nv{courseStructure}\n\nEn el contexto del curso mencionado, desarrollar sólo el ítem v{numSection}: v{text}.\n\nEl contenido creado deberá cumplir con lo siguientes criterios:\n\nDebe estar dividido en  párrafos de 30 palabras cada uno.\nLos párrafos deben ser relevantes.\nLos párrafos no deben ser redundantes en el contenido.\nNo incluir en un ítem información que perteneazca a cualquiera de los otros ítems  del curso.\nLos párrafos deberán ser los mas extensos posibles pero concisos respecto al ítem v{numSection}.v{age}\nLos párrafos deben analizarse y en caso de existir errores gramaticales o sintácticos se deberan corregir.\nv{notInclude}\n\nDe v{text}, podemos mencionar que"
     }, 
     en: {
         matches: [],
-        notInclude: "DO NOT INCLUDE",
+        notInclude: "DO NOT INCLUDE information about: ",
         prompt: "There is a course with the following title:\n\nv{context}\n\nThe syllabus of the course is:\n\nv{courseStructure}\n\nIn the context of this course, generate content only for item v{numSection}: v{text}.\n\nThe content created must meet the following criteria:\n\nIt must be divided into paragraphs of 30 words each.\nParagraphs must be relevant.\nParagraphs should not be redundant in content.\nDo not generate information that pertains to any of the other course items.\nThe paragraphs should be as long as possible but concise regarding item {numSection}.\nThe paragraphs must be analyzed and if there are grammatical or syntactic errors, they must be corrected.\nv{notInclude}\n\nOf v{text}, can mention that"
     },
     pt: {
         matches: [], 
-        notInclude: "NÃO INCLUIR",
+        notInclude: "NÃO INCLUIR informações relacionadas a: ",
         prompt: "Tem um curso com o seguinte título:\n\nv{context}\n\nO índice do curso contém as seguintes seções:\n\nv{courseStructure}\n\nNo contexto do curso mencionado, desenvolver apenas o item v{numSection}: v{text}.\n\nO conteúdo criado deve atender aos seguintes critérios:\n\nDeve ser dividido em parágrafos de 30 palavras cada.\nOs parágrafos devem ser relevantes.\nOs parágrafos não devem ser redundantes em conteúdo.\nNão incluir em um item informações que pertençam a qualquer um dos outros itens do curso.\nOs parágrafos devem ser tão longos quanto possível, mas concisos em relação ao item v{numSection}.\nOs parágrafos devem ser analisados e se houver erros gramaticais ou sintáticos, devem ser corrigidos.\nv{notInclude}\n\nDo v{text}, podemos dizer que"
     }, 
 }

@@ -60,7 +60,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case "generateByTitle":
 
             const syllabus = await createContentTable(courseTitle, maxSections, language)
-            console.info("syllabus of createContentTable --> ", syllabus)
+            //console.info("syllabus of createContentTable --> ", syllabus)
             if (syllabus) {
 
                 syllabus.forEach( item =>{

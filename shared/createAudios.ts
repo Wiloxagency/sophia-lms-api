@@ -1,12 +1,13 @@
 import azure = require("azure-storage")
-import { v4 as uuidv4 } from 'uuid'
-import rp = require('request-promise')
 import { isoLanguage } from "./gpt3.prompt"
+import rp = require('request-promise')
+import { v4 as uuidv4 } from 'uuid'
 import xmlbuilder = require("xmlbuilder")
 
-// Gets an access token.
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
+const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
+
 function getAccessToken(subscriptionKey: string) {
-    //console.log('Token...')
     let options = {
         method: 'POST',
         uri: 'https://eastus2.api.cognitive.microsoft.com/sts/v1.0/issuetoken',
@@ -17,11 +18,8 @@ function getAccessToken(subscriptionKey: string) {
     return rp(options);
 }
 
-const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
-const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
-
 function textToSpeech(accessToken: string, text: string, writableStream: any, voice: string, language: string) {
-    console.log('______________', voice, language, '______________')
+
     const languageCode = isoLanguage[language]
 
     return new Promise((resolve, reject) => {
@@ -34,9 +32,9 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
                 .att("xml:lang", "en-us")
                 .att('name', 'Microsoft Server Speech Text to Speech Voice (' + languageCode + ', ' + voice + ')')
                 .txt(text)
-                .end();
-            // Convert the XML into a string to send in the TTS request.
-            let body = xml_body.toString();
+                .end()
+
+            let body = xml_body.toString()
 
             let options = {
                 method: "POST",
@@ -50,15 +48,15 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
                     "Content-Type": "application/ssml+xml",
                 },
                 body: body,
-            };
+            }
 
             rp(options)
                 .pipe(writableStream)
                 .on("finish", () => {
-                    resolve("done");
+                    resolve("done")
                 });
         } catch (error) {
-            reject(error);
+            reject(error)
         }
     });
 }
@@ -72,7 +70,6 @@ export async function createAudio(
     paragraphIndex: number
 ): Promise<{url:string, sectionIndex: number, elementIndex: number, paragraphIndex: number}> {
 
-    // console.info("Go to create audio files from paragraphs...")
     const mp3Name = uuidv4() + ".mp3"
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY)
@@ -89,13 +86,10 @@ export async function createAudio(
         )
         await textToSpeech(accessToken, text, writableStream, voice, language)
         const audioUrl = blobService.getUrl("speeches") + "/" + mp3Name
-        // console.log("audioUrl outside:", audioUrl)
         return {url:audioUrl, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex}
 
     } catch (err) {
         console.error(`Something went wrong with audio --> `,sectionIndex,  elementIndex, paragraphIndex)
         return {url:undefined, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex}
     }
-
-    
 }
