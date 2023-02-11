@@ -10,12 +10,71 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const db = await database
         var {email, password} = req.body
         const Users = db.collection('user')
-        const resp = Users.aggregate([
-            {
-                '$match': {
+        const resp = Users.aggregate(
+            [
+                {
+                  '$match': {
                     'email': email
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'role',
+                    'localField': 'role',
+                    'foreignField': 'name',
+                    'as': 'permissionsExpanded'
+                  }
+                }, {
+                  '$unwind': {
+                    'path': '$permissionsExpanded'
+                  }
+                }, {
+                  '$addFields': {
+                    'permissions': '$permissionsExpanded.permissions'
+                  }
+                }, {
+                  '$project': {
+                    'permissionsExpanded': 0
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'organization',
+                    'localField': 'company',
+                    'foreignField': 'name',
+                    'as': 'organization'
+                  }
+                }, {
+                  '$unwind': {
+                    'path': '$organization'
+                  }
+                }, {
+                  '$addFields': {
+                    'organizationTheme': '$organization.theme'
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'theme',
+                    'localField': 'organizationTheme',
+                    'foreignField': 'name',
+                    'as': 'organizationTheme'
+                  }
+                }, {
+                  '$unwind': {
+                    'path': '$organizationTheme'
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'membership',
+                    'localField': 'organization.membershipCode',
+                    'foreignField': 'code',
+                    'as': 'membership'
+                  }
+                }, {
+                  '$unwind': {
+                    'path': '$membership'
+                  }
                 }
-            }])
+              ]
+            )
 
         const body = await resp.toArray()
         console.info("body -->", body)
@@ -47,12 +106,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         } else {
             context.res = {
-                "status": 404,
+                "status": 204,
                 "headers": {
                     "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "User with specified email does not exist"
                 }
 
             }
