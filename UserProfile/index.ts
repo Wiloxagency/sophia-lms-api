@@ -114,7 +114,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "Content-Type": "application/json"
             },
             "body": {
-                "message": "Error calculando totales"
+                "message": "Error in UserProfile method"
             }
         }
 

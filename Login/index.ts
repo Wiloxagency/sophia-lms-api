@@ -77,7 +77,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             )
 
         const body = await resp.toArray()
-        console.info("body -->", body)
+        //console.info("body -->", body)
 
         if (body && body.length > 0) {
             const savedPassword = body[0].password

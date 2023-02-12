@@ -6,12 +6,9 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "get",
-        "post",
-        "put",
-        "delete"
+        "get"
       ],
-      "route": "Courses/{courseCode}"
+      "route": "OwnerCourses/{ownerCode}"
     },
     {
       "type": "http",
@@ -19,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Course/index.js"
+  "scriptFile": "../dist/CoursesByOwner/index.js"
 }
