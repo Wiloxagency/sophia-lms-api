@@ -11,7 +11,7 @@
         "put",
         "delete"
       ],
-      "route": "Courses/{courseCode}"
+      "route": "Courses/{courseCode?}"
     },
     {
       "type": "http",

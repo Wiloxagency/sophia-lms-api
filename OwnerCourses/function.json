@@ -8,7 +8,7 @@
       "methods": [
         "get"
       ],
-      "route": "OwnerCourses/{ownerCode}"
+      "route": "Users/{userCode}/OwnerCourses"
     },
     {
       "type": "http",
@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/CoursesByOwner/index.js"
+  "scriptFile": "../dist/OwnerCourses/index.js"
 }

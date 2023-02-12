@@ -8,7 +8,7 @@ var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const ownerCode = req.params.ownerCode
+    const ownerCode = req.params.userCode
     console.info("ownerCode-->", ownerCode)
 
     try {
