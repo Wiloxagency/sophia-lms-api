@@ -15,12 +15,18 @@ export async function createContentCycle(course: any) {
         return
     }
 
+    const db = await database
+    const Course = db.collection("course")
+    
+    await Course.findOneAndUpdate({ code: course.code }, {
+        $set: { sections: course.sections }
+    })
+
     const startCreation = new Date()
     let totalParagraphCounter = 0
     await saveLog(`Start content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
-    const db = await database
-    const Course = db.collection("course")
+    
 
     try {
 
