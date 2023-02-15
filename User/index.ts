@@ -84,13 +84,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 userAggregation(userCode)
             )
             const body = await resp.toArray()
-            if (body) {
+            if (body && body.length > 0 ) {
                 context.res = {
                     "status": 200,
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": body
+                    "body": body[0]
                 }
             } else {
                 context.res = {
