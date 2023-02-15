@@ -4,7 +4,8 @@ import { Configuration, OpenAIApi } from 'openai'
 import { titleExtraction } from "./gpt3.prompt"
 import sharp = require('sharp')
 import { v4 as uuidv4 } from 'uuid'
-import { saveLog } from './saveLog'
+import { saveLog } from '../shared/saveLog'
+import { extractTitle } from './titleExtraction'
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -41,6 +42,7 @@ async function searchBingImages(urlBing: string, courseCode: string) {
 
 export async function findImages(
     paragraph: string, 
+    paragraphTitle:string,
     sectionTitle: string, 
     courseTitle: string, 
     imageAspect: string, 
@@ -55,32 +57,12 @@ export async function findImages(
     All — Do not filter by aspect. Specifying this value is the same as not specifying the aspect parameter.
     */
 
-    const prompt = titleExtraction[language]["prompt"].
-        replace(/v{text}/g, paragraph)
-    let titleAIObj: any
-    let imgByKeyword = ""
-    try {
-        titleAIObj = await openai.createCompletion({
-            model: "text-davinci-003",
-            prompt: prompt,
-            temperature: 0.2,
-            max_tokens: 500,
-            top_p: 1,
-            frequency_penalty: 0.5,
-            presence_penalty: 0,
-        })
-        imgByKeyword = titleAIObj.data.choices[0].text.replace(/[\r\n]/gm, '').trim()
-    } catch (error) {
-        console.error("Error trying to extract a title --> ", error)
-        await saveLog(`Error trying to extract a title for course: ${courseCode}.`, "Error", "findImages()", "Courses/{courseCode}/CreateContent")
-    }
-
     const imgQueryOptions = "&minWidth=1200&aspect=Wide&imageType=Photo"
     const bingUrlBase = "https://api.bing.microsoft.com/v7.0/images/search?q="
     let urlsBing: string[] = [
 
         bingUrlBase +
-        encodeURIComponent(courseTitle + " " + sectionTitle + " " + imgByKeyword) +
+        encodeURIComponent(courseTitle + " " + sectionTitle + " " + paragraphTitle) +
         imgQueryOptions,
 
         bingUrlBase +

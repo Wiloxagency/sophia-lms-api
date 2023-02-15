@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-import { createContentTable } from "../shared/createContentTable";
+import { createContentTable } from "./createContentTable";
 
 import { Db } from "mongodb";
 import { createContentCycle } from "./cycle";

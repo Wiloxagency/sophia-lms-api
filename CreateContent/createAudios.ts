@@ -3,7 +3,7 @@ import { isoLanguage } from "./gpt3.prompt"
 import rp = require('request-promise')
 import { v4 as uuidv4 } from 'uuid'
 import xmlbuilder = require("xmlbuilder")
-import { saveLog } from "./saveLog"
+import { saveLog } from "../shared/saveLog"
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY

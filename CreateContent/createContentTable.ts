@@ -1,6 +1,6 @@
 import { Configuration, OpenAIApi } from 'openai'
 import { contentTable } from "./gpt3.prompt";
-import { saveLog } from './saveLog';
+import { saveLog } from '../shared/saveLog';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,

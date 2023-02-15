@@ -1,9 +1,10 @@
-import { createAudio } from "../shared/createAudios";
+import { createAudio } from "./createAudios";
 import { createConnection } from "../shared/mongo";
-import { createParagraphs } from "../shared/createParagrahs"
-import { findImages } from "../shared/findImages";
+import { createParagraphs } from "./createParagrahs"
+import { findImages } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph"
 import { saveLog } from "../shared/saveLog";
+import { extractTitle } from "./titleExtraction";
 
 const database = createConnection()
 
@@ -63,7 +64,11 @@ export async function createContentCycle(course: any) {
                 console.info(`Audio for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["audioUrl"] = currentAudio.url
 
-                const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], payload.text, course.details.title, "wide", "es", [], course.code)
+                const extractedTitle = await extractTitle(currentParagraphs.content[paragraphCounter], "es", course.code)
+                console.info(`Title for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
+                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
+
+                const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
 

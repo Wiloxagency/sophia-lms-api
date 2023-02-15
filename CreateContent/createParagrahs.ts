@@ -5,7 +5,7 @@ import {
     conclusionsGeneration
 } from "./gpt3.prompt";
 import { paragraphCreation } from "../interfaces/paragraph";
-import { saveLog } from './saveLog';
+import { saveLog } from '../shared/saveLog';
 
 // OpenAI Credentials
 const configuration = new Configuration({
