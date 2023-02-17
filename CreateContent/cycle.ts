@@ -69,6 +69,7 @@ export async function createContentCycle(course: any) {
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
 
                 const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
+                console.info("currentImageData -->", currentImageData)
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
 

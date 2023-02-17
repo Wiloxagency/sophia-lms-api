@@ -5,7 +5,7 @@ const database = createConnection()
 export async function saveLog(message: string, logType: string, functionName: string, endpoint: string) {
     let date = new Date()
     const logPayload = {
-        message:message,
+        message: message,
         timestamp: date.toLocaleString("pt-BR"),
         endpoint: endpoint,
         functionName: functionName,
@@ -15,14 +15,24 @@ export async function saveLog(message: string, logType: string, functionName: st
     try {
         const db = await database
         const Log = db.collection("log")
-        if (logType == "Error") {
-            console.error(logPayload)
-        } else {
-            console.info(logPayload)
+
+        switch (logType) {
+            case "Error":
+                console.error(logPayload)
+                break;
+
+            case "Warning":
+                console.warn(logPayload)
+                break;
+
+            default:
+                console.info(logPayload)
+                break;
         }
+
         await Log.insertOne(logPayload)
     } catch (error) {
         console.error("Fatal error", error)
     }
-    
+
 }
