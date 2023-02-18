@@ -18,7 +18,7 @@ export async function createContentCycle(course: any) {
 
     const db = await database
     const Course = db.collection("course")
-    
+
     await Course.findOneAndUpdate({ code: course.code }, {
         $set: { sections: course.sections }
     })
@@ -27,7 +27,7 @@ export async function createContentCycle(course: any) {
     let totalParagraphCounter = 0
     await saveLog(`Start content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
-    
+
 
     try {
 
@@ -69,9 +69,13 @@ export async function createContentCycle(course: any) {
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
 
                 const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
-                console.info("currentImageData -->", currentImageData)
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                 course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
+                //create an empty video structure too
+                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["videoData"] = {
+                    thumb: {url: "", width: 0, height: 0 },
+                    finalVideo:  {url: "", width: 0, height: 0 }
+                }
 
                 paragraphCounter++
                 totalParagraphCounter++

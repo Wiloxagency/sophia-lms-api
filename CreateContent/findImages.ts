@@ -110,7 +110,6 @@ export async function findImages(
                 finalImage.url = blockBlobClient.url
                 finalImage.width = 1200
                 finalImage.height = 675
-                console.info("finalImage -->", finalImage)
                 response = { image: foundImage, thumb: foundThumb, finalImage: finalImage, imagesIds: [], urlBing: urlsBing[0] }
             } catch (error) {
                 if (retryCounter < 3 && images.length > retryCounter) {
