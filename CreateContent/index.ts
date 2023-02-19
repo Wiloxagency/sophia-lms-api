@@ -21,12 +21,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const maxParagraphs = req.body.maxParagraphs
     const language = req.body.language ? req.body.language : "es"
     const lessonTheme = req.body.lessonTheme
+    const contentTable = req.body.contentTable
 
     try {
 
         db = await database
         const Courses = db.collection('course')
-        const resp = Courses.findOne({ "code": courseCode})
+        const resp = Courses.findOne({ "code": courseCode })
 
         const body = await resp
 
@@ -54,29 +55,34 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const addSections = (syllabus: string[], currentCourse: {}): {} => {
+        syllabus.forEach(item => {
+            currentCourse["sections"].push(
+                {
+                    "title": item,
+                    "elements": [
+                        {
+                            "type": "Lección Engine",
+                            "title": "Presentation",
+                            "lessonTheme": lessonTheme,
+                            "paragraphs": []
+                        }
+                    ]
+                }
+            )
+        })
+        return currentCourse
+    }
+
     switch (generationType) {
 
         case "generateByTitle":
 
             const syllabus = await createContentTable(courseTitle, maxSections, language, courseCode)
-            
+
             if (syllabus) {
 
-                syllabus.forEach( item =>{
-                    currentCourse["sections"].push(
-                            {
-                              "title": item,
-                              "elements": [
-                                {
-                                  "type": "Lección Engine",
-                                  "title": "Presentation",
-                                  "lessonTheme": lessonTheme,
-                                  "paragraphs": []
-                                }
-                              ]
-                            }
-                    )
-                })
+                currentCourse = addSections(syllabus, currentCourse)
 
                 createContentCycle(currentCourse)
 
@@ -88,7 +94,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": currentCourse
                 }
 
-                
+
+
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating syllabus"
+                    }
+                }
+            }
+
+            break;
+
+        case "generateByStructure":
+
+            if (contentTable) {
+
+                currentCourse = addSections(contentTable, currentCourse)
+
+                createContentCycle(currentCourse)
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": currentCourse
+                }
+
 
             } else {
                 context.res = {
