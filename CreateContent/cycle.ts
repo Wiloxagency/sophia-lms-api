@@ -40,7 +40,7 @@ export async function createContentCycle(course: any) {
             key: "",
             text: "",
             index: 0,
-            maxParagraphs: 10,
+            maxParagraphs: 15,
             courseStructure: syllabus,
             language: "es",
             courseCode: course.code
@@ -53,7 +53,7 @@ export async function createContentCycle(course: any) {
             payload.index = sectionCounter
             const currentParagraphs = await createParagraphs(payload)
             course.sections[currentParagraphs.sectionIndex].elements[0].paragraphs = currentParagraphs.content.map((text: string) => {
-                return { content: text }
+                return { content: text, audioScript: text }
             })
             sectionCounter++
 
