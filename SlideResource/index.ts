@@ -87,7 +87,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let setKey: string
             let resourceField: string
             let output: Buffer
-            let temp: any
             switch (resourceType) {
                 case 'video':
                     containerClient = blobServiceClient.getContainerClient("videos")
@@ -95,10 +94,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     blobName +=  ".mp4"
                     output = resourceBuffer
                     resourceField = `sections.${sectionIndex}.elements.${elementIndex}.paragraphs.${slideIndex}.videoData.finalVideo.url`
-                    if (output.values()) {
-                        console.info("Values-->", output.values())
-                        temp = output
-                    }
                     break;
                 case 'image':
                     output = await sharp(resourceBuffer)
@@ -136,8 +131,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                //"body": { "url": blockBlobClient.url }temp
-                "body": { "temp": temp }
+                "body": { "url": blockBlobClient.url }            
             }
 
 
