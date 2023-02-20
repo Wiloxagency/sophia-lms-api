@@ -35,7 +35,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const blobName = uuidv4() + ".jpeg"
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
             await blockBlobClient.upload(output, output.length);
-            const imageField = `sections.${sectionIndex}.elements.${elementIndex}.paragraphs.${slideIndex}.imageData.finalImage.url`
+            const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
 
             const resp = Courses.findOneAndUpdate({ code: courseCode }, {
                 $set: {
@@ -93,7 +93,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     setKey = "videoUrl"
                     blobName +=  ".mp4"
                     output = resourceBuffer
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.paragraphs.${slideIndex}.videoData.finalVideo.url`
+                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
                     break;
                 case 'image':
                     output = await sharp(resourceBuffer)
@@ -103,7 +103,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     containerClient = blobServiceClient.getContainerClient("images")
                     blobName +=  ".jpeg"
                     setKey = "imgUrl"
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.paragraphs.${slideIndex}.imageData.finalImage.url`
+                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
                     break;
 
                 default:

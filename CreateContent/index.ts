@@ -64,8 +64,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         {
                             "type": "Lección Engine",
                             "title": "Presentation",
-                            "lessonTheme": lessonTheme,
-                            "paragraphs": []
+                            "elementLesson": {
+                                "lessonTheme": lessonTheme,
+                                "paragraphs": []
+                            }
+
                         }
                     ]
                 }

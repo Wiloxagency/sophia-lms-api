@@ -52,7 +52,7 @@ export async function createContentCycle(course: any) {
             payload.text = course.sections[sectionCounter].title
             payload.index = sectionCounter
             const currentParagraphs = await createParagraphs(payload)
-            course.sections[currentParagraphs.sectionIndex].elements[0].paragraphs = currentParagraphs.content.map((text: string) => {
+            course.sections[currentParagraphs.sectionIndex].elements[0].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
                 return { content: text, audioScript: text }
             })
             sectionCounter++
@@ -62,17 +62,17 @@ export async function createContentCycle(course: any) {
 
                 const currentAudio = await createAudio(currentParagraphs.content[paragraphCounter], "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, 0, paragraphCounter)
                 console.info(`Audio for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
-                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["audioUrl"] = currentAudio.url
+                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["audioUrl"] = currentAudio.url
 
                 const extractedTitle = await extractTitle(currentParagraphs.content[paragraphCounter], "es", course.code)
                 console.info(`Title for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
-                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
+                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
 
                 const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
-                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
+                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
                 //create an empty video structure too
-                course.sections[currentAudio.sectionIndex].elements[0].paragraphs[currentAudio.paragraphIndex]["videoData"] = {
+                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["videoData"] = {
                     thumb: {url: "", width: 0, height: 0 },
                     finalVideo:  {url: "", width: 0, height: 0 }
                 }
