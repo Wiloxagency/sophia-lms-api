@@ -5,6 +5,7 @@ import { findImages } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph"
 import { saveLog } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
+import { createPhraseKeywords } from "./createPhraseKeywords";
 
 const database = createConnection()
 
@@ -60,23 +61,31 @@ export async function createContentCycle(course: any) {
             // Create Audios & find images
             const multimediaCycle = async (paragraphCounter: number) => {
 
-                const currentAudio = await createAudio(currentParagraphs.content[paragraphCounter], "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, 0, paragraphCounter)
+                const paragraphContent = currentParagraphs.content[paragraphCounter]
+                const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, 0, paragraphCounter)
+                const currentParagrah = course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]
                 console.info(`Audio for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
-                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["audioUrl"] = currentAudio.url
+                currentParagrah["audioUrl"] = currentAudio.url
 
-                const extractedTitle = await extractTitle(currentParagraphs.content[paragraphCounter], "es", course.code)
+                const extractedTitle = await extractTitle(paragraphContent, "es", course.code)
                 console.info(`Title for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
-                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["titleAI"] = extractedTitle.title
+                currentParagrah["titleAI"] = extractedTitle.title
 
-                const currentImageData = await findImages(currentParagraphs.content[paragraphCounter], extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
+                const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
-                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["imageData"] = currentImageData
+                currentParagrah["imageData"] = currentImageData
+  
+                const keyPhrases = await createPhraseKeywords(paragraphContent, "es")
+                currentParagrah["keyPhrases"] = keyPhrases
+                console.info(`KeyPhrases for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+
                 //create an empty video structure too
-                course.sections[currentAudio.sectionIndex].elements[0].elementLesson.paragraphs[currentAudio.paragraphIndex]["videoData"] = {
+                currentParagrah["videoData"] = {
                     thumb: {url: "", width: 0, height: 0 },
                     finalVideo:  {url: "", width: 0, height: 0 }
                 }
 
+                
                 paragraphCounter++
                 totalParagraphCounter++
 
