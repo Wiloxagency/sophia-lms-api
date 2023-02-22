@@ -7,8 +7,10 @@
       "name": "req",
       "methods": [
         "get",
+        "put",
         "post"
-      ]
+      ],
+      "route": "Group/{groupCode?}"
     },
     {
       "type": "http",
