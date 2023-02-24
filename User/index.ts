@@ -1,6 +1,4 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { nextTick } from "process";
-import { phraseKeywords } from "../CreateContent/gpt3.prompt";
 import { createConnection } from "../shared/mongo";
 import { userAggregation } from "./aggregation";
 const bcrypt = require("bcrypt")

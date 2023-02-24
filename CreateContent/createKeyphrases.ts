@@ -1,16 +1,16 @@
 import { Configuration, OpenAIApi } from "openai";
-import { phraseKeywords } from "./gpt3.prompt";
+import { keyphrases } from "./gpt3.prompt";
 
 // OpenAI Credentials
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function createPhraseKeywords(text: string, language:string ): Promise< string[]> {
+export async function createkeyphrases(text: string, language:string ): Promise< string[]> {
     
     const openai = new OpenAIApi(configuration);
     
-    const prompt = phraseKeywords[language]["prompt"].
+    const prompt = keyphrases[language]["prompt"].
         replace(/v{text}/g, text.trim())
 
     const response = await openai.createCompletion({

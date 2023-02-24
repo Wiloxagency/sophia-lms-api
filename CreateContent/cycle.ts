@@ -5,7 +5,7 @@ import { findImages } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph"
 import { saveLog } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
-import { createPhraseKeywords } from "./createPhraseKeywords";
+import { createkeyphrases } from "./createKeyphrases";
 
 const database = createConnection()
 
@@ -75,7 +75,7 @@ export async function createContentCycle(course: any) {
                 console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                 currentParagrah["imageData"] = currentImageData
   
-                const keyPhrases = await createPhraseKeywords(paragraphContent, "es")
+                const keyPhrases = await createkeyphrases(paragraphContent, "es")
                 currentParagrah["keyPhrases"] = keyPhrases
                 console.info(`KeyPhrases for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
 

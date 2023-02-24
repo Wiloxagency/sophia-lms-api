@@ -103,7 +103,7 @@ export const contentTableInstructionalDesign = {
 }
 
 // Phrase key extration
-export const phraseKeywords = {
+export const keyphrases = {
     es : {
         prompt: "Extraer frases claves que representen ideas principales del siguiente texto:\n\n###\n\nv{text}\n\n###\n\n"
     },
