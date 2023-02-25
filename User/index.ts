@@ -82,7 +82,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 userAggregation(userCode)
             )
             const body = await resp.toArray()
-            if (body && body.length > 0 ) {
+            if (body && body.length > 0) {
                 context.res = {
                     "status": 200,
                     "headers": {
@@ -99,7 +99,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
 
             }
-            
+
         } catch (error) {
 
         }
@@ -108,7 +108,30 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const getUsers = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const resp = Users.find({})
+            const body = await resp.toArray()
+            if (body && body.length > 0) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 204,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                }
 
+            }
+        } catch (error) {
+        }
     }
 
 
