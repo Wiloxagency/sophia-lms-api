@@ -1,17 +1,47 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 
+import { Db } from "mongodb";
+import { createConnection } from "../shared/mongo";
+
+const database = createConnection()
+var db: Db
+
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    context.log('HTTP trigger function processed a request.');
-    const name = (req.query.name || (req.body && req.body.name));
-    const responseMessage = name
-        ? "Hello, " + name + ". This HTTP triggered function executed successfully."
-        : "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.";
+    try {
+        db = await database
+        const Courses = db.collection('course')
+        const resp = Courses.find({ organizationCode: req.params.organizationCode }).sort({ _id: -1 })
+        const body = await resp.toArray()
+        if (body) {
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": body
+            }
+        } else {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error Getting organization courses"
+                }
+            }
+        }
+    } catch (error) {
+        context.res = {
+            "status": 500,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": {
+                "message": "Error in organizationCourse method"
+            }
+        }
+    }
+}
 
-    context.res = {
-        // status: 200, /* Defaults to 200 */
-        body: responseMessage
-    };
-
-};
-
-export default httpTrigger;
+export default httpTrigger
