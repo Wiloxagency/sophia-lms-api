@@ -13,10 +13,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const db = await database
     const Courses = db.collection('course')
 
-    const uploadResource = async (req: HttpRequest) => {
-
+    const uploadFile = async (req: HttpRequest) => {
         try {
-
             const { fields, files } = await parseMultipartFormData(req)
             const responseMessage = {
                 fields,
@@ -24,56 +22,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
             const courseCode = responseMessage.fields[0].value
             const sectionIndex = responseMessage.fields[1].value
-            const elementIndex = responseMessage.fields[2].value
-            const slideIndex = responseMessage.fields[3].value
-            const resourceType = responseMessage.fields[4].value
+            const output = responseMessage.files[0].bufferFile as Buffer
+            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+            const containerClient = blobServiceClient.getContainerClient("files")
+            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
+            await blockBlobClient.upload(output, output.length)
 
-            const resourceBuffer = responseMessage.files[0].bufferFile as Buffer
-            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-            let blobName = uuidv4()
-            let containerClient: ContainerClient
-            let setKey: string
-            let resourceField: string
-            let output: Buffer
-            switch (resourceType) {
-                case 'video':
-                    containerClient = blobServiceClient.getContainerClient("videos")
-                    setKey = "videoUrl"
-                    blobName += ".mp4"
-                    output = resourceBuffer
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
-                    break;
-                case 'image':
-                    output = await sharp(resourceBuffer)
-                        .resize(1200, 675)
-                        .jpeg()
-                        .toBuffer();
-                    containerClient = blobServiceClient.getContainerClient("images")
-                    blobName += ".jpeg"
-                    setKey = "imgUrl"
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
-                    break;
-
-                default:
-                    context.res = {
-                        "status": 204,
-                        "headers": {
-                            "Content-Type": "application/json"
-                        }
-                    }
-                    break;
-            }
-
-
-
-            const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-            await blockBlobClient.upload(output, output.length);
-
-            const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
-                $set: {
-                    [resourceField]: blockBlobClient.url
-                }
-            })
             context.res = {
                 "status": 201,
                 "headers": {
@@ -81,23 +35,40 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 "body": { "url": blockBlobClient.url }
             }
-
-
         } catch (error) {
-
             context.res = {
                 "status": 500,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error updating slide resource"
+                    "message": "Error uploading file"
                 }
             }
-
         }
     }
 
+    switch (req.method) {
+        case "POST":
+            await uploadFile(req)
+            break;
+
+        // case "PUT":
+        //     await 
+        //     break;
+
+        case "GET":
+            if (req.params.courseCode) {
+                //await getCourse(req.params.courseCode)
+            } else {
+                //await getCourses()
+            }
+
+            break;
+
+        default:
+            break;
+    }
 }
 
 export default httpTrigger;
