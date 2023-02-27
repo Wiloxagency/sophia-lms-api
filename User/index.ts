@@ -92,6 +92,24 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    const getUserByEmail = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const resp = Users.findOne({ email: req.query.userEmail })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            }
+        } catch (error) { }
+    }
+
     const getUsers = async () => {
         try {
             const db = await database
@@ -145,7 +163,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
     switch (req.method) {
         case "POST":
             await createUser()
@@ -158,6 +175,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case "GET":
             if (req.params.userCode) {
                 await getUser(req.params.userCode)
+            } else if (req.query.userEmail) {
+                await getUserByEmail()
             } else {
                 await getUsers()
             }
