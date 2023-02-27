@@ -46,31 +46,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "body": user
                     }
                 }
-
             }
-
-
         } catch (error) {
             context.res = {
-
                 "status": 500,
-
                 "headers": {
-
                     "Content-Type": "application/json"
-
                 },
-
-                "body": {
-
-                    "message": "Create user error"
-
-                }
-
+                "statusText": "Create user error"
             }
-
         }
-
     }
 
     const getUser = async (userCode: string) => {
@@ -128,7 +113,33 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     }
                 }
+            }
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "statusText": "Can't delete user"
+            }
+        }
+    }
 
+    const deleteUser = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+
+            const resp = Users.deleteOne({ 'code': req.params.userCode })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
             }
         } catch (error) {
         }
@@ -150,7 +161,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             } else {
                 await getUsers()
             }
+            break;
 
+        case "DELETE":
+            await deleteUser()
             break;
 
         default:
