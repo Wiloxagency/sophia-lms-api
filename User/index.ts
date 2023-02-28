@@ -46,31 +46,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "body": user
                     }
                 }
-
             }
-
-
         } catch (error) {
             context.res = {
-
                 "status": 500,
-
                 "headers": {
-
                     "Content-Type": "application/json"
-
                 },
-
-                "body": {
-
-                    "message": "Create user error"
-
-                }
-
+                "statusText": "Create user error"
             }
-
         }
-
     }
 
     const getUser = async (userCode: string) => {
@@ -107,6 +92,24 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    const getUserByEmail = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const resp = Users.findOne({ email: req.query.userEmail })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            }
+        } catch (error) { }
+    }
+
     const getUsers = async () => {
         try {
             const db = await database
@@ -128,12 +131,37 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     }
                 }
+            }
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "statusText": "Can't delete user"
+            }
+        }
+    }
 
+    const deleteUser = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+
+            const resp = Users.deleteOne({ 'code': req.params.userCode })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
             }
         } catch (error) {
         }
     }
-
 
     switch (req.method) {
         case "POST":
@@ -147,10 +175,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case "GET":
             if (req.params.userCode) {
                 await getUser(req.params.userCode)
+            } else if (req.query.userEmail) {
+                await getUserByEmail()
             } else {
                 await getUsers()
             }
+            break;
 
+        case "DELETE":
+            await deleteUser()
             break;
 
         default:
