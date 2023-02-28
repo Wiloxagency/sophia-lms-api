@@ -116,7 +116,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             const db = await database
             const Users = db.collection('user')
-            const resp = Users.find({})
+            const resp = Users.aggregate([
+                {
+                    '$match': {
+                        // 'organizationCode': req.params.organizationCode
+                    }
+                },
+                {
+                    '$sort':
+                        { '_id': -1 }
+                }
+            ])
             const body = await resp.toArray()
             if (body && body.length > 0) {
                 context.res = {
@@ -141,6 +151,45 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "statusText": "Can't delete user"
+            }
+        }
+    }
+
+    const updateUser = async (userCode: string) => {
+        delete req.body._id
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const resp = Users.findOneAndUpdate({ 'code': userCode }, { $set: req.body })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error updating user by code"
+                    }
+                }
+            }
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error updating user by code"
+                }
             }
         }
     }
@@ -171,7 +220,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "PUT":
-            //await updateCourse(req.params.courseCode)
+            await updateUser(req.params.userCode)
             break;
 
         case "GET":
