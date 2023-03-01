@@ -42,6 +42,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     [imageField]: blockBlobClient.url
                 }
             })
+
+            let videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
+            const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
+                $set: {
+                    [videoUrlField]: ''
+                }
+            })
+
             context.res = {
                 "status": 201,
                 "headers": {
@@ -91,7 +99,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 case 'video':
                     containerClient = blobServiceClient.getContainerClient("videos")
                     setKey = "videoUrl"
-                    blobName +=  ".mp4"
+                    blobName += ".mp4"
                     output = resourceBuffer
                     resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
                     break;
@@ -101,7 +109,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         .jpeg()
                         .toBuffer();
                     containerClient = blobServiceClient.getContainerClient("images")
-                    blobName +=  ".jpeg"
+                    blobName += ".jpeg"
                     setKey = "imgUrl"
                     resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
                     break;
@@ -116,8 +124,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     break;
             }
 
-            
-
             const blockBlobClient = containerClient.getBlockBlobClient(blobName)
             await blockBlobClient.upload(output, output.length);
 
@@ -126,12 +132,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     [resourceField]: blockBlobClient.url
                 }
             })
+
+            if (resourceType == 'image') {
+                let videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
+                const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
+                    $set: {
+                        [videoUrlField]: ''
+                    }
+                })
+            }
+
             context.res = {
                 "status": 201,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": { "url": blockBlobClient.url }            
+                "body": { "url": blockBlobClient.url }
             }
 
 
