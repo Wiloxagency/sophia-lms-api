@@ -19,9 +19,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             // console.log(req.body)
             let coursePromise = Courses.findOne({ code: req.body.courseCode })
             let course = await coursePromise
-            let courseParagraphs = course.sections[req.body.indexSection].elements[req.body.indexElement].elementLesson.paragraphs
+            let lessonFirst5Paragraphs = course.sections[req.body.indexSection].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5)
             let quizList = []
-            for (const paragraph of courseParagraphs) {
+            for (const paragraph of lessonFirst5Paragraphs) {
                 const response = await openai.createChatCompletion({
                     model: "gpt-3.5-turbo",
                     messages: [
