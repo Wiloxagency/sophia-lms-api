@@ -60,6 +60,7 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
 
 export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
+    console.info(payload)
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const text: string = payload.text.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
