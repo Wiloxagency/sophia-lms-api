@@ -6,7 +6,6 @@ import parseMultipartFormData from "@anzp/azure-function-multipart"
 import sharp = require('sharp')
 import { v4 as uuidv4 } from 'uuid'
 
-
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 
