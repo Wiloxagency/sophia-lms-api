@@ -57,17 +57,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         slideIndex?: number
     ) => {
         try {
-            const input = (await axios({ url: imageUrl, responseType: "arraybuffer" })).data as Buffer;
-            const output = await sharp(input)
-                .resize(1200, 675)
+            const imageBufferInput = (await axios({ url: imageUrl, responseType: "arraybuffer" })).data as Buffer;
+            const imageBufferOutput = await sharp(imageBufferInput)
                 .jpeg()
-                .toBuffer();
-
+                .toBuffer()
+            let processedSquareImage = await ProcessSquareImage(imageBufferOutput)
             const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
             const containerClient = blobServiceClient.getContainerClient("images");
             const blobName = uuidv4() + ".jpeg"
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-            await blockBlobClient.upload(output, output.length);
+            await blockBlobClient.upload(processedSquareImage, processedSquareImage.length);
 
             if (req.body.indexSlide) {
                 const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
@@ -100,6 +99,39 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         }
+    }
+
+    async function ProcessSquareImage(imageBuffer) {
+        let foregroundImageBuffer = await
+            sharp(imageBuffer)
+                .resize({
+                    width: 1024,
+                    height: 576,
+                    fit: 'contain',
+                    position: 'center',
+                    background: { r: 255, g: 0, b: 0, alpha: 0 }
+                })
+                // .toFile('test.png')
+                .toFormat('png')
+                .toBuffer()
+        let backgroundImageBuffer = await
+            sharp(imageBuffer)
+                .blur(10)
+                .resize({
+                    width: 1024,
+                    height: 576,
+                    fit: 'cover',
+                    position: 'center'
+                })
+                // .toFile('test2.jpg')
+                .toBuffer()
+        let composite = await sharp(backgroundImageBuffer)
+            .composite([{
+                input: foregroundImageBuffer
+            }])
+            // .toFile('test4.jpg')
+            .toBuffer()
+        return composite
     }
 
     switch (req.method) {
