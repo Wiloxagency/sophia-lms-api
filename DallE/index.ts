@@ -75,7 +75,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         [imageField]: blockBlobClient.url
                     }
                 })
-            } else {
+            } else if (req.body.indexSlide == undefined) {
                 console.log('UPDATIND COURSE COVER')
             }
 
