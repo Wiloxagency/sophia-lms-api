@@ -140,18 +140,70 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const correctCompletionQuiz = async () => {
+        try {
+            let GPTResponses = []
+            for (const quiz of req.body.quizData) {
+                const response = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: 'You are a helpful assistant.'
+                        },
+                        {
+                            role: "user",
+                            content: `Tienes el siguiente texto:
+                                        ${quiz.base}
+                                        En base a ese texto se creó la siguiente actividad de completación:
+                                        ${quiz.text}
+                                        Tienes la siguiente respuesta:
+                                        ${quiz.studentResponse}
+                                        ¿La respuesta completa correctamente la actividad de completación?
+                                        `
+                        }
+                    ]
+                })
+                GPTResponses.push({ question: response.data.choices[0].message.content })
+            }
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": GPTResponses
+            }
+        } catch (error) {
+            // console.log(error)
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
 
-            if (req.body.quizType == 'multipleChoice') {
-                // await createMultipleChoiceQuiz()
+            if (req.body.operation == 'create') {
+                if (req.body.quizType == 'multipleChoice') {
+                    // await createMultipleChoiceQuiz()
+                }
+                if (req.body.quizType == 'shortAnswer') {
+                    await createShortAnswerQuiz()
+                }
+                if (req.body.quizType == 'completion') {
+                    await createCompletionQuiz()
+                }
+            } else if (req.body.operation == 'correct') {
+                await correctCompletionQuiz()
             }
-            if (req.body.quizType == 'shortAnswer') {
-                await createShortAnswerQuiz()
-            }
-            if (req.body.quizType == 'completion') {
-                await createCompletionQuiz()
-            }
+
             break;
 
         default:
