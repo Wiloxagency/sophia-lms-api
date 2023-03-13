@@ -67,7 +67,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const blobName = uuidv4() + ".jpeg"
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
             await blockBlobClient.upload(processedSquareImage, processedSquareImage.length);
-
             if (req.body.indexSlide) {
                 const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
                 const resp = Courses.findOneAndUpdate({ code: courseCode }, {
@@ -76,9 +75,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 })
             } else if (req.body.indexSlide == undefined) {
-                console.log('UPDATIND COURSE COVER')
+                const resp = Courses.findOneAndUpdate({ code: courseCode }, {
+                    $set: {
+                        "details.cover": blockBlobClient.url
+                    }
+                })
             }
-
             context.res = {
                 "status": 201,
                 "headers": {
@@ -86,7 +88,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 "body": { "imageUrl": blockBlobClient.url }
             }
-
         } catch (error) {
             context.res = {
                 "status": 500,
@@ -97,7 +98,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "message": "Error updating image"
                 }
             }
-
         }
     }
 
