@@ -6,7 +6,8 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "post"
+        "post",
+        "put"
       ]
     },
     {
@@ -15,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Quiz/index.js"
+  "scriptFile": "../dist/DallE/index.js"
 }
