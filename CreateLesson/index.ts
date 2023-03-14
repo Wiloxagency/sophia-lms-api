@@ -81,19 +81,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 //     $set: { sections: course.sections }
                 // })
 
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": lesson
-                }
+                
   
         } else {
-            multimediaCycle(paragraphCounter)
+            await multimediaCycle(paragraphCounter)
         }
     }
-    multimediaCycle(0)
+     multimediaCycle(0)
+
+     context.res = {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": currentParagraphs
+    }
     
     
 };

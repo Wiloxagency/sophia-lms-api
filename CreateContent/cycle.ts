@@ -106,14 +106,14 @@ export async function createContentCycle(course: any) {
                         await Course.findOneAndUpdate({ code: course.code }, {
                             $set: { sections: course.sections }
                         })
-                        contentCycle(sectionCounter)
+                        await contentCycle(sectionCounter)
                     }
 
                 } else {
-                    multimediaCycle(paragraphCounter)
+                   await multimediaCycle(paragraphCounter)
                 }
             }
-            multimediaCycle(0)
+           await  multimediaCycle(0)
         }
         contentCycle(0)
 
