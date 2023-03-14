@@ -144,6 +144,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             let GPTResponses = []
             for (const quiz of req.body.quizData) {
+                console.log(quiz)
+                let firstPrompt = `Primer texto:
+                ${quiz.source}
+                Segundo texto:
+                ${quiz.studentFullResponse}
+                ¿Son el primer y segundo texto equivalentes? Sólo responde con sí o no`
                 const response = await openai.createChatCompletion({
                     model: "gpt-3.5-turbo",
                     messages: [
@@ -153,18 +159,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         },
                         {
                             role: "user",
-                            content: `Tienes el siguiente texto:
-                                        ${quiz.base}
-                                        En base a ese texto se creó la siguiente actividad de completación:
-                                        ${quiz.text}
-                                        Tienes la siguiente respuesta:
-                                        ${quiz.studentResponse}
-                                        ¿La respuesta completa correctamente la actividad de completación?
-                                        `
+                            content: firstPrompt
                         }
+                        // ${quiz.studentResponse}
+                        // ¿La respuesta completa correctamente la actividad de completación?
                     ]
                 })
-                GPTResponses.push({ question: response.data.choices[0].message.content })
+
+                const response2 = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: 'You are a helpful assistant.'
+                        },
+                        {
+                            role: "user",
+                            content: firstPrompt
+                        },
+                        {
+                            role: "assistant",
+                            content: response.data.choices[0].message.content
+                        },
+                        {
+                            role: "user",
+                            content: 'Explica por qué no.'
+                        },
+                        // ${quiz.studentResponse}
+                        // ¿La respuesta completa correctamente la actividad de completación?
+                    ]
+                })
+
+                GPTResponses.push({ question: response2.data.choices[0].message.content })
             }
             context.res = {
                 "status": 200,
