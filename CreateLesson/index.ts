@@ -11,6 +11,9 @@ const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
+    const db = await database
+    const Course = db.collection("course")
+
     const payload: paragraphCreation = {
         context: req.body.courseTitle,
         key: "",
@@ -77,9 +80,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 // Save course (in the future be necessary to check if content was 100% fine generated)
 
-                // await Course.findOneAndUpdate({ code: course.code }, {
-                //     $set: { sections: course.sections }
-                // })
+                await Course.findOneAndUpdate({ code: req.body.courseCode }, {
+                    $set: { test: lesson }
+                })
 
                 
   
