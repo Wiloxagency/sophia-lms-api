@@ -92,11 +92,16 @@ export async function findImages(
         let response: { image: {}, thumb: {}, finalImage: {}, imagesIds: string[], urlBing: string } = null
         const saveImageCycle = async (retryCounter: number) => {
 
-            const item = images[retryCounter]
-            const foundThumb = { url: item["thumbnailUrl"], width: item["thumbnail"]["width"], height: item["thumbnail"]["height"] }
-            const foundImage = { url: item["contentUrl"], width: item["width"], height: item["height"], imageId: item["imageId"] }
-            let finalImage = { url: "", width: 0, height: 0 }
+            let foundThumb: any = {}
+            let foundImage: any = {}
+
             try {
+
+                const item = images[retryCounter]
+                foundThumb = { url: item["thumbnailUrl"], width: item["thumbnail"]["width"], height: item["thumbnail"]["height"] }
+                foundImage = { url: item["contentUrl"], width: item["width"], height: item["height"], imageId: item["imageId"] }
+                let finalImage = { url: "", width: 0, height: 0 }
+
                 const input = (await axios({ url: foundImage.url, responseType: "arraybuffer" })).data as Buffer
                 const output = await sharp(input)
                     .resize(1200, 675)
@@ -119,7 +124,7 @@ export async function findImages(
                     await saveLog(`Error processing image for course: ${courseCode}, sectionTitle: ${sectionTitle}, foundImage.url: ${foundImage.url}`, "Error", "findImages()", "Courses/{courseCode}/CreateContent")
                     response = { image: foundImage, thumb: foundThumb, finalImage: {}, imagesIds: [], urlBing: urlsBing[0] }
                 }
-                
+
             }
 
         }
