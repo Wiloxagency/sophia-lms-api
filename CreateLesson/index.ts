@@ -25,7 +25,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         courseCode: req.body.courseCode
     }
     const lesson = {
-        type : "Lección Engine",
+        type: "Lección Engine",
         title: "Presentation",
         elementLesson: {
             lessonTheme: "1",
@@ -37,7 +37,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // Create Audios & find images
     const multimediaCycle = async (paragraphCounter: number) => {
 
-       
+
         const paragraphContent = currentParagraphs.content[paragraphCounter]
         const currentParagrah = {
             content: paragraphContent,
@@ -45,9 +45,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             audioUrl: "",
             titleAI: "",
             imageData: {},
-            keyPhrases:[]
+            keyPhrases: []
         }
-        const sectionIndex = req.body.index
+        const sectionIndex = req.body.indexSection
         const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", req.body.courseCode, sectionIndex, req.body.elementIndex, paragraphCounter)
         console.info(`Audio for section ${sectionIndex}}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
         currentParagrah.audioUrl = currentAudio.url
@@ -66,8 +66,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         //create an empty video structure too
         currentParagrah["videoData"] = {
-            thumb: {url: "", width: 0, height: 0 },
-            finalVideo:  {url: "", width: 0, height: 0 }
+            thumb: { url: "", width: 0, height: 0 },
+            finalVideo: { url: "", width: 0, height: 0 }
         }
 
         lesson.elementLesson.paragraphs.push(currentParagrah)
@@ -76,31 +76,31 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         if (paragraphCounter == currentParagraphs.content.length) {
 
-                await saveLog(`Completed course lesson creation for: ${req.body.courseCode}`, "Info", "multimediaCycle()", "Courses/{courseCode}/CreateLesson")
+            await saveLog(`Completed course lesson creation for: ${req.body.courseCode}`, "Info", "multimediaCycle()", "Courses/{courseCode}/CreateLesson")
 
-                // Save course (in the future be necessary to check if content was 100% fine generated)
-
-                await Course.findOneAndUpdate({ code: req.body.courseCode }, {
-                    $set: { test: lesson }
-                })
-
-                
-  
+            // Save course (in the future be necessary to check if content was 100% fine generated)
+            let sectionPath = `sections.${req.body.indexSection}.elements`
+            await Course.updateOne(
+                { code: req.body.courseCode },
+                {
+                    $push: { [sectionPath]: lesson }
+                }
+            )
         } else {
             await multimediaCycle(paragraphCounter)
         }
     }
-     multimediaCycle(0)
+    multimediaCycle(0)
 
-     context.res = {
+    context.res = {
         "status": 200,
         "headers": {
             "Content-Type": "application/json"
         },
         "body": currentParagraphs
     }
-    
-    
+
+
 };
 
 export default httpTrigger;
