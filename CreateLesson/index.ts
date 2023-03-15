@@ -60,7 +60,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         console.info(`Image for section ${sectionIndex}}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
         currentParagrah.imageData = currentImageData
 
-        const keyPhrases = await createkeyphrases(paragraphContent, "es")
+        const keyPhrases = await createkeyphrases(paragraphContent, "es", req.body.courseCode)
         currentParagrah.keyPhrases = keyPhrases
         console.info(`KeyPhrases for section ${sectionIndex}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
 
