@@ -23,7 +23,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const lessonTheme = req.body.lessonTheme
     const contentTable = req.body.contentTable
 
-    try {
+    console.info("req.body", req.body)
+
+    //try {
 
         db = await database
         const Courses = db.collection('course')
@@ -43,17 +45,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         }
 
-    } catch (error) {
-        context.res = {
-            "status": 500,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {
-                "message": "Error connecting to database"
-            }
-        }
-    }
+    // } catch (error) {
+    //     context.res = {
+    //         "status": 500,
+    //         "headers": {
+    //             "Content-Type": "application/json"
+    //         },
+    //         "body": {
+    //             "message": "Error connecting to database"
+    //         }
+    //     }
+    // }
 
     const addSections = (syllabus: string[], currentCourse: {}): {} => {
         syllabus.forEach(item => {
@@ -100,15 +102,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             } else {
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error creating syllabus"
-                    }
-                }
+                // context.res = {
+                //     "status": 500,
+                //     "headers": {
+                //         "Content-Type": "application/json"
+                //     },
+                //     "body": {
+                //         "message": "Error creating syllabus"
+                //     }
+                // }
             }
 
             break;
