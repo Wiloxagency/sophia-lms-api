@@ -2,56 +2,57 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { userAggregation } from "./aggregation";
 //import bcrypt = require("bcrypt");
+import bcrypt = require("bcryptjs");
 
 const database = createConnection()
 var users = []
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    // const createUser = async () => {
-    //     console.log(req.body)
-    //     try {
-    //         const db = await database
-    //         var receivedPassword = req.body.password
-    //         const hash = bcrypt.hashSync(receivedPassword, 10)
-    //         req.body.password = hash
-    //         const Users = db.collection('user')
-    //         const check = Users.findOne({ email: req.body.email })
-    //         var body = null
-    //         body = await check
-    //         if (body) {
-    //             context.res = {
-    //                 "status": 203,
-    //                 "headers": {
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 "body": { "email": "Exists" }
-    //             }
-    //         } else {
-    //             const resp = Users.insertOne(req.body)
-    //             body = await resp
-    //             if (body.acknowledged) {
-    //                 const user = await Users.findOne({ _id: body.insertedId })
-    //                 delete body.password
-    //                 context.res = {
-    //                     "status": 201,
-    //                     "headers": {
-    //                         "Content-Type": "application/json"
-    //                     },
-    //                     "body": user
-    //                 }
-    //             }
-    //         }
-    //     } catch (error) {
-    //         context.res = {
-    //             "status": 500,
-    //             "headers": {
-    //                 "Content-Type": "application/json"
-    //             },
-    //             "statusText": "Create user error"
-    //         }
-    //     }
-    // }
+    const createUser = async () => {
+        console.log(req.body)
+        try {
+            const db = await database
+            var receivedPassword = req.body.password
+            const hash = bcrypt.hashSync(receivedPassword, 10)
+            req.body.password = hash
+            const Users = db.collection('user')
+            const check = Users.findOne({ email: req.body.email })
+            var body = null
+            body = await check
+            if (body) {
+                context.res = {
+                    "status": 203,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": { "email": "Exists" }
+                }
+            } else {
+                const resp = Users.insertOne(req.body)
+                body = await resp
+                if (body.acknowledged) {
+                    const user = await Users.findOne({ _id: body.insertedId })
+                    delete body.password
+                    context.res = {
+                        "status": 201,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": user
+                    }
+                }
+            }
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "statusText": "Create user error"
+            }
+        }
+    }
 
     const getUser = async (userCode: string) => {
 
@@ -216,7 +217,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     switch (req.method) {
         case "POST":
-            //await createUser()
+            await createUser()
             break;
 
         case "PUT":
