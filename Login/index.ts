@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { userAggregation } from "../User/aggregation";
-const bcrypt = require("bcrypt")
+import bcrypt = require("bcryptjs");
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
