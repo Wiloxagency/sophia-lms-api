@@ -180,6 +180,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    const deleteCourse = async () => {
+        try {
+            const db = await database
+            const Courses = db.collection('course')
+
+            const resp = Courses.deleteOne({ 'code': req.params.courseCode })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            }
+        } catch (error) {
+        }
+    }
+
     switch (req.method) {
         case "POST":
             await createCourse()
@@ -187,6 +207,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         case "PUT":
             await updateCourse(req.params.courseCode)
+            break;
+
+        case "DELETE":
+            await deleteCourse()
             break;
 
         case "GET":
