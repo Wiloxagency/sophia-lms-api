@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { userAggregation } from "./aggregation";
-const bcrypt = require("bcrypt")
+import bcrypt = require("bcrypt");
 
 const database = createConnection()
 var users = []
