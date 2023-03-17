@@ -197,6 +197,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error deleting course by code"
+                }
+            }
+
         }
     }
 

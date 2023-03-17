@@ -32,6 +32,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             paragraphs: []
         }
     }
+
+    const sectionPath = `sections.${req.body.indexSection}.elements`
+    await Course.updateOne(
+        { code: req.body.courseCode },
+        {
+            $push: { [sectionPath]: lesson }
+        }
+    )
+
+    const updatedCourse = await Course.findOne(
+        { code: req.body.courseCode }
+    )
+
+    const elementIndex = updatedCourse.sections[req.body.indexSection].elements.length - 1
+
     const currentParagraphs = await createParagraphs(payload)
 
     // Create Audios & find images
@@ -79,11 +94,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             await saveLog(`Completed course lesson creation for: ${req.body.courseCode}`, "Info", "multimediaCycle()", "Courses/{courseCode}/CreateLesson")
 
             // Save course (in the future be necessary to check if content was 100% fine generated)
-            let sectionPath = `sections.${req.body.indexSection}.elements`
+            const newSectionPath = `sections.${req.body.indexSection}.elements.${elementIndex}`
             await Course.updateOne(
                 { code: req.body.courseCode },
                 {
-                    $push: { [sectionPath]: lesson }
+                    $set: { [newSectionPath]: lesson }
                 }
             )
         } else {
