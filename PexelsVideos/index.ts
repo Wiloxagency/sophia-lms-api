@@ -5,7 +5,7 @@ const client = createClient('mtCEdnRigTAFPj5nELvf5XSfjwfslcwz1qGfCf0gj1EZ57XCh3K
 const query = 'Nature';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    let responseVideos = await client.videos.search({ query, per_page: 80 })
+    let responseVideos = await client.videos.search({ query, per_page: 80, orientation: 'landscape' })
 
     context.res = {
         "status": 200,
