@@ -7,14 +7,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // console.log(req.body)
     const query = req.body.query
     // console.log(query)
-    let responseVideos = await client.videos.search({ query, per_page: 80, orientation: 'landscape' })
+    let responseImages = await client.photos.search({ query, per_page: 80, orientation: 'landscape' })
 
     context.res = {
         "status": 200,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": { "response": responseVideos }
+        "body": { "response": responseImages }
     }
 }
 
