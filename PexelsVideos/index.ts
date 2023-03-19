@@ -12,9 +12,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // console.log(translatedQuery)
     // console.log(translatedQuery.translatedQuery)
     query = translatedQuery
-
     let responseVideos = await client.videos.search({ query, per_page: 80, orientation: 'landscape' })
-
     context.res = {
         "status": 200,
         "headers": {
