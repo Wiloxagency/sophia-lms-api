@@ -6,9 +6,12 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "get"
+        "get",
+        "post",
+        "put",
+        "delete"
       ],
-      "route": "CourseGroups/{courseCode}"
+      "route": "CourseGroups/{courseCode?}/{groupCode?}"
     },
     {
       "type": "http",

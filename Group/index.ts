@@ -1,189 +1,209 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { createConnection } from "../shared/mongo";
+// import { AzureFunction, Context, HttpRequest } from "@azure/functions"
+// import { createConnection } from "../shared/mongo";
 
-const database = createConnection()
+// const database = createConnection()
 
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+// const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const createGroup = async () => {
+//     const createGroup = async () => {
 
-        try {
+//         try {
 
-            const db = await database
-            const Groups = db.collection('group')
-            const resp = Groups.insertOne(req.body)
+//             const db = await database
+//             const Groups = db.collection('group')
+//             const resp = Groups.insertOne(req.body)
 
-            const body = await resp
+//             const body = await resp
 
-            if (body) {
+//             if (body) {
 
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-            } else {
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error creating group"
-                    }
-                }
+//                 context.res = {
+//                     "status": 201,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": body
+//                 }
+//             } else {
+//                 context.res = {
+//                     "status": 500,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": {
+//                         "message": "Error creating group"
+//                     }
+//                 }
 
-            }
+//             }
 
-        } catch (error) {
+//         } catch (error) {
 
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": error.toString()
-                }
-            }
+//             context.res = {
+//                 "status": 500,
+//                 "headers": {
+//                     "Content-Type": "application/json"
+//                 },
+//                 "body": {
+//                     "message": error.toString()
+//                 }
+//             }
 
-        }
-    }
+//         }
+//     }
 
-    const updateGroup = async (groupCode: string) => {
+//     const updateGroup = async (groupCode: string) => {
 
-        delete req.body._id
+//         delete req.body._id
 
-        try {
+//         try {
 
-            const db = await database
-            const Groups = db.collection('group')
+//             const db = await database
+//             const Groups = db.collection('group')
 
-            const resp = Groups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
-            const body = await resp
+//             const resp = Groups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
+//             const body = await resp
 
-            if (body) {
+//             if (body) {
 
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-            } else {
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error updating group by code"
-                    }
-                }
+//                 context.res = {
+//                     "status": 201,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": body
+//                 }
+//             } else {
+//                 context.res = {
+//                     "status": 500,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": {
+//                         "message": "Error updating group by code"
+//                     }
+//                 }
 
-            }
+//             }
 
-        } catch (error) {
+//         } catch (error) {
 
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error updating group by code"
-                }
-            }
+//             context.res = {
+//                 "status": 500,
+//                 "headers": {
+//                     "Content-Type": "application/json"
+//                 },
+//                 "body": {
+//                     "message": "Error updating group by code"
+//                 }
+//             }
 
-        }
-    }
+//         }
+//     }
 
-    const getGroup = async (groupCode: string) => {
+//     const getGroup = async (groupCode: string) => {
 
 
-        try {
+//         try {
 
-            const db = await database
-            const Groups = db.collection('group')
+//             const db = await database
+//             const Groups = db.collection('group')
 
-            const resp = Groups.aggregate(
-                [
-                    {
-                        '$match': {
-                            'code': groupCode
-                        }
-                    }
-                ]
-            )
+//             const resp = Groups.aggregate(
+//                 [
+//                     {
+//                         '$match': {
+//                             'code': groupCode
+//                         }
+//                     }
+//                 ]
+//             )
 
-            const body = await resp.toArray()
+//             const body = await resp.toArray()
 
-            if (body && body[0]) {
+//             if (body && body[0]) {
 
-                context.res = {
-                    "status": 200,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body[0]
-                }
-            } else {
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error getting group by code"
-                    }
-                }
+//                 context.res = {
+//                     "status": 200,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": body[0]
+//                 }
+//             } else {
+//                 context.res = {
+//                     "status": 500,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": {
+//                         "message": "Error getting group by code"
+//                     }
+//                 }
 
-            }
+//             }
 
-        } catch (error) {
+//         } catch (error) {
 
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error getting group by code"
-                }
-            }
+//             context.res = {
+//                 "status": 500,
+//                 "headers": {
+//                     "Content-Type": "application/json"
+//                 },
+//                 "body": {
+//                     "message": "Error getting group by code"
+//                 }
+//             }
 
-        }
-    }
+//         }
+//     }
 
-    const getGroups = async () => {
+//     const getGroups = async () => {
 
-    }
+//     }
 
-    switch (req.method) {
-        case "POST":
-            await createGroup()
-            break;
+//     const deleteUser = async () => {
+//         try {
+//             const db = await database
+//             const Users = db.collection('user')
 
-        case "PUT":
-            await updateGroup(req.params.groupCode)
-            break;
+//             const resp = Users.deleteOne({ 'code': req.params.userCode })
+//             const body = await resp
+//             if (body) {
+//                 context.res = {
+//                     "status": 200,
+//                     "headers": {
+//                         "Content-Type": "application/json"
+//                     },
+//                     "body": body
+//                 }
+//             }
+//         } catch (error) {
+//         }
+//     }
 
-        case "GET":
-            if (req.params.courseCode) {
-                await getGroup(req.params.groupCode)
-            } else {
-                await getGroups()
-            }
+//     switch (req.method) {
+//         case "POST":
+//             await createGroup()
+//             break;
 
-            break;
+//         case "PUT":
+//             await updateGroup(req.params.groupCode)
+//             break;
 
-        default:
-            break;
-    }
+//         case "GET":
+//             if (req.params.courseCode) {
+//                 await getGroup(req.params.groupCode)
+//             } else {
+//                 await getGroups()
+//             }
 
-}
+//             break;
 
-export default httpTrigger;
+//         default:
+//             break;
+//     }
+
+// }
+
+// export default httpTrigger;
