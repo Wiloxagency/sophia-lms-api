@@ -151,7 +151,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "statusText": "Can't delete user"
+                "statusText": "Can't get users"
             }
         }
     }
