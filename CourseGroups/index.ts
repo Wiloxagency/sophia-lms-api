@@ -7,23 +7,136 @@ var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    try {
+    // const getGroup = async () => {
+    //     try {
+    //         const db = await database
+    //         const Groups = db.collection('group')
 
-        db = await database
-        const Groups = db.collection('group')
-        const resp = Groups.find({ courseCode: req.params.courseCode }).sort({ _id: -1 })
-        const body = await resp.toArray()
+    //         const resp = Groups.aggregate(
+    //             [
+    //                 {
+    //                     '$match': {
+    //                         'code': req.params.groupCode
+    //                     }
+    //                 }
+    //             ]
+    //         )
 
-        if (body) {
+    //         const body = await resp.toArray()
+
+    //         if (body && body[0]) {
+
+    //             context.res = {
+    //                 "status": 200,
+    //                 "headers": {
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 "body": body[0]
+    //             }
+    //         } else {
+    //             context.res = {
+    //                 "status": 500,
+    //                 "headers": {
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 "body": {
+    //                     "message": "Error getting group by code"
+    //                 }
+    //             }
+
+    //         }
+
+    //     } catch (error) {
+
+    //         context.res = {
+    //             "status": 500,
+    //             "headers": {
+    //                 "Content-Type": "application/json"
+    //             },
+    //             "body": {
+    //                 "message": "Error getting group by code"
+    //             }
+    //         }
+
+    //     }
+    // }
+
+    const getCourseGroups = async () => {
+        try {
+            db = await database
+            const Groups = db.collection('group')
+            const resp = Groups.find({ courseCode: req.params.courseCode }).sort({ _id: -1 })
+            const body = await resp.toArray()
+
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+
+            } else {
+
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error getting groups by course"
+                    }
+                }
+
+            }
+
+        } catch (error) {
             context.res = {
-                "status": 200,
+                "status": 500,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": body
+                "body": {
+                    "message": "Error in CourseGroups method"
+                }
+            }
+        }
+    }
+
+    const createGroup = async () => {
+
+        try {
+
+            const db = await database
+            const Groups = db.collection('group')
+            const resp = Groups.insertOne(req.body)
+
+            const body = await resp
+
+            if (body) {
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating group"
+                    }
+                }
+
             }
 
-        } else {
+        } catch (error) {
 
             context.res = {
                 "status": 500,
@@ -31,22 +144,99 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error getting groups by course"
+                    "message": error.toString()
                 }
             }
 
         }
+    }
 
-    } catch (error) {
-        context.res = {
-            "status": 500,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {
-                "message": "Error in CourseGroups method"
+    const updateGroup = async () => {
+        delete req.body._id
+        try {
+
+            const db = await database
+            const Groups = db.collection('group')
+
+            const resp = Groups.findOneAndUpdate({ 'code': req.params.groupCode }, { $set: req.body })
+            const body = await resp
+
+            if (body) {
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error updating group by code"
+                    }
+                }
+
             }
+
+        } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error updating group by code"
+                }
+            }
+
         }
+    }
+
+    const deleteGroup = async () => {
+        try {
+            const db = await database
+            const Groups = db.collection('group')
+
+            const resp = Groups.deleteOne({ 'code': req.params.groupCode })
+            const body = await resp
+            if (body) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            }
+        } catch (error) {
+        }
+    }
+
+    switch (req.method) {
+        case "POST":
+            await createGroup()
+            break;
+
+        case "PUT":
+            await updateGroup()
+            break;
+
+        case "GET":
+            await getCourseGroups()
+            break;
+
+        case "DELETE":
+            await deleteGroup()
+            break;
+
+        default:
+            break;
     }
 
 }
