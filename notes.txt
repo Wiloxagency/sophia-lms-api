@@ -1,0 +1,8 @@
+npm uninstall sharp
+
+Azure
+npm install --platform=linux --arch=x64 sharp  
+
+Local
+npm i sharp 
+
