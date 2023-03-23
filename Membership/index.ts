@@ -5,13 +5,13 @@ const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const createGroup = async () => {
+    const createMembership = async () => {
 
         try {
 
             const db = await database
-            const Groups = db.collection('group')
-            const resp = Groups.insertOne(req.body)
+            const Memberships = db.collection('membership')
+            const resp = Memberships.insertOne(req.body)
 
             const body = await resp
 
@@ -31,7 +31,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error creating group"
+                        "message": "Error creating membership"
                     }
                 }
 
@@ -52,16 +52,43 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const updateGroup = async (groupCode: string) => {
+    const deleteMembership = async () => {
+
+
+        try {
+
+            const db = await database
+
+            const Memberships = db.collection('membership')
+
+            const resp = Memberships.deleteOne({ 'code': req.params.code })
+            const body = await resp
+
+            if (body) {
+
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+
+                    "body": body
+                }
+            }
+        } catch (error) {
+        }
+    }
+
+    const updateMembership = async (code: string) => {
 
         delete req.body._id
 
         try {
 
             const db = await database
-            const Groups = db.collection('group')
+            const Memberships = db.collection('membership')
 
-            const resp = Groups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
+            const resp = Memberships.findOneAndUpdate({ 'code': code }, { $set: req.body })
             const body = await resp
 
             if (body) {
@@ -80,7 +107,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error updating group by code"
+                        "message": "Error updating membership by code"
                     }
                 }
 
@@ -94,26 +121,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error updating group by code"
+                    "message": "Error updating membership by code"
                 }
             }
 
         }
     }
 
-    const getGroup = async (groupCode: string) => {
+    const getMembership = async (code: string) => {
 
 
         try {
 
             const db = await database
-            const Groups = db.collection('group')
+            const Memberships = db.collection('membership')
 
-            const resp = Groups.aggregate(
+            const resp = Memberships.aggregate(
                 [
                     {
                         '$match': {
-                            'code': groupCode
+                            'code': code
                         }
                     }
                 ]
@@ -137,7 +164,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error getting group by code"
+                        "message": "Error getting membership by code"
                     }
                 }
 
@@ -151,22 +178,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error getting group by code"
+                    "message": "Error getting membership by code"
                 }
             }
 
         }
     }
 
-    const getGroups = async () => {
+    const getMemberships = async () => {
+
 
         try {
 
             const db = await database
 
-            const Groups = db.collection('group')
+            const Memberships = db.collection('membership')
 
-            const resp = Groups.find({})
+            const resp = Memberships.find({})
 
             const body = await resp.toArray()
 
@@ -194,7 +222,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "statusText": "Can't get groups"
+                "statusText": "Can't get memberships"
             }
         }
     }
@@ -203,18 +231,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     switch (req.method) {
         case "POST":
-            await createGroup()
+            await createMembership()
             break;
         case "PUT":
-            await updateGroup(req.params.groupCode)
+            await updateMembership(req.params.code)
             break;
         case "GET":
-            if (req.params.groupCode) {
-                await getGroup(req.params.groupCode)
+            if (req.params.code) {
+                await getMembership(req.params.code)
             } else {
-                await getGroups()
+                await getMemberships()
             }
             break;
+        case "DELETE":
+            await deleteMembership()
+            break;
+
         default:
             break;
     }
