@@ -194,13 +194,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             const Organizations = db.collection('organization')
 
-            const resp = Organizations.aggregate([
-                {
-                    '$match': {
-                        
-                    }
-                }
-            ])
+            const resp = Organizations.find({})
 
             const body = await resp.toArray()
 
