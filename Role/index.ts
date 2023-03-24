@@ -1,116 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { Db } from "mongodb";
 import { createConnection } from "../shared/mongo";
 
 const database = createConnection()
-var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    // const getGroup = async () => {
-    //     try {
-    //         const db = await database
-    //         const Groups = db.collection('group')
-
-    //         const resp = Groups.aggregate(
-    //             [
-    //                 {
-    //                     '$match': {
-    //                         'code': req.params.groupCode
-    //                     }
-    //                 }
-    //             ]
-    //         )
-
-    //         const body = await resp.toArray()
-
-    //         if (body && body[0]) {
-
-    //             context.res = {
-    //                 "status": 200,
-    //                 "headers": {
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 "body": body[0]
-    //             }
-    //         } else {
-    //             context.res = {
-    //                 "status": 500,
-    //                 "headers": {
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 "body": {
-    //                     "message": "Error getting group by code"
-    //                 }
-    //             }
-
-    //         }
-
-    //     } catch (error) {
-
-    //         context.res = {
-    //             "status": 500,
-    //             "headers": {
-    //                 "Content-Type": "application/json"
-    //             },
-    //             "body": {
-    //                 "message": "Error getting group by code"
-    //             }
-    //         }
-
-    //     }
-    // }
-
-    const getCourseGroups = async () => {
-        try {
-            db = await database
-            const Groups = db.collection('group')
-            const resp = Groups.find({ courseCode: req.params.courseCode }).sort({ _id: -1 })
-            const body = await resp.toArray()
-
-            if (body) {
-                context.res = {
-                    "status": 200,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-
-            } else {
-
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error getting groups by course"
-                    }
-                }
-
-            }
-
-        } catch (error) {
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error in CourseGroups method"
-                }
-            }
-        }
-    }
-
-    const createGroup = async () => {
+    const createRole = async () => {
 
         try {
 
             const db = await database
-            const Groups = db.collection('group')
-            const resp = Groups.insertOne(req.body)
+            const Roles = db.collection('role')
+            const resp = Roles.insertOne(req.body)
 
             const body = await resp
 
@@ -130,7 +31,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error creating group"
+                        "message": "Error creating role"
                     }
                 }
 
@@ -151,16 +52,43 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const updateGroup = async (groupCode: string) => {
+    const deleteRole = async () => {
+
+
+        try {
+
+            const db = await database
+
+            const Roles = db.collection('role')
+
+            const resp = Roles.deleteOne({ 'code': req.params.roleCode })
+            const body = await resp
+
+            if (body) {
+
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+
+                    "body": body
+                }
+            }
+        } catch (error) {
+        }
+    }
+
+    const updateRole = async (roleCode: string) => {
 
         delete req.body._id
 
         try {
 
             const db = await database
-            const CourseGroups = db.collection('group')
+            const Roles = db.collection('role')
 
-            const resp = CourseGroups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
+            const resp = Roles.findOneAndUpdate({ 'code': roleCode }, { $set: req.body })
             const body = await resp
 
             if (body) {
@@ -179,7 +107,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error updating courseGroup by code"
+                        "message": "Error updating role by code"
                     }
                 }
 
@@ -193,29 +121,41 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error updating courseGroup by code"
+                    "message": "Error updating role by code"
                 }
             }
 
         }
     }
 
-    const deleteGroup = async () => {
+    const getRole = async (roleCode: string) => {
+
+
         try {
+
             const db = await database
-            const Groups = db.collection('group')
+            const Roles = db.collection('role')
 
-            const resp = Groups.deleteOne({ 'code': req.params.groupCode, 'users': { $eq: [] }})
+            const resp = Roles.aggregate(
+                [
+                    {
+                        '$match': {
+                            'code': roleCode
+                        }
+                    }
+                ]
+            )
 
-            const body = await resp
-            if (body.deletedCount >= 1) {
+            const body = await resp.toArray()
+
+            if (body && body[0]) {
 
                 context.res = {
                     "status": 200,
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": body
+                    "body": body[0]
                 }
             } else {
                 context.res = {
@@ -224,7 +164,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "This group has students and cannot be deleted"
+                        "message": "Error getting role by code"
                     }
                 }
 
@@ -238,28 +178,74 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error deleting group by code"
+                    "message": "Error getting role by code"
                 }
             }
 
         }
     }
 
+    const getRoles = async () => {
+
+
+        try {
+
+            const db = await database
+
+            const Roles = db.collection('role')
+
+            const resp = Roles.find({})
+
+            const body = await resp.toArray()
+
+            if (body && body.length > 0) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+
+            } else {
+                context.res = {
+                    "status": 204,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                }
+            }
+            
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "statusText": "Can't get roles"
+            }
+        }
+    }
+
+    
+
     switch (req.method) {
         case "POST":
-            await createGroup()
+            await createRole()
             break;
-
         case "PUT":
-            await updateGroup(req.params.groupCode)
+            await updateRole(req.params.roleCode)
             break;
-
-        case "GET":
-            await getCourseGroups()
-            break;
-
+            case "GET":
+                if (req.params.roleCode) {
+                    await getRole(req.params.roleCode)
+                } else {
+                    await getRoles()
+                }
+    
+                break;
         case "DELETE":
-            await deleteGroup()
+            await deleteRole()
             break;
 
         default:
