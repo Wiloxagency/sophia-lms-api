@@ -95,12 +95,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         },
                         {
                             role: "user",
-                            content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+                            content: "Redacta la frase principal del texto suministrado. De esta frase deberás extraer la palabra principal. Tu respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+                            // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
                         }
                     ]
                 })
-                quizList.push({ question: response.data.choices[0].message.content })
+                let completionQuizParts =
+                    response.data.choices[0].message.content
+                        .split("Frase principal: ").pop()
+                        .split("Palabra extraída: ")
+                let keyword = completionQuizParts[1].replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '').toLowerCase()
+                // console.log(completionQuizParts[1], '@@@@@@@@', completionQuizParts[0])
+                // console.log(completionQuizParts[0].toLowerCase().includes(keyword))
+                if (completionQuizParts[0].toLowerCase().includes(keyword)) {
+                    quizList.push({ question: response.data.choices[0].message.content })
+                }
             }
+            return
             // console.log(quizList)
             let sectionElementsPath = `sections.${req.body.indexSection}.elements`
             let sectionElements = course.sections[req.body.indexSection].elements
