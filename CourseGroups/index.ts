@@ -205,13 +205,29 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const db = await database
             const Groups = db.collection('group')
 
+            const group = await Groups.findOne({ 'code': req.params.groupCode })
+
+            if (!group) {
+
+              context.res = {
+                "status": 404,
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "message": "courseGroup not found"
+                }
+              }
+              return
+            }
+
             const resp = Groups.deleteOne({ 'code': req.params.groupCode, 'users': { $eq: [] }})
 
             const body = await resp
             if (body.deletedCount >= 1) {
 
                 context.res = {
-                    "status": 200,
+                    "status": 201,
                     "headers": {
                         "Content-Type": "application/json"
                     },
@@ -219,7 +235,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             } else {
                 context.res = {
-                    "status": 500,
+                    "status": 204,
                     "headers": {
                         "Content-Type": "application/json"
                     },
