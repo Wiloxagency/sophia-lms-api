@@ -57,22 +57,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const addSections = (syllabus: string[], currentCourse: {}): {} => {
+    const addSections = (syllabus: {sectionTitle:string, numberElements: number}[], currentCourse: {}): {} => {
         syllabus.forEach(item => {
+            const elements = (new Array(item.numberElements)).fill(
+                {
+                    "type": "Lección Engine",
+                    "title": "Presentation",
+                    "elementLesson": {
+                        "lessonTheme": lessonTheme,
+                        "paragraphs": []
+                    }
+
+                }
+            )
             currentCourse["sections"].push(
                 {
-                    "title": item,
-                    "elements": [
-                        {
-                            "type": "Lección Engine",
-                            "title": "Presentation",
-                            "elementLesson": {
-                                "lessonTheme": lessonTheme,
-                                "paragraphs": []
-                            }
-
-                        }
-                    ]
+                    "title": item.sectionTitle,
+                    "elements": elements
                 }
             )
         })
@@ -87,7 +88,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             if (syllabus) {
 
-                currentCourse = addSections(syllabus, currentCourse)
+                const formattedSyllabus = syllabus.map(item => {
+                    return {sectionTitle: item, numberElements: 1}
+                })
+
+                currentCourse = addSections(formattedSyllabus, currentCourse)
 
                 createContentCycle(currentCourse)
 
@@ -119,7 +124,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             if (contentTable) {
 
-                currentCourse = addSections(contentTable, currentCourse)
+                const formattedContentTable: {sectionTitle: string, numberElements: number}[] = contentTable.map((item: {sectionTitle: string, numberElements: number})=> {
+                    return {sectionTitle: item, numberElements: 1}
+                })
+
+                currentCourse = addSections(formattedContentTable, currentCourse)
 
                 createContentCycle(currentCourse)
 
@@ -145,6 +154,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
             break;
+
+            case "docx":
+
+                if (parsed) {
+
+                    const formattedParsed = parsed.map((item: any) => {
+                        return {sectionTitle: item.name, numberElements: item.lessons.length}
+                    })
+
+                    currentCourse = addSections(formattedParsed, currentCourse)
+
+                    //createContentCycle(currentCourse)
+
+                    context.res = {
+                        "status": 201,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": currentCourse
+                    }
+
+
+
+                } else {
+                    context.res = {
+                        "status": 500,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": {
+                            "message": "Parsed does not exist"
+                        }
+                    }
+                }
+
+                break;
 
         default:
             context.res = {
