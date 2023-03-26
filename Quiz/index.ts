@@ -80,7 +80,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             const db = await database
             const Courses = db.collection('course')
-            // console.log(req.body)
+            console.log(req.body)
             let coursePromise = Courses.findOne({ code: req.body.courseCode })
             let course = await coursePromise
             let lessonFirst5Paragraphs = course.sections[req.body.indexSection].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5)
@@ -95,11 +95,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         },
                         {
                             role: "user",
-                            content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+                            content: "Redacta la frase principal del texto suministrado. De esta frase deberás extraer la palabra principal. Tu respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+                            // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
                         }
                     ]
                 })
-                quizList.push({ question: response.data.choices[0].message.content })
+                let completionQuizParts = response.data.choices[0].message.content.split("Frase principal: ").pop().split("Palabra extraída: ")
+                if (completionQuizParts.length == 2) {
+                    let keyword = completionQuizParts[1].replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '').toLowerCase()
+                    console.log('_____________________________________________________')
+
+                    // quizList.push(completionQuizParts[0])
+
+                    console.log(completionQuizParts[0])
+                    console.log(keyword)
+                    console.log(completionQuizParts[0].toLowerCase().includes(keyword))
+
+                    if (completionQuizParts[0].toLowerCase().includes(keyword)) {
+                        quizList.push({ question: response.data.choices[0].message.content })
+                    }
+                }
             }
             // console.log(quizList)
             let sectionElementsPath = `sections.${req.body.indexSection}.elements`
