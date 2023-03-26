@@ -160,11 +160,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let GPTResponses = []
             for (const quiz of req.body.quizData) {
                 console.log(quiz)
-                let firstPrompt = `Primer texto:
+                let firstPrompt = `Texto:
                 ${quiz.source}
-                Segundo texto:
+                Mi respuesta:
                 ${quiz.studentFullResponse}
-                ¿Son el primer y segundo texto equivalentes? Sólo responde con sí o no`
+                ¿Son el texto original y mi respuesta equivalentes? Ignora diferencias en letras mayúsculas o minúsculas. Responde usando sólo 2 letras: sí o no`
                 const response = await openai.createChatCompletion({
                     model: "gpt-3.5-turbo",
                     messages: [
@@ -176,36 +176,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             role: "user",
                             content: firstPrompt
                         }
-                        // ${quiz.studentResponse}
-                        // ¿La respuesta completa correctamente la actividad de completación?
                     ]
                 })
-
-                const response2 = await openai.createChatCompletion({
-                    model: "gpt-3.5-turbo",
-                    messages: [
-                        {
-                            role: "system",
-                            content: 'You are a helpful assistant.'
-                        },
-                        {
-                            role: "user",
-                            content: firstPrompt
-                        },
-                        {
-                            role: "assistant",
-                            content: response.data.choices[0].message.content
-                        },
-                        {
-                            role: "user",
-                            content: 'Explica por qué no.'
-                        },
-                        // ${quiz.studentResponse}
-                        // ¿La respuesta completa correctamente la actividad de completación?
-                    ]
-                })
-
-                GPTResponses.push({ question: response2.data.choices[0].message.content })
+                // console.log(response.data.choices[0].message.content)
+                if (response.data.choices[0].message.content.toLowerCase().includes('s')) {
+                    // console.log('SÍ: ')
+                    // console.log(response.data.choices[0].message.content)
+                    GPTResponses.push({ result: 'Correcto' })
+                } else if (response.data.choices[0].message.content.toLowerCase().includes('n')) {
+                    // console.log('NO: ')
+                    // console.log(response.data.choices[0].message.content)
+                    const response2 = await openai.createChatCompletion({
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            {
+                                role: "system",
+                                content: 'You are a helpful assistant.'
+                            },
+                            {
+                                role: "user",
+                                content: firstPrompt
+                            },
+                            {
+                                role: "assistant",
+                                content: response.data.choices[0].message.content
+                            },
+                            {
+                                role: "user",
+                                content: 'Explica por qué no.'
+                            },
+                            // ${quiz.studentResponse}
+                            // ¿La respuesta completa correctamente la actividad de completación?
+                        ]
+                    })
+                    GPTResponses.push({ result: response2.data.choices[0].message.content })
+                }
+                // console.log(response.data.choices[0].message.content)
             }
             context.res = {
                 "status": 200,
