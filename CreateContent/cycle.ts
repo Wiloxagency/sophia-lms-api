@@ -64,6 +64,9 @@ export async function createContentCycle(course: any) {
 
                    
                     currentParagraphs =  { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter } 
+                    course.sections[currentParagraphs.sectionIndex].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
+                        return { content: text, audioScript: text }
+                    })
                 }
 
                 sectionCounter++
@@ -124,6 +127,9 @@ export async function createContentCycle(course: any) {
                     }
                 }
                 await multimediaCycle(0)
+                if (course.sections[sectionCounter].elements.length > (lessonCounter + 1)) {
+                    await lessonCycle(lessonCounter + 1)
+                }
             }
             await lessonCycle(0)
         }
