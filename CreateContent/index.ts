@@ -57,27 +57,61 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const addSections = (syllabus: {sectionTitle:string, numberElements: number}[], currentCourse: {}): {} => {
+    const addSections = (syllabus: string[], currentCourse: {}): {} => {
         syllabus.forEach(item => {
-            const elements = (new Array(item.numberElements)).fill(
-                {
-                    "type": "Lección Engine",
-                    "title": "Presentation",
-                    "elementLesson": {
-                        "lessonTheme": lessonTheme,
-                        "paragraphs": []
-                    }
-
-                }
-            )
             currentCourse["sections"].push(
                 {
-                    "title": item.sectionTitle,
-                    "elements": elements
+                    "title": item,
+                    "elements": [
+                        {
+                            "type": "Lección Engine",
+                            "title": "Presentation",
+                            "elementLesson": {
+                                "lessonTheme": lessonTheme,
+                                "paragraphs": []
+                            }
+
+                        }
+                    ]
                 }
             )
         })
         return currentCourse
+    }
+
+    const addWordSections = (currentCourse: {}): {} => {
+
+        let sections = []
+        parsed.forEach((section: any) => {
+            let lessons = []
+            section.lessons.forEach((lesson: any) => {
+                let paragraphs = []
+                lesson.paragraphs.forEach((paragraph: any) => {
+                    paragraphs.push(paragraph.text)
+                });
+                lessons.push(
+                    {
+                        "type": "Lección Engine",
+                        "title": "Presentation",
+                        "elementLesson": {
+                            "lessonTheme": lessonTheme,
+                            "paragraphs": paragraphs
+                        }
+                    }
+                )
+            })
+            sections.push(
+                {
+                    "title": section.name,
+                    "elements": lessons
+                }
+            )
+        })
+        currentCourse["sections"] = sections
+
+
+        return currentCourse
+
     }
 
     switch (generationType) {
@@ -88,11 +122,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             if (syllabus) {
 
-                const formattedSyllabus = syllabus.map(item => {
-                    return {sectionTitle: item, numberElements: 1}
-                })
-
-                currentCourse = addSections(formattedSyllabus, currentCourse)
+                currentCourse = addSections(syllabus, currentCourse)
 
                 createContentCycle(currentCourse)
 
@@ -124,11 +154,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             if (contentTable) {
 
-                const formattedContentTable: {sectionTitle: string, numberElements: number}[] = contentTable.map((item: {sectionTitle: string, numberElements: number})=> {
-                    return {sectionTitle: item, numberElements: 1}
-                })
-
-                currentCourse = addSections(formattedContentTable, currentCourse)
+                currentCourse = addSections(contentTable, currentCourse)
 
                 createContentCycle(currentCourse)
 
@@ -155,41 +181,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             break;
 
-            case "docx":
 
-                if (parsed) {
+        case "docx":
 
-                    const formattedParsed = parsed.map((item: any) => {
-                        return {sectionTitle: item.name, numberElements: item.lessons.length}
-                    })
+            if (parsed) {
 
-                    currentCourse = addSections(formattedParsed, currentCourse)
+                currentCourse = addWordSections(currentCourse)
 
-                    //createContentCycle(currentCourse)
+                createContentCycle(currentCourse)
 
-                    context.res = {
-                        "status": 201,
-                        "headers": {
-                            "Content-Type": "application/json"
-                        },
-                        "body": currentCourse
-                    }
-
-
-
-                } else {
-                    context.res = {
-                        "status": 500,
-                        "headers": {
-                            "Content-Type": "application/json"
-                        },
-                        "body": {
-                            "message": "Parsed does not exist"
-                        }
-                    }
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": currentCourse
                 }
 
-                break;
+
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating docx content"
+                    }
+                }
+            }
+
+            break;
+
 
         default:
             context.res = {
