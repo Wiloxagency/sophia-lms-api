@@ -35,7 +35,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     ]
                 })
-                quizList.push({ question: response.data.choices[0].message.content })
+                quizList.push({
+                    question: response.data.choices[0].message.content,
+                    source: paragraph.content
+                })
             }
             // console.log(quizList)
             let sectionElementsPath = `sections.${req.body.indexSection}.elements`
