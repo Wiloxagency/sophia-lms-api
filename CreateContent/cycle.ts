@@ -54,6 +54,7 @@ export async function createContentCycle(course: any) {
 
                 let currentParagraphs: any
                 if (course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.length == 0) {
+                    console.warn("creating paragraph")
                     payload.text = course.sections[sectionCounter].title
                     payload.index = sectionCounter
                     currentParagraphs = await createParagraphs(payload)
@@ -69,28 +70,26 @@ export async function createContentCycle(course: any) {
                     })
                 }
 
-                sectionCounter++
-
                 // Create Audios & find images
                 const multimediaCycle = async (paragraphCounter: number) => {
 
                     const paragraphContent = currentParagraphs.content[paragraphCounter]
-                    const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, 0, paragraphCounter)
+                    const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
                     const currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
-                    console.info(`Audio for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                    console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["audioUrl"] = currentAudio.url
 
                     const extractedTitle = await extractTitle(paragraphContent, "es", course.code)
-                    console.info(`Title for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
+                    console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
                     currentParagrah["titleAI"] = extractedTitle.title
 
                     const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
-                    console.info(`Image for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                    console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData
 
                     const keyPhrases = await createkeyphrases(paragraphContent, "es", course.code)
                     currentParagrah["keyPhrases"] = keyPhrases
-                    console.info(`KeyPhrases for section ${sectionCounter}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                    console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
 
                     //create an empty video structure too
                     currentParagrah["videoData"] = {
@@ -103,7 +102,7 @@ export async function createContentCycle(course: any) {
                     totalParagraphCounter++
 
                     if (paragraphCounter == currentParagraphs.content.length) {
-                        if (sectionCounter == syllabus.length) {
+                        if ((sectionCounter + 1) == syllabus.length) {
 
                             await saveLog(`Finish content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
@@ -119,7 +118,13 @@ export async function createContentCycle(course: any) {
                             await Course.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
                             })
-                            await contentCycle(sectionCounter)
+
+                            if (lessonCounter < course.sections[sectionCounter].elements.length-1) {
+                                await lessonCycle(lessonCounter+1)
+                            } else {
+                                await contentCycle(sectionCounter +1)
+                            }
+                            
                         }
 
                     } else {
@@ -127,9 +132,9 @@ export async function createContentCycle(course: any) {
                     }
                 }
                 await multimediaCycle(0)
-                if (course.sections[sectionCounter].elements.length > (lessonCounter + 1)) {
-                    await lessonCycle(lessonCounter + 1)
-                }
+                // if (course.sections[sectionCounter].elements.length > (lessonCounter+1)) {
+                //     await lessonCycle(lessonCounter+1)
+                // }
             }
             await lessonCycle(0)
         }
