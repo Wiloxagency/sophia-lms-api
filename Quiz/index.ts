@@ -241,7 +241,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             let GPTResponses = []
             for (const quiz of req.body.quizData) {
-                console.log(quiz)
+                // console.log(quiz)
                 let firstPrompt = `Fuente:
                 ${quiz.source}
                 Pregunta basada en la fuente:
@@ -262,7 +262,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     ]
                 })
-                // console.log(response.data.choices[0].message.content)
+                console.log(response.data.choices[0].message.content)
                 if (response.data.choices[0].message.content.toLowerCase().includes('s')) {
                     // console.log('SÍ: ')
                     // console.log(response.data.choices[0].message.content)
@@ -287,12 +287,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             },
                             {
                                 role: "user",
-                                content: 'Explica por qué no.'
+                                content: 'Explica por qué mi respuesta es incorrecta.'
                             },
                             // ${quiz.studentResponse}
                             // ¿La respuesta completa correctamente la actividad de completación?
                         ]
                     })
+                    console.log(response2.data.choices[0].message.content)
                     GPTResponses.push({ result: response2.data.choices[0].message.content })
                 }
                 // console.log(response.data.choices[0].message.content)
