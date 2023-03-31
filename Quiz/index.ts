@@ -296,7 +296,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     console.log(response2.data.choices[0].message.content)
                     GPTResponses.push({ result: response2.data.choices[0].message.content })
                 }
-                // console.log(response.data.choices[0].message.content)
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                console.log(GPTResponses)
             }
             context.res = {
                 "status": 200,
