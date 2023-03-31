@@ -3,21 +3,29 @@ import {BlobInfo} from '../DeleteElement/types'
 
 // Deleta arquivos de containers
 
-export async function deleteAssets(blobInfoList: BlobInfo[]): Promise<boolean> {
+export interface DeleteResult {
+    success: boolean;
+    count: number;
+  }
 
-    const AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=sophieassets;AccountKey=7Phn8lu1cvWdRN8A/S+rQTYgJIGL0bTr9bJeC1Cy4tPtQ/jAAN7qzL6E3dnuCyNhp2Xc3Px841GdQJWUo9vIXg==;EndpointSuffix=core.windows.net"
+export async function deleteAssets(blobInfoList: BlobInfo[]): Promise<DeleteResult> {
 
-    const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+  const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
+  const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
 
-    try {
-        for (const blobInfo of blobInfoList) {
-          const containerClient = blobServiceClient.getContainerClient(blobInfo.container);
-          const blockBlobClient = containerClient.getBlockBlobClient(blobInfo.file);
-          await blockBlobClient.delete();
-        }
-        return true;
-      } catch (err) {
-        return false;
-      };
-    
-    }; 
+  let count = 0;
+
+  try {
+    for (const blobInfo of blobInfoList) {
+      const containerClient = blobServiceClient.getContainerClient(blobInfo.container);
+      const blockBlobClient = containerClient.getBlockBlobClient(blobInfo.file);
+      const response = await blockBlobClient.delete();
+      if (response._response.status === 202) {
+        count++;    
+      }
+    }
+    return { success: true, count };
+  } catch (err) {
+    return { success: false, count };
+  }
+};
