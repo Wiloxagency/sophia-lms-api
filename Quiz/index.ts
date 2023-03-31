@@ -35,7 +35,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     ]
                 })
-                quizList.push({ question: response.data.choices[0].message.content })
+                quizList.push({
+                    question: response.data.choices[0].message.content,
+                    source: paragraph.content
+                })
             }
             // console.log(quizList)
             let sectionElementsPath = `sections.${req.body.indexSection}.elements`
@@ -234,6 +237,89 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const correctShortAnswerQuiz = async () => {
+        try {
+            let GPTResponses = []
+            for (const quiz of req.body.quizData) {
+                // console.log(quiz)
+                let firstPrompt = `Fuente:
+                ${quiz.source}
+                Pregunta basada en la fuente:
+                ${quiz.question}
+                Mi respuesta:
+                ${quiz.answer}
+                ¿Mi respuesta es correcta? Responde usando sólo 2 letras: sí o no`
+                const response = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: 'You are a helpful assistant.'
+                        },
+                        {
+                            role: "user",
+                            content: firstPrompt
+                        }
+                    ]
+                })
+                console.log(response.data.choices[0].message.content)
+                if (response.data.choices[0].message.content.toLowerCase().includes('s')) {
+                    // console.log('SÍ: ')
+                    // console.log(response.data.choices[0].message.content)
+                    GPTResponses.push({ result: 'Correcto' })
+                } else if (response.data.choices[0].message.content.toLowerCase().includes('n')) {
+                    // console.log('NO: ')
+                    // console.log(response.data.choices[0].message.content)
+                    const response2 = await openai.createChatCompletion({
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            {
+                                role: "system",
+                                content: 'You are a helpful assistant.'
+                            },
+                            {
+                                role: "user",
+                                content: firstPrompt
+                            },
+                            {
+                                role: "assistant",
+                                content: response.data.choices[0].message.content
+                            },
+                            {
+                                role: "user",
+                                content: 'Explica por qué mi respuesta es incorrecta.'
+                            },
+                            // ${quiz.studentResponse}
+                            // ¿La respuesta completa correctamente la actividad de completación?
+                        ]
+                    })
+                    console.log(response2.data.choices[0].message.content)
+                    GPTResponses.push({ result: response2.data.choices[0].message.content })
+                }
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                console.log(GPTResponses)
+            }
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": GPTResponses
+            }
+        } catch (error) {
+            // console.log(error)
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
 
@@ -248,7 +334,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     await createCompletionQuiz()
                 }
             } else if (req.body.operation == 'correct') {
-                await correctCompletionQuiz()
+                if (req.body.quizType == 'multipleChoice') {
+                }
+                if (req.body.quizType == 'shortAnswer') {
+                    await correctShortAnswerQuiz()
+                }
+                if (req.body.quizType == 'completion') {
+                    await correctCompletionQuiz()
+                }
             }
 
             break;
