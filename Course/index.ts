@@ -1,36 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-import { BlobServiceClient } from '@azure/storage-blob'
-import {BlobInfo} from '../DeleteElement/types'
 
 const database = createConnection()
 
 
  const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    // Deleta arquivos de containers
-
-    const deleteAssets = async () => {
-
-        const AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=sophieassets;AccountKey=7Phn8lu1cvWdRN8A/S+rQTYgJIGL0bTr9bJeC1Cy4tPtQ/jAAN7qzL6E3dnuCyNhp2Xc3Px841GdQJWUo9vIXg==;EndpointSuffix=core.windows.net"
-
-        const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-
-        const blobInfoList: BlobInfo[] = req.body;
-
-        try {
-            for (const blobInfo of blobInfoList) {
-              const containerClient = blobServiceClient.getContainerClient(blobInfo.container);
-              const blockBlobClient = containerClient.getBlockBlobClient(blobInfo.file);
-              await blockBlobClient.delete();
-            }
-          } catch (err) {
-            return undefined
-            };
-        }; 
-        
-    // ----------------------------------------------------------------------------------- //
-    
     const createCourse = async () => {
 
         const createdCourses = parseInt(req.body.createdCourses)
@@ -240,7 +215,6 @@ const database = createConnection()
     switch (req.method) {
         case "POST":
             await createCourse()
-            await deleteAssets()
             break;
 
         case "PUT":
