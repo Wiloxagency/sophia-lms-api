@@ -83,7 +83,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             const db = await database
             const Courses = db.collection('course')
-            console.log(req.body)
+            // console.log(req.body)
             let coursePromise = Courses.findOne({ code: req.body.courseCode })
             let course = await coursePromise
             let lessonFirst5Paragraphs = course.sections[req.body.indexSection].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5)
@@ -117,6 +117,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     if (completionQuizParts[0].toLowerCase().includes(keyword)) {
                         quizList.push({ question: response.data.choices[0].message.content })
                     }
+                } else {
+                    console.log('OPENAI DID NOT RETURN A PROPERLY FORMATTED RESPONSE')
+                    console.log('OPENAI RESPONSE:')
+                    console.log('response.data.choices[0].message.content')
                 }
             }
             // console.log(quizList)
@@ -125,6 +129,87 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizz_list = quizList
             let quizElementPayload = {
                 type: 'completion',
+                title: 'Quiz',
+                elementQuiz: { quizz_list: quizz_list }
+            }
+            sectionElements.push(quizElementPayload)
+            // console.log(sectionElements)
+            const updatePromise = Courses.findOneAndUpdate({ code: req.body.courseCode }, {
+                $set: {
+                    [sectionElementsPath]: sectionElements
+                }
+            })
+            await updatePromise
+            // console.log(response.data.choices[0].message.content)
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": quizList
+            }
+        } catch (error) {
+            // console.log(error)
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error"
+                }
+            }
+        }
+    }
+
+    const createTrueOrFalseQuiz = async () => {
+        try {
+            const db = await database
+            const Courses = db.collection('course')
+            // console.log(req.body)
+            let coursePromise = Courses.findOne({ code: req.body.courseCode })
+            let course = await coursePromise
+            let lessonFirst5Paragraphs = course.sections[req.body.indexSection].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5)
+            let quizList = []
+            for (const paragraph of lessonFirst5Paragraphs) {
+                const response = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: 'You are a helpful assistant.'
+                        },
+                        {
+                            role: "user",
+                            content: "Redacta la frase principal del texto suministrado. De esta frase deberás crear dos versiones. La primera versión será una afirmación verdadera. La segunda versión será un afirmación falsa. Tu respuesta debe ser concisa y debe seguir el siguiente formato: Frase verdadera: Frase falsa: El texto suministrado es: " + paragraph.content
+                        }
+                    ]
+                })
+                // console.log(response.data.choices[0].message.content)
+                // return
+                let trueOrFalseQuizParts = response.data.choices[0].message.content.split("Frase verdadera: ").pop().split("Frase falsa: ")
+                if (trueOrFalseQuizParts.length == 2) {
+                    // console.log(trueOrFalseQuizParts[0])
+                    // console.log(trueOrFalseQuizParts[1])
+                    quizList.push({
+                        true: trueOrFalseQuizParts[0],
+                        false: trueOrFalseQuizParts[1],
+                        source: paragraph.content
+                    })
+                } else {
+                    console.log('______________________________________________________')
+                    console.log('OPENAI DID NOT RETURN A PROPERLY FORMATTED RESPONSE')
+                    console.log('OPENAI RESPONSE:')
+                    console.log('response.data.choices[0].message.content')
+                    console.log('______________________________________________________')
+                }
+            }
+            // console.log(quizList)
+            let sectionElementsPath = `sections.${req.body.indexSection}.elements`
+            let sectionElements = course.sections[req.body.indexSection].elements
+            let quizz_list = quizList
+            let quizElementPayload = {
+                type: 'trueOrFalse',
                 title: 'Quiz',
                 elementQuiz: { quizz_list: quizz_list }
             }
@@ -332,6 +417,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
                 if (req.body.quizType == 'completion') {
                     await createCompletionQuiz()
+                }
+                if (req.body.quizType == 'trueOrFalse') {
+                    await createTrueOrFalseQuiz()
                 }
             } else if (req.body.operation == 'correct') {
                 if (req.body.quizType == 'multipleChoice') {
