@@ -11,6 +11,57 @@ const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STR
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
+    
+    const deleteAssets = async (code: string, sectionIndex: number, elementIndex: number, slideIndex: number,) => {
+
+        try {
+            const db = await database
+            const Courses = db.collection('course')
+            
+            const resp = Courses.find({'code': code})
+            const body = await resp.toArray()
+            const audioUrl = body[0].sections[sectionIndex].elements[elementIndex].elementLesson.paragraphs[slideIndex].audioUrl;
+            const urlParts = audioUrl.split("/")
+            const containerName = urlParts[3]
+            const audioFileName = urlParts[4]    
+
+            if (body && body[0]) {
+
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": { containerName, audioFileName }
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error getting course by code"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error getting course by code"
+                }
+            }
+
+        }
+    }
+
     const db = await database
     const Courses = db.collection('course')
 
@@ -168,6 +219,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     switch (req.method) {
         case "POST":
             await uploadResource(req)
+            break;
+
+        case "DELETE":
+            await deleteAssets(req.body.code, req.body.sectionIndex, req.body.elementIndex, req.body.slideIndex)
             break;
 
         case "PUT":
