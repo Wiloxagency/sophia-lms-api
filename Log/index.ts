@@ -29,10 +29,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             const limitNum = parseInt(items_by_page)
 
-            const body = await collection.find(Object.assign(queryType, queryData, querySearch)).skip(skipNum).limit(limitNum).toArray();
-
-            console.log(body)
-
+            const body = await collection.find(Object.assign(queryType, queryData, querySearch)).skip(skipNum).limit(limitNum).sort({'_id': -1}).toArray();
 
             if (body) {
 
