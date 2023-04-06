@@ -177,9 +177,73 @@ const database = createConnection()
         }
     }
 
-    const getCourses = async () => {
+    const getCourses = async (search: string, approvalStatus: string, categories: string, dateCreated: string, skip: string, items_by_page: string) => {
 
+        try {
+
+            const db = await createConnection()
+            const collection = db.collection("course")
+
+            const regexSearch = new RegExp(search, "i") // "i" indica que a busca é case-insensitive
+            const querySearch  = { $or: [
+                { 'code': { $regex: regexSearch } },
+                { 'organizationCode': { $regex: regexSearch } },
+                { 'author_code': { $regex: regexSearch } },
+                { 'details.title': { $regex: regexSearch } },
+                { 'details.summary': { $regex: regexSearch } }
+            ]}
+            
+            const regexData = new RegExp(dateCreated, "i") 
+            const queryData = { 'dateCreated': { $regex: regexData } }
+
+            const regexStatus = new RegExp(approvalStatus, "i") 
+            const queryStatus = { 'approvalStatus': { $regex: regexStatus } }
+
+            const regexCategories = new RegExp(categories, "i") 
+            const queryCategories = { 'details.categories': { $regex: regexCategories } }
+
+            const skipNum = parseInt(skip)
+            const limitNum = parseInt(items_by_page)
+
+            const body = await collection.find(Object.assign(queryStatus, queryData, querySearch, queryCategories)).skip(skipNum).limit(limitNum).sort({'_id': -1}).toArray();
+
+            if (body) {
+
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "No course found"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error getting courses"
+                }
+            }
+
+        }
     }
+
 
     const deleteCourse = async () => {
         try {
@@ -229,7 +293,14 @@ const database = createConnection()
             if (req.params.courseCode) {
                 await getCourse(req.params.courseCode)
             } else {
-                await getCourses()
+                await getCourses(
+                    req.query.search,
+                    req.query.approvalStatus,
+                    req.query.categories,
+                    req.query.dateCreated,
+                    req.query.skip,
+                    req.query.items_by_page,
+                    )
             }
 
             break;
