@@ -185,7 +185,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     ]
                 })
-                // console.log(response.data.choices[0].message.content)
+                console.log('______________________________________________________')
+                console.log('OPENAI RESPONSE')
+                console.log(response.data.choices[0].message.content)
+                console.log('______________________________________________________')
                 // return
                 let trueOrFalseQuizParts = response.data.choices[0].message.content.split("Frase verdadera: ").pop().split("Frase falsa: ")
                 if (trueOrFalseQuizParts.length == 2) {
