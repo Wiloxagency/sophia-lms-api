@@ -3,7 +3,8 @@ import { createConnection } from "../shared/mongo";
 
 const database = createConnection()
 
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+
+ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createCourse = async () => {
 
@@ -241,3 +242,4 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 }
 
 export default httpTrigger;
+

@@ -151,14 +151,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const updateGroup = async () => {
+    const updateGroup = async (groupCode: string) => {
+
         delete req.body._id
+
         try {
 
             const db = await database
-            const Groups = db.collection('group')
+            const CourseGroups = db.collection('group')
 
-            const resp = Groups.findOneAndUpdate({ 'code': req.params.groupCode }, { $set: req.body })
+            const resp = CourseGroups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
             const body = await resp
 
             if (body) {
@@ -177,7 +179,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error updating group by code"
+                        "message": "Error updating courseGroup by code"
                     }
                 }
 
@@ -191,7 +193,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error updating group by code"
+                    "message": "Error updating courseGroup by code"
                 }
             }
 
@@ -203,18 +205,59 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const db = await database
             const Groups = db.collection('group')
 
-            const resp = Groups.deleteOne({ 'code': req.params.groupCode })
+            const group = await Groups.findOne({ 'code': req.params.groupCode })
+
+            if (!group) {
+
+              context.res = {
+                "status": 404,
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "message": "courseGroup not found"
+                }
+              }
+              return
+            }
+
+            const resp = Groups.deleteOne({ 'code': req.params.groupCode, 'users': { $eq: [] }})
+
             const body = await resp
-            if (body) {
+            if (body.deletedCount >= 1) {
+
                 context.res = {
-                    "status": 200,
+                    "status": 201,
                     "headers": {
                         "Content-Type": "application/json"
                     },
                     "body": body
                 }
+            } else {
+                context.res = {
+                    "status": 204,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "This group has students and cannot be deleted"
+                    }
+                }
+
             }
+
         } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error deleting group by code"
+                }
+            }
+
         }
     }
 
@@ -224,7 +267,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "PUT":
-            await updateGroup()
+            await updateGroup(req.params.groupCode)
             break;
 
         case "GET":
