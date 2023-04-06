@@ -9,7 +9,7 @@ var users = []
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const createUser = async () => {
+    const createUser = async () => {  
         console.log(req.body)
         try {
             const db = await database
