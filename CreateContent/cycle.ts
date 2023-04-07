@@ -13,7 +13,7 @@ export async function createContentCycle(course: any) {
 
     let payload: paragraphCreation
     if (!(course.sections && course.sections.length > 0)) {
-        await saveLog("Course has not sections", "Error", "createContentCycle()", "Courses/{courseCode}/CreateContent")
+        await saveLog(`Course: ${course.code} has not sections`, "Error", "createContentCycle()", "Courses/{courseCode}/CreateContent")
         return
     }
 

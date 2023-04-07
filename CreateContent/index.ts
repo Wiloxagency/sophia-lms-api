@@ -4,6 +4,7 @@ import { createContentTable } from "./createContentTable";
 
 import { Db } from "mongodb";
 import { createContentCycle } from "./cycle";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 var currentCourse = {}
@@ -36,6 +37,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         if (body) {
             currentCourse = body
         } else {
+            await saveLog(`Course not found: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
             context.res = {
                 "status": 404,
                 "headers": {
@@ -46,6 +48,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
 
     } catch (error) {
+        await saveLog(`Error connecting to database ${courseCode}: ${error.message}`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
         context.res = {
             "status": 500,
             "headers": {
@@ -137,6 +140,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             } else {
+                await saveLog(`Error creating syllabus for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -168,13 +172,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             } else {
+                await saveLog(`Error creating by structure for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
                 context.res = {
                     "status": 500,
                     "headers": {
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error creating syllabus"
+                        "message": "Error creating course by structure"
                     }
                 }
             }
@@ -200,6 +205,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             } else {
+                await saveLog(`Error creating docx content for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
                 context.res = {
                     "status": 500,
                     "headers": {
