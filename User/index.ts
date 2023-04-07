@@ -11,11 +11,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const createUser = async () => {  
         console.log(req.body)
+        let newUser = req.body
         try {
             const db = await database
             var receivedPassword = req.body.password
             const hash = bcrypt.hashSync(receivedPassword, 10)
-            req.body.password = hash
+            console.info(hash)
+            newUser.password = hash
+            newUser["dataCreated"] = new Date()
             const Users = db.collection('user')
             const check = Users.findOne({ email: req.body.email })
             var body = null
@@ -29,7 +32,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": { "email": "Exists" }
                 }
             } else {
-                const resp = Users.insertOne(req.body)
+                console.info(newUser)
+                const resp = Users.insertOne(newUser)
                 body = await resp
                 if (body.acknowledged) {
                     const user = await Users.findOne({ _id: body.insertedId })
