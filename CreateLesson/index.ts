@@ -34,12 +34,20 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const sectionPath = `sections.${req.body.indexSection}.elements`
-    await Course.updateOne(
-        { code: req.body.courseCode },
-        {
-            $push: { [sectionPath]: lesson }
-        }
-    )
+
+    try {
+        await Course.updateOne(
+            { code: req.body.courseCode },
+            {
+                $push: { [sectionPath]: lesson }
+            }
+        )
+    } catch (error) {
+        await saveLog(`Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`, "Error", "AzureFunction()", "Courses/{courseCode}/CreateLesson")
+        throw new Error(error.message);
+        
+    }
+    
 
     const updatedCourse = await Course.findOne(
         { code: req.body.courseCode }
@@ -95,12 +103,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             // Save course (in the future be necessary to check if content was 100% fine generated)
             const newSectionPath = `sections.${req.body.indexSection}.elements.${elementIndex}`
-            await Course.updateOne(
+            try {
+                await Course.updateOne(
                 { code: req.body.courseCode },
                 {
                     $set: { [newSectionPath]: lesson }
                 }
             )
+            } catch (error) {
+                await saveLog(`Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`, "Error", "AzureFunction()", "Courses/{courseCode}/CreateLesson")
+
+            }
+            
         } else {
             await multimediaCycle(paragraphCounter)
         }

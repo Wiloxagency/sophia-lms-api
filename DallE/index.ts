@@ -4,6 +4,7 @@ import sharp = require('sharp')
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob'
 import { v4 as uuidv4 } from 'uuid'
 import { createConnection } from "../shared/mongo"
+import { saveLog } from "../shared/saveLog"
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const database = createConnection()
@@ -18,7 +19,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     })
     const openai = new OpenAIApi(configuration)
 
-    const createImages = async () => {
+    const createImages = async (courseCode: string) => {
         try {
             const response = await openai.createImage({
                 prompt: req.body.prompt,
@@ -36,7 +37,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error creating image with DallE for course: ${courseCode}, error: ${error.message} `, "Error", "createImages()", "DallE")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -61,7 +62,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const imageBufferOutput = await sharp(imageBufferInput)
                 .jpeg()
                 .toBuffer()
-            let processedSquareImage = await ProcessSquareImage(imageBufferOutput)
+            let processedSquareImage = await ProcessSquareImage(imageBufferOutput, courseCode)
             const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
             const containerClient = blobServiceClient.getContainerClient("images");
             const blobName = uuidv4() + ".jpeg"
@@ -89,6 +90,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": { "imageUrl": blockBlobClient.url }
             }
         } catch (error) {
+            await saveLog(`Error creating image with DallE for course: ${courseCode}, error: ${error.message} `, "Error", "updateImage()", "DallE")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -101,8 +103,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    async function ProcessSquareImage(imageBuffer) {
-        let foregroundImageBuffer = await
+    async function ProcessSquareImage(imageBuffer: Buffer, courseCode: string) {
+        try {
+            let foregroundImageBuffer = await
             sharp(imageBuffer)
                 .resize({
                     width: 1024,
@@ -132,11 +135,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             // .toFile('test4.jpg')
             .toBuffer()
         return composite
+        } catch (error) {
+            await saveLog(`Error creating image with DallE for course: ${courseCode}, error: ${error.message} `, "Error", "ProcessSquareImage()", "DallE")
+        }
+        
     }
 
     switch (req.method) {
         case "POST":
-            await createImages()
+            await createImages(req.body.courseCode)
             break;
 
         case "PUT":

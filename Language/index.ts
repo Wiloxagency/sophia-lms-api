@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
@@ -37,6 +38,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             console.info(response.data.choices[0].text)
 
         } catch (error) {
+            await saveLog(`Error creating language pack for: ${language}, error: ${error.message} `, "Error", "translate()", "Language/{lang}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -83,6 +85,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error getting language pack for: ${lang}, error: ${error.message} `, "Error", "getLanguages()", "Language/{lang}")
             context.res = {
                 "status": 500,
                 "headers": {

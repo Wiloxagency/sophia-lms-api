@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { userAggregation } from "../User/aggregation";
 import bcrypt = require("bcryptjs");
+import { saveLog } from "../shared/saveLog";
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -55,6 +56,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
   } catch (error) {
+
+    await saveLog(`Authentication error for user: ${email}, error: ${error.message} `, "Error", "AzureFunction()", "Login")
+
     context.res = {
 
       "status": 500,

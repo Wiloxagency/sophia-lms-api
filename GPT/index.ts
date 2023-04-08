@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { Configuration, OpenAIApi } from 'openai'
+import { saveLog } from "../shared/saveLog"
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -33,6 +34,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             "body": response.data.choices[0].message.content
         }
     } catch (error) {
+        await saveLog(`Error creating Chat Completion, error: ${error.message} `, "Error", "AzureFunction()", "GPT")
         context.res = {
             "status": 500,
             "headers": {

@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 const database = createConnection()
 import bcrypt = require("bcryptjs");
+import { saveLog } from "../shared/saveLog";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -68,6 +69,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": resp
             };
         } catch (error) {
+            await saveLog(`Error creating group user for user: ${req.body.email}, error: ${error.message} `, "Error", "createGroupUser()", "GroupUser/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {

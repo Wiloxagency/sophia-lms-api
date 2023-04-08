@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 
 import { Db } from "mongodb";
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 var db: Db
@@ -21,6 +22,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": body
             }
         } else {
+            await saveLog(`Error Getting organization courses for: ${req.params.organizationCode}`, "Error", "AzureFunction()", "Organizations/{organizationCode}/courses")
+
             context.res = {
                 "status": 500,
                 "headers": {
@@ -32,6 +35,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         }
     } catch (error) {
+        await saveLog(`Error in organizationCourse method for: ${req.params.organizationCode}, error ${error.message}`, "Error", "AzureFunction()", "Organizations/{organizationCode}/courses")
+
         context.res = {
             "status": 500,
             "headers": {
