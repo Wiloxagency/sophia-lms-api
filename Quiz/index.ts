@@ -47,7 +47,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'shortAnswer',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
@@ -130,7 +133,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'completion',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
@@ -214,7 +220,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'trueOrFalse',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
