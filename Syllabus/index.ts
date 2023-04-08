@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createContentTable } from "../CreateContent/createContentTable";
+import { saveLog } from "../shared/saveLog";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -13,6 +14,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             "body": contentTable
         }
     } catch (error) {
+        await saveLog(`Error creating syllabus, error ${error.message}`, "Error", "AzureFunction()", "Syllabus")
+
         context.res = {
             "status": 500,
             "headers": {

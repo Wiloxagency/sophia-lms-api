@@ -5,6 +5,7 @@ import { createConnection } from "../shared/mongo"
 import parseMultipartFormData from "@anzp/azure-function-multipart"
 import sharp = require('sharp')
 import { v4 as uuidv4 } from 'uuid'
+import { saveLog } from '../shared/saveLog'
 
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
@@ -48,6 +49,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error deleting assets, error ${error.message}`, "Error", "deleteAssets()", "SlideResource")
 
             context.res = {
                 "status": 500,
@@ -55,7 +57,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error getting course by code"
+                    "message": "Error deleting assets"
                 }
             }
 
@@ -109,6 +111,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error  updating an image, error ${error.message}`, "Error", "updateImage()", "SlideResource")
 
             context.res = {
                 "status": 500,
@@ -202,6 +205,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
         } catch (error) {
+            await saveLog(`Error updating slide resource, error ${error.message}`, "Error", "uploadResource()", "SlideResource")
 
             context.res = {
                 "status": 500,

@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createAudio } from "../CreateContent/createAudios"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -34,6 +35,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": newAudio
                 }
             } else {
+                await saveLog(`Error re-creating audio.`, "Error", "AzureFunction()", "TextToSpeech")
+
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -46,7 +49,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            
+            await saveLog(`Error re-creating audio, error ${error.message}`, "Error", "AzureFunction()", "TextToSpeech")
+
             context.res = {
                 "status": 500,
                 "headers": {

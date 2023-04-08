@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -47,24 +48,28 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
+                await saveLog(`Error getting courses by user code for user: ${req.params.userCode}`, "Error", "getCourses()", "StudentCourses/{userCode}")
+
                 context.res = {
                     "status": 500,
                     "headers": {
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error getting courses by code"
+                        "message": "Error getting courses by user code"
                     }
                 }
             }
         } catch (error) {
+            await saveLog(`Error getting courses by user code for user: ${req.params.userCode}, error ${error.message}`, "Error", "getCourses()", "StudentCourses/{userCode}")
+
             context.res = {
                 "status": 500,
                 "headers": {
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error getting courses by code"
+                    "message": "Error getting courses by user code"
                 }
             }
         }

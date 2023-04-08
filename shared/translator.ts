@@ -1,8 +1,10 @@
+import { saveLog } from "./saveLog";
 
 // import axios, { AxiosResponse } from 'axios' 
 const axios = require('axios').default
 const { v4: uuidv4 } = require('uuid')
 
+//TODO: put this key outside this file
 let key = "569573b0d7c9412887eaef823b637e01"
 let endpoint = "https://api.cognitive.microsofttranslator.com"
 
@@ -54,6 +56,7 @@ export async function translateQuery(receivedQuery: string): Promise<any> {
         // })
 
     } catch (error) {
+        await saveLog(`Error traslating a query, error ${error.message}`, "Error", "translateQuery()", "N/A")
 
         return { error }
     }

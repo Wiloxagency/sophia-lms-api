@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -27,19 +28,22 @@ const database = createConnection()
                     "body": body
                 }
             } else {
+                await saveLog(`Error getting webhook`, "Error", "createWebhook()", "Webhook")
+
                 context.res = {
                     "status": 500,
                     "headers": {
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error creating course"
+                        "message": "Error getting webhook"
                     }
                 }
 
             }
 
         } catch (error) {
+            await saveLog(`Error getting webhook, error ${error.message} `, "Error", "createWebhook()", "Webhook")
 
             context.res = {
                 "status": 500,
