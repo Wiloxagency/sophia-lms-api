@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { isoLangPro } from "./isoLang";
-import { template } from "../template";
+import { template } from "./template";
 const fs = require('fs');
 
 const { Configuration, OpenAIApi } = require("openai");
@@ -51,28 +51,35 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }     
 
-    const translateFile = async (filePath: string, langIso: string, outputFilePath: string) => {
-        try {
-          
-          const translatedData = {};
-          for (const key in template) {
-            if (Object.prototype.hasOwnProperty.call(template, key)) {
-              const originalValue = template[key];
-              const translatedValue = await translate(originalValue, langIso);
-              translatedData[key] = translatedValue
-            }
+    const translateValues = async (template, langIso, outputFile) => {
+        const translatedTemplate = {};
+      
+        for (const [key, value] of Object.entries(template)) {
+          if (typeof value === 'string') {
+            const translatedValue = await translate(value, langIso);
+            translatedTemplate[key] = translatedValue;
+          } else {
+            translatedTemplate[key] = value;
           }
-      
-          // Salvar os dados traduzidos em um novo arquivo JSON
-          fs.writeFileSync(outputFilePath, JSON.stringify(translatedData, null, 2));
-          console.log(`Arquivo traduzido salvo em ${outputFilePath}`);
-        } catch (error) {
-          console.error(error);
         }
-      };
       
-      // Exemplo de uso: traduzir para espanhol
-      translateFile('template.ts', 'pt', 'example-es.json');
+        try {
+          await fs.writeFile(outputFile, JSON.stringify(translatedTemplate), (err) => {
+            if (err) throw err;
+            console.log('Values saved to file');
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      
+        return translatedTemplate;
+      }
+      
+      const outputFile = 'translated-values.json';
+      const translatedTemplate = await translateValues(template, 'pt', outputFile);
+      console.log(translatedTemplate);
+      
+
       
      
     const getLanguages = async (lang: string) => {
