@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -38,7 +39,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error creating organization: ${req.body.organizationCode}, error: ${error.message} `, "Error", "createOrganization()", "Organization/{organizationCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -76,6 +77,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error deleting organization: ${req.body.organizationCode}, error: ${error.message} `, "Error", "deleteOrganization()", "Organization/{organizationCode?}")
+
         }
     }
 
@@ -101,6 +104,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
+                await saveLog(`Error updating organization by code: ${req.body.organizationCode}`, "Error", "deleteOrganization()", "Organization/{organizationCode?}")
+
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -114,6 +119,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error updating organization by code: ${req.body.organizationCode}, error ${error.message}`, "Error", "deleteOrganization()", "Organization/{organizationCode?}")
 
             context.res = {
                 "status": 500,
@@ -158,6 +164,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body[0]
                 }
             } else {
+                await saveLog(`Error getting organization by code: ${req.body.organizationCode}`, "Error", "getOrganization()", "Organization/{organizationCode?}")
+
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -171,6 +179,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error getting organization by code: ${req.body.organizationCode}, error ${error.message}`, "Error", "getOrganization()", "Organization/{organizationCode?}")
 
             context.res = {
                 "status": 500,
@@ -217,6 +226,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
             
         } catch (error) {
+            await saveLog(`Error getting organizations, error ${error.message}`, "Error", "getOrganizations()", "Organization/{organizationCode?}")
+
             context.res = {
                 "status": 500,
                 "headers": {

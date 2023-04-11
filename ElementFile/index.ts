@@ -4,6 +4,7 @@ import { BlobServiceClient, ContainerClient } from "@azure/storage-blob"
 import { createConnection } from "../shared/mongo"
 import { v4 as uuidv4 } from 'uuid'
 import sharp = require("sharp")
+import { saveLog } from "../shared/saveLog"
 
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
@@ -36,6 +37,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": { "url": blockBlobClient.url }
             }
         } catch (error) {
+            await saveLog(`Error uploading file, error: ${error.message} `, "Error", "AzureFunction()", "ElementFile")
+
             context.res = {
                 "status": 500,
                 "headers": {

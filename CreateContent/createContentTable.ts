@@ -34,7 +34,6 @@ export async function createContentTable(text: string, maxSections: number, lang
             
             return splittedcontentTable
         } catch (error) {
-            console.error(error)
             await saveLog(`Error creating Content Table for course: ${courseCode}.`, "Error", "createContentTable()", "Courses/{courseCode}/CreateContent")
             return undefined
         }

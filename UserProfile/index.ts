@@ -5,6 +5,8 @@ import { createConnection } from "../shared/mongo";
 const database = createConnection()
 var db: Db
 
+//TODO - this endpoint must to be destroy
+
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const receivedCode = req.params.userCode

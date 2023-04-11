@@ -3,6 +3,8 @@ import { createConnection } from "../shared/mongo";
 
 const database = createConnection()
 
+//TODO: Try / Catch + saveLogs implementations
+
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createRole = async () => {

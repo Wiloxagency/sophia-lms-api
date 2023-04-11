@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 
 import { Db } from "mongodb";
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 var db: Db
@@ -28,7 +29,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } else {
-
+            await saveLog(`Error Getting courses by owner: ${ownerCode} `, "Error", "AzureFunction()", "Users/{userCode}/CreatorCourses")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -42,6 +43,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
 
     } catch (error) {
+        await saveLog(`Error in CourseByOwner method: ${ownerCode}, error: ${error.message} `, "Error", "AzureFunction()", "Users/{userCode}/CreatorCourses")
         context.res = {
             "status": 500,
             "headers": {

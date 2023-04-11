@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -28,6 +29,7 @@ const database = createConnection()
                     "body": body
                 }
             } else {
+                await saveLog(`Error creating course ${req.body.course.code}`, "Error", "createCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -41,7 +43,7 @@ const database = createConnection()
             }
 
         } catch (error) {
-
+            await saveLog(`Error creating course: ${req.body.course.code}` + error.message, "Error", "createCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -77,6 +79,7 @@ const database = createConnection()
                     "body": body
                 }
             } else {
+                await saveLog(`Error updating course by code: ${req.body.course.code}` , "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -90,7 +93,7 @@ const database = createConnection()
             }
 
         } catch (error) {
-
+            await saveLog(`Error updating course by code: ${req.body.course.code}` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -150,6 +153,7 @@ const database = createConnection()
                     "body": body[0]
                 }
             } else {
+                await saveLog(`Error getting course by code: ${req.body.course.code}` , "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -163,7 +167,7 @@ const database = createConnection()
             }
 
         } catch (error) {
-
+            await saveLog(`Error getting course by code: ${req.body.course.code} ` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -198,7 +202,7 @@ const database = createConnection()
                 }
             }
         } catch (error) {
-
+            await saveLog(`Error deleting course by code: ${req.body.course.code}` + error.message, "Error", "deleteCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {

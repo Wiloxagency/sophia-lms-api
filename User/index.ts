@@ -3,6 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { userAggregation } from "./aggregation";
 //import bcrypt = require("bcrypt");
 import bcrypt = require("bcryptjs");
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 var users = []
@@ -45,6 +46,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error creating  user: ${req.body.email}, error ${error.message}`, "Error", "createUser()", "Users/{userCode?}")
+
             context.res = {
                 "status": 500,
                 "headers": {
@@ -83,6 +86,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
+            await saveLog(`Error getting user: ${req.body.email}, error ${error.message}`, "Error", "getUser()", "Users/{userCode?}")
 
         }
 
@@ -111,7 +115,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 }
             }
-        } catch (error) { }
+        } catch (error) { 
+            await saveLog(`Error getting user by email: ${req.body.email}, error ${error.message}`, "Error", "getUserByEmail()", "Users/{userCode?}")
+
+        }
     }
 
     const getUsers = async () => {
@@ -147,6 +154,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error getting users, error ${error.message}`, "Error", "getUsers()", "Users/{userCode?}")
+
             context.res = {
                 "status": 500,
                 "headers": {
@@ -173,6 +182,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
+
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -184,6 +194,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error updating user: ${userCode} by code ${error.message}`, "Error", "updateUser()", "Users/{userCode?}")
+
             context.res = {
                 "status": 500,
                 "headers": {
@@ -213,6 +225,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error deleting user: ${req.params.userCode} `, "Error", "deleteUser()", "Users/{userCode?}")
+
         }
     }
 

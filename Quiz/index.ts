@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { Configuration, OpenAIApi } from 'openai'
+import { saveLog } from "../shared/saveLog";
 const database = createConnection()
 
 // OpenAI Credentials
@@ -47,7 +48,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'shortAnswer',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
@@ -67,6 +71,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         } catch (error) {
             // console.log(error)
+            await saveLog(`Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`, "Error", "createShortAnswerQuiz()", "Quiz")
+
             context.res = {
                 "status": 500,
                 "headers": {
@@ -130,7 +136,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'completion',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
@@ -149,7 +158,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": quizList
             }
         } catch (error) {
-            // console.log(error)
+            await saveLog(`Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`, "Error", "createCompletionQuiz()", "Quiz")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -214,7 +223,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'trueOrFalse',
                 title: 'Quiz',
-                elementQuiz: { quizz_list: quizz_list }
+                elementQuiz: {
+                    quizz_list: quizz_list,
+                    isAICreated: true
+                }
             }
             sectionElements.push(quizElementPayload)
             // console.log(sectionElements)
@@ -233,7 +245,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": quizList
             }
         } catch (error) {
-            // console.log(error)
+            await saveLog(`Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`, "Error", "createTrueOrFalseQuiz()", "Quiz")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -312,7 +324,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": GPTResponses
             }
         } catch (error) {
-            // console.log(error)
+            await saveLog(`Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`, "Error", "correctCompletionQuiz()", "Quiz")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -395,7 +407,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": GPTResponses
             }
         } catch (error) {
-            // console.log(error)
+            await saveLog(`Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`, "Error", "correctShortAnswerQuiz()", "Quiz")
             context.res = {
                 "status": 500,
                 "headers": {
