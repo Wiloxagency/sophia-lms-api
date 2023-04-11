@@ -15,56 +15,62 @@ const database = createConnection()
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const translate = async (text: string, langIso: string) => {
-
-
-        const language = isoLangPro[langIso]
-
-        const prompt = `###\nTranslate: "${text}" into ${language} using the following format: Original:Translation: \nTranslate it in a website context and show only one translation option.\n\nExample:\n\nOriginal: Home.\nTranslation: Inicio.\n\n###\nSolution:\nOriginal:`
-
-
-        console.info("Prompt --> ", prompt)
-
+        const language = isoLangPro[langIso];
+      
+        const prompt = `###\nTranslate: "${text}" into ${language} using the following format: Original:Translation: \nTranslate it in a website context and show only one translation option.\n\nExample:\n\nOriginal: Home.\nTranslation: Inicio.\n\n###\nSolution:\nOriginal:`;
+      
+        console.info("Prompt --> ", prompt);
+      
         try {
-            const openai = new OpenAIApi(configuration);
-
-            const response = await openai.createCompletion({
-                model: "text-davinci-003",
-                prompt: prompt,
-                temperature: 0,
-                max_tokens: 256,
-                top_p: 1,
-                frequency_penalty: 0,
-                presence_penalty: 0,
-            });
-            const translation = response.data.choices[0].text
-            console.info(translation)
-
-
+          const openai = new OpenAIApi(configuration);
+      
+          const response = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: prompt,
+            temperature: 0,
+            max_tokens: 256,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+          });
+          const translation = response.data.choices[0].text;
+          console.info(translation);
+      
+          return translation; // adicionado o retorno da tradução
         } catch (error) {
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "statusText": "Can't get language"
-            }
+          context.res = {
+            "status": 500,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "statusText": "Can't get language"
+          }
         }
-    }     
+      };
+      
 
-    const translateValues = async (template, langIso, outputFile) => {
+      const translateValues = async (template, langIso, outputFile) => {
         const translatedTemplate = {};
       
         for (const [key, value] of Object.entries(template)) {
           if (typeof value === 'string') {
-            const translatedValue = await translate(value, langIso);
-            translatedTemplate[key] = translatedValue;
+            if (value.includes(':')) {
+              const parts = value.split(':');
+              translatedTemplate[key] = parts[1].trim();
+            } else {
+              const translatedValue = await translate(value, langIso);
+              if (typeof translatedValue === 'string') {
+                const rightValue = translatedValue.split(':')[1].trim();
+                translatedTemplate[key] = rightValue.endsWith('.') ? rightValue.slice(0, -1) : rightValue;
+              }
+            }
           } else {
             translatedTemplate[key] = value;
           }
         }
       
         try {
-          await fs.writeFile(outputFile, JSON.stringify(translatedTemplate), (err) => {
+          await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
             if (err) throw err;
             console.log('Values saved to file');
           });
@@ -78,6 +84,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       const outputFile = 'translated-values.json';
       const translatedTemplate = await translateValues(template, 'pt', outputFile);
       console.log(translatedTemplate);
+      
+      
+      
       
 
       
