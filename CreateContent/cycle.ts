@@ -63,8 +63,8 @@ export async function createContentCycle(course: any) {
                     })
                 } else {
 
-                   
-                    currentParagraphs =  { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter } 
+
+                    currentParagraphs = { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter }
                     course.sections[currentParagraphs.sectionIndex].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
                         return { content: text, audioScript: text }
                     })
@@ -74,11 +74,44 @@ export async function createContentCycle(course: any) {
                 const multimediaCycle = async (paragraphCounter: number) => {
 
                     const paragraphContent = currentParagraphs.content[paragraphCounter]
+
                     const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
                     const currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
                     console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["audioUrl"] = currentAudio.url
-
+                    if (
+                        paragraphCounter == 0 &&
+                        currentAudio.sectionIndex == 0 &&
+                        currentAudio.paragraphIndex == 0
+                    ) {
+                        // const DIDTalks = async () => {
+                        const DIDTalksResponse = await fetch('https://api.d-id.com/talks', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Basic YldGemRHVnlRSGRwYkc5NFlXZGxibU41TG1OdmJROmtxNHVkdFd0OFg4M2tIODYtWVB6Zw==',
+                                'Content-Type': 'application/json'
+                            },
+                            // body: '{\n    "source_url": "https://sophieassets.blob.core.windows.net/images/sofio.png",\n    "script": {\n        "type": "text",\n        "input": "Esta es una prueba hecha desde Postman.",\n        "provider": {\n            "type": "microsoft",\n            "voice_id": "es-CL-LorenzoNeural"\n        }\n    }\n}',
+                            body: JSON.stringify({
+                                'source_url': 'https://sophieassets.blob.core.windows.net/images/sofio.png',
+                                'script': {
+                                    'type': 'text',
+                                    'input': paragraphContent,
+                                    'provider': {
+                                        'type': 'microsoft',
+                                        'voice_id': 'es-CL-LorenzoNeural'
+                                    }
+                                }
+                            })
+                        })
+                        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                        let DIDTalksResponseParsed = await DIDTalksResponse.json()
+                        let DIDIntroVideoId = DIDTalksResponseParsed.id
+                        console.log(DIDIntroVideoId)
+                        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                        // }
+                        // DIDTalks()
+                    }
                     const extractedTitle = await extractTitle(paragraphContent, "es", course.code)
                     console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
                     currentParagrah["titleAI"] = extractedTitle.title
@@ -119,12 +152,12 @@ export async function createContentCycle(course: any) {
                                 $set: { sections: course.sections }
                             })
 
-                            if (lessonCounter < course.sections[sectionCounter].elements.length-1) {
-                                await lessonCycle(lessonCounter+1)
+                            if (lessonCounter < course.sections[sectionCounter].elements.length - 1) {
+                                await lessonCycle(lessonCounter + 1)
                             } else {
-                                await contentCycle(sectionCounter +1)
+                                await contentCycle(sectionCounter + 1)
                             }
-                            
+
                         }
 
                     } else {
