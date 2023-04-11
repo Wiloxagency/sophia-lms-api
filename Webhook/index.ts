@@ -11,23 +11,23 @@ const database = createConnection()
 
         try {
             console.info("Receiving webhook")
-            const db = await database
-            const Webhooks = db.collection('webhook')
-            const resp = Webhooks.insertOne(req.body)
+            console.info("req.body", req.body)
+            console.info("JSON.parse", JSON.parse(req.body))
+            // const db = await database
+            // const Webhooks = db.collection('webhook')
+            // const resp = Webhooks.insertOne(req.body)
 
-            const body = await resp
+            //const body = await resp
 
-            if (body) {
+            if (true) {
 
-                context.res.status(200).end() // Responding is important
+                //context.res.status(200).end() // Responding is important
 
-                // context.res = {
-                //     "status": 201,
-                //     "headers": {
-                //         "Content-Type": "application/json"
-                //     },
-                //     "body": body
-                // }
+
+                context.res = {
+                    "status": 200
+                }
+
             } else {
                 context.res = {
                     "status": 500,
