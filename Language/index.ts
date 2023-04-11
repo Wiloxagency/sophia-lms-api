@@ -68,6 +68,24 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             translatedTemplate[key] = value;
           }
         }
+
+        if (translatedTemplate) {
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": translatedTemplate
+            }
+
+        } else {
+            context.res = {
+                "status": 204,
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+        }
       
         try {
           await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
@@ -80,9 +98,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       
         return translatedTemplate;
       }
-      
+   
       const outputFile = 'translated-values.json';
-      const translatedTemplate = await translateValues(template, 'pt', outputFile);
+      const translatedTemplate = await translateValues(template, 'zh', outputFile);
       console.log(translatedTemplate);
       
       
