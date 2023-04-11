@@ -11,7 +11,7 @@
         "put",
         "delete"
       ], 
-      "route": "Language/{lang?}/{texto?}/{language?}"
+      "route": "Language/{lang?}"
     },
     {
       "type": "http",

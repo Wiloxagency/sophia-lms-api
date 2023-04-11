@@ -1,7 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-const { Configuration, OpenAIApi } = require("openai");
+import { isoLangPro } from "./isoLang";
+import { template } from "../template";
+const fs = require('fs');
 
+const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -11,12 +14,12 @@ const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const translate = async (texto: string, langIso: string) => {
+    const translate = async (text: string, langIso: string) => {
 
 
-        const language = "Portuguese"
+        const language = isoLangPro[langIso]
 
-        const prompt = `###\nTranslate: "${texto}" into ${language} using the following format: Original:Translation: \nTranslate it in a website context and show only one translation option.\n\nExample:\n\nOriginal: Home.\nTranslation: Inicio.\n\n###\nSolution:\nOriginal:`
+        const prompt = `###\nTranslate: "${text}" into ${language} using the following format: Original:Translation: \nTranslate it in a website context and show only one translation option.\n\nExample:\n\nOriginal: Home.\nTranslation: Inicio.\n\n###\nSolution:\nOriginal:`
 
 
         console.info("Prompt --> ", prompt)
@@ -33,8 +36,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 frequency_penalty: 0,
                 presence_penalty: 0,
             });
+            const translation = response.data.choices[0].text
+            console.info(translation)
 
-            console.info(response.data.choices[0].text)
 
         } catch (error) {
             context.res = {
@@ -45,9 +49,32 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "statusText": "Can't get language"
             }
         }
-    }
+    }     
 
-
+    const translateFile = async (filePath: string, langIso: string, outputFilePath: string) => {
+        try {
+          
+          const translatedData = {};
+          for (const key in template) {
+            if (Object.prototype.hasOwnProperty.call(template, key)) {
+              const originalValue = template[key];
+              const translatedValue = await translate(originalValue, langIso);
+              translatedData[key] = translatedValue
+            }
+          }
+      
+          // Salvar os dados traduzidos em um novo arquivo JSON
+          fs.writeFileSync(outputFilePath, JSON.stringify(translatedData, null, 2));
+          console.log(`Arquivo traduzido salvo em ${outputFilePath}`);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      
+      // Exemplo de uso: traduzir para espanhol
+      translateFile('template.ts', 'pt', 'example-es.json');
+      
+     
     const getLanguages = async (lang: string) => {
 
         try {
@@ -92,6 +119,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         }
     }
+
+      
 
     const buildLanguagePackage = async (text: string, lang: string) => {
 
