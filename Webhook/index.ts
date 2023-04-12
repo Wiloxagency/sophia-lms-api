@@ -12,16 +12,26 @@ const database = createConnection()
 
         try {
             console.info("Receiving webhook")
-            console.info("req.body", req.body)
-            console.info("JSON.parse", JSON.parse(req.body))
-            // const db = await database
-            // const Webhooks = db.collection('webhook')
-            // const resp = Webhooks.insertOne(req.body)
 
-            //const body = await resp
+            const decodedString = decodeURIComponent(req.body);
+            const urlParams = new URLSearchParams(decodedString);
+            const webhookData = {
+                nombre: urlParams.get('fields[name][value]'),
+                apellido: "",
+                email: urlParams.get('fields[field_303f79d][value]'),
+                telefono: urlParams.get('fields[field_63194d0][value]'),
+                empresa: urlParams.get('fields[field_84ccca9][value]'),
+                cargo: urlParams.get('fields[message][value]'),
+            }
 
-            if (true) {
+            console.info("webhookData", webhookData)
+            const db = await database
+            const Webhooks = db.collection('webhook')
+            const resp = Webhooks.insertOne(webhookData)
+            const body = await resp
 
+            if (body) {
+                await saveLog(`Webhook data saved for user: ${webhookData.email}`, "Info", "createWebhook()", "Webhook")
                 //context.res.status(200).end() // Responding is important
 
 
