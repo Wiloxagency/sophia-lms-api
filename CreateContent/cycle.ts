@@ -18,9 +18,9 @@ export async function createContentCycle(course: any) {
     }
 
     const db = await database
-    const Course = db.collection("course")
+    const Courses = db.collection("course")
 
-    await Course.findOneAndUpdate({ code: course.code }, {
+    await Courses.findOneAndUpdate({ code: course.code }, {
         $set: { sections: course.sections }
     })
 
@@ -80,6 +80,7 @@ export async function createContentCycle(course: any) {
                     console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["audioUrl"] = currentAudio.url
                     if (
+                        course.createAvatarIntro &&
                         paragraphCounter == 0 &&
                         currentAudio.sectionIndex == 0 &&
                         currentAudio.paragraphIndex == 0
@@ -104,11 +105,14 @@ export async function createContentCycle(course: any) {
                                 }
                             })
                         })
-                        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
                         let DIDTalksResponseParsed = await DIDTalksResponse.json()
                         let DIDIntroVideoId = DIDTalksResponseParsed.id
-                        console.log(DIDIntroVideoId)
-                        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                        // console.log(DIDIntroVideoId)
+
+                        await Courses.findOneAndUpdate({ code: course.code }, {
+                            $set: { avatarIntroUrl: DIDIntroVideoId }
+                        })
+
                         // }
                         // DIDTalks()
                     }
@@ -141,14 +145,14 @@ export async function createContentCycle(course: any) {
 
                             // Save course (in the future be necessary to check if content was 100% fine generated)
 
-                            await Course.findOneAndUpdate({ code: course.code }, {
+                            await Courses.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
                             })
                             const endCreation = new Date()
                             const totalCreationTime = Math.abs(Math.round((startCreation.getTime() - endCreation.getTime()) / 1000 / 60))
                             await saveLog(`Update content for course: ${course.code}. ${course.sections.length} Sections and ${totalParagraphCounter} Slides was created in ${totalCreationTime} minutes.`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
                         } else {
-                            await Course.findOneAndUpdate({ code: course.code }, {
+                            await Courses.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
                             })
 

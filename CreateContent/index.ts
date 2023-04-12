@@ -7,7 +7,7 @@ import { createContentCycle } from "./cycle";
 import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
-var currentCourse = {}
+var currentCourse: any = {}
 var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -126,7 +126,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (syllabus) {
 
                 currentCourse = addSections(syllabus, currentCourse)
-
+                currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
                 createContentCycle(currentCourse)
 
                 context.res = {
@@ -159,7 +159,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (contentTable) {
 
                 currentCourse = addSections(contentTable, currentCourse)
-
+                currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
                 createContentCycle(currentCourse)
 
                 context.res = {
@@ -192,7 +192,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (parsed) {
 
                 currentCourse = addWordSections(currentCourse)
-
+                currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
                 createContentCycle(currentCourse)
 
                 context.res = {
