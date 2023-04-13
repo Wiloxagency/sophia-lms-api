@@ -13,7 +13,14 @@ const database = createConnection()
         try {
             console.info("Receiving webhook")
 
+            console.info("req.body", req.body)
+
+            
+
             const decodedString = decodeURIComponent(req.body);
+
+            console.info("decodedString", decodedString)
+
             const urlParams = new URLSearchParams(decodedString);
             const webhookData = {
                 nombre: urlParams.get('fields[name][value]'),
