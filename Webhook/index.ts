@@ -23,12 +23,15 @@ const database = createConnection()
 
             const urlParams = new URLSearchParams(decodedString);
             const webhookData = {
-                nombre: urlParams.get('fields[name][value]'),
-                apellido: "",
-                email: urlParams.get('fields[field_303f79d][value]'),
-                telefono: urlParams.get('fields[field_63194d0][value]'),
-                empresa: urlParams.get('fields[field_84ccca9][value]'),
-                cargo: urlParams.get('fields[message][value]'),
+                nombre: urlParams.get('Nombre'),
+                apellido: urlParams.get('Apellido'),
+                email: urlParams.get('Email'),
+                telefono: urlParams.get('Teléfono'),
+                empresa: urlParams.get('Empresa'),
+                cargo: urlParams.get('Cargo'),
+                date: urlParams.get('Date'),
+                Time: urlParams.get('Time'),
+                origin: "Webhook"
             }
 
             console.info("webhookData", webhookData)
