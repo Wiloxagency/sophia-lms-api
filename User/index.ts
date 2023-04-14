@@ -4,19 +4,24 @@ import { userAggregation } from "./aggregation";
 //import bcrypt = require("bcrypt");
 import bcrypt = require("bcryptjs");
 import { saveLog } from "../shared/saveLog";
+import { strict } from "assert";
 
 const database = createConnection()
 var users = []
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
+    function hashPassword(textPassword: string): string  {
+
+        return bcrypt.hashSync(textPassword, 10)
+
+    }
+
     const createUser = async () => {  
         let newUser = req.body
         try {
             const db = await database
-            var receivedPassword = req.body.password
-            const hash = bcrypt.hashSync(receivedPassword, 10)
-            newUser.password = hash
+            newUser.password = hashPassword(req.body.password)
             newUser["dataCreated"] = new Date()
             const Users = db.collection('user')
             const check = Users.findOne({ email: req.body.email })
@@ -171,6 +176,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         try {
             const db = await database
             const Users = db.collection('user')
+            if (req.body.password) {
+                req.body.password = hashPassword(req.body.password)
+            }
+            
             const resp = Users.findOneAndUpdate({ 'code': userCode }, { $set: req.body })
             const body = await resp
             if (body) {
