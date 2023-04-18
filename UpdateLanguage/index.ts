@@ -18,13 +18,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const languages = ['es']; 
 
-    const templateEn = JSON.parse(fs.readFileSync(template));
+    const templateEn = fs.readFileSync("Language/template.ts");
     console.log(templateEn)
 
     templateEn.hello = 'Hello, world! This is a test';
 
     for (const lang of languages) {
-    const outputFile = `translated-values-${lang}.json`;
+    const outputFile = `${lang}.json`;
     const translations = JSON.parse(fs.readFileSync(outputFile));
 
     const translatedValue = await translateValues('Hello, world!', lang);
@@ -34,9 +34,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
     }
     
-
-
-
     switch (req.method) {
         case "POST":
             await updateLanguage()
