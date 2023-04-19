@@ -18,8 +18,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const languages = ['es']; 
 
-    const templateEn = fs.readFileSync("Language/template.ts");
-    console.log(templateEn)
+    const templateEn = JSON.parse(fs.readFileSync("Language/template.ts", "utf-8"));
+    templateEn.hello.text = 'Hello, world! This is a test';
+
 
     templateEn.hello = 'Hello, world! This is a test';
 

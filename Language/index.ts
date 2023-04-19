@@ -56,35 +56,44 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           if (typeof value === 'string') {
             if (value.includes(':')) {
               const parts = value.split(':');
-              translatedTemplate[key] = parts[1].trim();
+              if (parts[1]) {
+                translatedTemplate[key] = parts[1].trim();
+              } else {
+                translatedTemplate[key] = '';
+              }
             } else {
               const translatedValue = await translate(value, langIso);
               if (typeof translatedValue === 'string') {
-                const rightValue = translatedValue.split(':')[1].trim();
-                translatedTemplate[key] = rightValue.endsWith('.') ? rightValue.slice(0, -1) : rightValue;
+                const rightValue = translatedValue.split(':')[1];
+                if (rightValue) {
+                  const trimmedValue = rightValue.trim();
+                  translatedTemplate[key] = trimmedValue.endsWith('.') ? trimmedValue.slice(0, -1) : trimmedValue;
+                } else {
+                  translatedTemplate[key] = '';
+                }
               }
             }
           } else {
             translatedTemplate[key] = value;
           }
         }
-
+      
         if (translatedTemplate) {
-            context.res = {
-                "status": 200,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": translatedTemplate
-            }
-
+          context.res = {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": translatedTemplate
+          }
+      
         } else {
-            context.res = {
-                "status": 204,
-                "headers": {
-                    "Content-Type": "application/json"
-                }
+          context.res = {
+            "status": 204,
+            "headers": {
+              "Content-Type": "application/json"
             }
+          }
         }
       
         try {
@@ -98,17 +107,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       
         return translatedTemplate;
       }
-   
+      
       const outputFile = 'translated-values.json';
-      const translatedTemplate = await translateValues(template, 'zh', outputFile);
+      const translatedTemplate = await translateValues(template, 'nb', outputFile);
       console.log(translatedTemplate);
       
-      
-      
-      
 
-      
-     
     const getLanguages = async (lang: string) => {
 
         try {
