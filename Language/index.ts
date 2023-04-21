@@ -17,7 +17,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const translate = async (text: string, langIso: string) => {
         const language = isoLangPro[langIso];
       
-        const prompt = `###\nTranslate: "${text}" into ${language} using the following format: Original:Translation: \nTranslate it in a website context and show only one translation option.\n\nExample:\n\nOriginal: Home.\nTranslation: Inicio.\n\n###\nSolution:\nOriginal:`;
+        const prompt = `###\nTranslate: "${text}" into ${language} using the following JSON format: {"Original": English phrase, "Translation": Translated Phrase} \nTranslate it in a website context and show only one translation option.\n\nExample:\n\n{"Original": "Home", "Translation": "Inicio"\n\n###\nSolution:\n{"Original": "`;
       
         console.info("Prompt --> ", prompt);
       
@@ -34,9 +34,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             presence_penalty: 0,
           });
           const translation = response.data.choices[0].text;
-          console.info(translation);
+          console.info("Start translation -->", translation, "End translation");
       
-          return translation; // adicionado o retorno da tradução
+          //return "{'Original':" + translation + "}" // adicionado o retorno da tradução
+          return '{"Original": "'+ translation
         } catch (error) {
           context.res = {
             "status": 500,
@@ -49,63 +50,63 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       };
       
 
-      const translateValues = async (template, langIso, outputFile) => {
-        const translatedTemplate = {};
+      // const translateValues = async (template, langIso, outputFile) => {
+      //   const translatedTemplate = {};
       
-        for (const [key, value] of Object.entries(template)) {
-          if (typeof value === 'string') {
-            if (value.includes(':')) {
-              const parts = value.split(':');
-              if (parts[1]) {
-                translatedTemplate[key] = parts[1].trim();
-              } else {
-                translatedTemplate[key] = '';
-              }
-            } else {
-              const translatedValue = await translate(value, langIso);
-              if (typeof translatedValue === 'string') {
-                const rightValue = translatedValue.split(':')[1];
-                if (rightValue) {
-                  const trimmedValue = rightValue.trim();
-                  translatedTemplate[key] = trimmedValue.endsWith('.') ? trimmedValue.slice(0, -1) : trimmedValue;
-                } else {
-                  translatedTemplate[key] = '';
-                }
-              }
-            }
-          } else {
-            translatedTemplate[key] = value;
-          }
-        }
+      //   for (const [key, value] of Object.entries(template)) {
+      //     if (typeof value === 'string') {
+      //       if (value.includes(':')) {
+      //         const parts = value.split(':');
+      //         if (parts[1]) {
+      //           translatedTemplate[key] = parts[1].trim();
+      //         } else {
+      //           translatedTemplate[key] = '';
+      //         }
+      //       } else {
+      //         const translatedValue = await translate(value, langIso);
+      //         if (typeof translatedValue === 'string') {
+      //           const rightValue = translatedValue.split(':')[1];
+      //           if (rightValue) {
+      //             const trimmedValue = rightValue.trim();
+      //             translatedTemplate[key] = trimmedValue.endsWith('.') ? trimmedValue.slice(0, -1) : trimmedValue;
+      //           } else {
+      //             translatedTemplate[key] = '';
+      //           }
+      //         }
+      //       }
+      //     } else {
+      //       translatedTemplate[key] = value;
+      //     }
+      //   }
       
-        if (translatedTemplate) {
-          context.res = {
-            "status": 200,
-            "headers": {
-              "Content-Type": "application/json"
-            },
-            "body": translatedTemplate
-          }
+      //   if (translatedTemplate) {
+      //     context.res = {
+      //       "status": 200,
+      //       "headers": {
+      //         "Content-Type": "application/json"
+      //       },
+      //       "body": translatedTemplate
+      //     }
       
-        } else {
-          context.res = {
-            "status": 204,
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          }
-        }
+      //   } else {
+      //     context.res = {
+      //       "status": 204,
+      //       "headers": {
+      //         "Content-Type": "application/json"
+      //       }
+      //     }
+      //   }
       
-        try {
-          // await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
-          //   if (err) throw err;
-          //   console.log('Values saved to file');
-        } catch (err) {
-          console.error(err);
-        }
+      //   try {
+      //     // await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
+      //     //   if (err) throw err;
+      //     //   console.log('Values saved to file');
+      //   } catch (err) {
+      //     console.error(err);
+      //   }
       
-        return translatedTemplate;
-      }
+      //   return translatedTemplate;
+      // }
       
         // const outputFile = 'translated-values.json';
         // const translatedTemplate = await translateValues(template, 'nb', outputFile);
@@ -113,16 +114,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         const putLanguages = async (lang: string, newKey: string, newValue: string) => {
           const filePath = 'languages/pt2.json';
-          const newPhrase = newKey;
           const newValueTranslated = newValue;
           const newTranslated = await translate(newValueTranslated, lang);
-          const jsonData = fs.readFileSync(filePath, 'utf8');
+          console.info("newTranslated", newTranslated)
+          const newTranslatedWord = JSON.parse(newTranslated)["Translation"]
+          const jsonData = await fs.readFileSync(filePath, 'utf8');
           const jsonObj = JSON.parse(jsonData);
           const es = jsonObj;
 
-          console.info('>>>>>>' + es)
+          console.info('>>>>>>' + JSON.stringify(es))
           
-          es[newPhrase] = newTranslated;
+          es[newKey] = newTranslatedWord;
           const esJSON = JSON.stringify(es, null, 2);
 
           console.info('>>>>>>' + esJSON)
@@ -138,8 +140,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           return es;
         };
         
-        const newPhraseTranslated = await putLanguages('es', 'new key', 'new value');
-        console.log(newPhraseTranslated);
+        // const newPhraseTranslated = await putLanguages('es', 'new key', 'new value');
+        // console.log(newPhraseTranslated);
         
         
         

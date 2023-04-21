@@ -1,7 +1,11 @@
 {
-  "Test": "Teste",
+  "Test": "Prueba",
   "Email": "E-mail",
   "Password": "Senha",
   "Phone": "Telefone",
-  "Status": "Estado"
+  "Status": "Estado",
+  "White horse": "El caballo blanco",
+  "Login": "Iniciar sesión",
+  "Change password": "Cambiar contraseña",
+  "Write your new password here": "Escribe tu nueva contraseña aquí"
 }
