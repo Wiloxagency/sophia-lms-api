@@ -97,10 +97,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       
         try {
-          await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
-            if (err) throw err;
-            console.log('Values saved to file');
-          });
+          // await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
+          //   if (err) throw err;
+          //   console.log('Values saved to file');
         } catch (err) {
           console.error(err);
         }
@@ -108,9 +107,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return translatedTemplate;
       }
       
-      const outputFile = 'translated-values.json';
-      const translatedTemplate = await translateValues(template, 'nb', outputFile);
-      console.log(translatedTemplate);
+        // const outputFile = 'translated-values.json';
+        // const translatedTemplate = await translateValues(template, 'nb', outputFile);
+        // console.log(translatedTemplate);
+
+        const putLanguages = async (lang: string, newKey: string, newValue: string) => {
+          const filePath = 'languages/pt2.json';
+          const newPhrase = newKey;
+          const newValueTranslated = newValue;
+          const newTranslated = await translate(newValueTranslated, lang);
+          const jsonData = fs.readFileSync(filePath, 'utf8');
+          const jsonObj = JSON.parse(jsonData);
+          const es = jsonObj;
+
+          console.info('>>>>>>' + es)
+          
+          es[newPhrase] = newTranslated;
+          const esJSON = JSON.stringify(es, null, 2);
+
+          console.info('>>>>>>' + esJSON)
+          
+          try {
+            await fs.promises.writeFile(filePath, esJSON, 'utf8');
+            console.log('Alterações salvas com sucesso.');
+          } catch (err) {
+            console.error(err);
+            throw new Error('Erro ao gravar as alterações no arquivo JSON.');
+          }
+          
+          return es;
+        };
+        
+        const newPhraseTranslated = await putLanguages('es', 'new key', 'new value');
+        console.log(newPhraseTranslated);
+        
+        
+        
       
 
     const getLanguages = async (lang: string) => {
@@ -221,6 +253,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
         case "POST":
             await buildLanguagePackage(req.body.text, req.params.lang)
+            break;
+        case "PUT":
+            await putLanguages(req.params.lang, req.body.newKey, req.body.newValue)
             break;
 
 
