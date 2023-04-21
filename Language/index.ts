@@ -97,6 +97,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       
         try {
+          await fs.readFile()
           await fs.writeFile(outputFile, JSON.stringify(translatedTemplate, null, 2), (err) => {
             if (err) throw err;
             console.log('Values saved to file');
@@ -109,7 +110,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
       
       const outputFile = 'translated-values.json';
-      const translatedTemplate = await translateValues(template, 'nb', outputFile);
+      const translatedTemplate = await translateValues(template, 'es', outputFile);
       console.log(translatedTemplate);
       
 
