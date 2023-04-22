@@ -182,7 +182,44 @@ const database = createConnection()
     }
 
     const getCourses = async () => {
+        try {
 
+            const db = await database
+
+            const Courses = db.collection('course')
+
+            const resp = Courses.find({})
+
+            const body = await resp.toArray()
+
+            if (body && body.length > 0) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+
+            } else {
+                context.res = {
+                    "status": 204,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                }
+            }
+            
+        } catch (error) {
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "statusText": "Can't get courses"
+            }
+        }
+    
     }
 
     const deleteCourse = async () => {

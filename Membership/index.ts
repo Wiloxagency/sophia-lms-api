@@ -3,17 +3,15 @@ import { createConnection } from "../shared/mongo";
 
 const database = createConnection()
 
-//TODO: Try / Catch + saveLogs implementations
-
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    const createRole = async () => {
+    const createMembership = async () => {
 
         try {
 
             const db = await database
-            const Roles = db.collection('role')
-            const resp = Roles.insertOne(req.body)
+            const Memberships = db.collection('membership')
+            const resp = Memberships.insertOne(req.body)
 
             const body = await resp
 
@@ -33,7 +31,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error creating role"
+                        "message": "Error creating membership"
                     }
                 }
 
@@ -54,16 +52,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const deleteRole = async () => {
+    const deleteMembership = async () => {
 
 
         try {
 
             const db = await database
 
-            const Roles = db.collection('role')
+            const Memberships = db.collection('membership')
 
-            const resp = Roles.deleteOne({ 'code': req.params.roleCode })
+            const resp = Memberships.deleteOne({ 'code': req.params.code })
             const body = await resp
 
             if (body) {
@@ -81,16 +79,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const updateRole = async (roleCode: string) => {
+    const updateMembership = async (code: string) => {
 
         delete req.body._id
 
         try {
 
             const db = await database
-            const Roles = db.collection('role')
+            const Memberships = db.collection('membership')
 
-            const resp = Roles.findOneAndUpdate({ 'code': roleCode }, { $set: req.body })
+            const resp = Memberships.findOneAndUpdate({ 'code': code }, { $set: req.body })
             const body = await resp
 
             if (body) {
@@ -109,7 +107,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error updating role by code"
+                        "message": "Error updating membership by code"
                     }
                 }
 
@@ -123,26 +121,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error updating role by code"
+                    "message": "Error updating membership by code"
                 }
             }
 
         }
     }
 
-    const getRole = async (roleCode: string) => {
+    const getMembership = async (code: string) => {
 
 
         try {
 
             const db = await database
-            const Roles = db.collection('role')
+            const Memberships = db.collection('membership')
 
-            const resp = Roles.aggregate(
+            const resp = Memberships.aggregate(
                 [
                     {
                         '$match': {
-                            'code': roleCode
+                            'code': code
                         }
                     }
                 ]
@@ -166,7 +164,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         "Content-Type": "application/json"
                     },
                     "body": {
-                        "message": "Error getting role by code"
+                        "message": "Error getting membership by code"
                     }
                 }
 
@@ -180,23 +178,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Error getting role by code"
+                    "message": "Error getting membership by code"
                 }
             }
 
         }
     }
 
-    const getRoles = async () => {
+    const getMemberships = async () => {
 
 
         try {
 
             const db = await database
 
-            const Roles = db.collection('role')
+            const Memberships = db.collection('membership')
 
-            const resp = Roles.find({})
+            const resp = Memberships.find({})
 
             const body = await resp.toArray()
 
@@ -224,7 +222,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "statusText": "Can't get roles"
+                "statusText": "Can't get memberships"
             }
         }
     }
@@ -233,22 +231,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     switch (req.method) {
         case "POST":
-            await createRole()
+            await createMembership()
             break;
         case "PUT":
-            await updateRole(req.params.roleCode)
+            await updateMembership(req.params.code)
             break;
-            case "GET":
-                if (req.params.roleCode) {
-                    await getRole(req.params.roleCode)
-                } else {
-                    await getRoles()
-                }
-    
-                break;
+        case "GET":
+            if (req.params.code) {
+                await getMembership(req.params.code)
+            } else {
+                await getMemberships()
+            }
+            break;
         case "DELETE":
-            await deleteRole()
+            await deleteMembership()
             break;
+
         default:
             break;
     }
