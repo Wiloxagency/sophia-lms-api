@@ -5,6 +5,10 @@ import { template } from "./template";
 const fs = require('fs');
 const outputFile = 'translated-values.json';
 
+interface Language {
+    [key: string]: string;
+}
+
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -135,55 +139,103 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // const translatedTemplate = await translateValues(template, req.params.lang, outputFile);
     // console.log(translatedTemplate);
 
-    const updateLanguages = async (lang: string, newKey: string, newValue: string) => {
-        const filePath = 'languages/pt.json';
-        const newValueTranslated = newValue;
-        const newTranslated = await translate(newValueTranslated, lang);
-        console.info("newTranslated", newTranslated)
-        const newTranslatedWord = JSON.parse(newTranslated)["Translation"]
-        const jsonData = await fs.readFileSync(filePath, 'utf8');
-        const jsonObj = JSON.parse(jsonData);
-        const es = jsonObj;
+    // const updateLanguages = async (lang: string, newKey: string, newValue: string) => {
+    //     const filePath = 'languages/pt.json';
+    //     const newValueTranslated = newValue;
+    //     const newTranslated = await translate(newValueTranslated, lang);
+    //     console.info("newTranslated", newTranslated)
+    //     const newTranslatedWord = JSON.parse(newTranslated)["Translation"]
+    //     const jsonData = await fs.readFileSync(filePath, 'utf8');
+    //     const jsonObj = JSON.parse(jsonData);
+    //     const es = jsonObj;
 
-        console.info('>>>>>>' + JSON.stringify(es))
+    //     console.info('>>>>>>' + JSON.stringify(es))
 
-        es[newKey] = newTranslatedWord;
-        const esJSON = JSON.stringify(es, null, 2);
+    //     es[newKey] = newTranslatedWord;
+    //     const esJSON = JSON.stringify(es, null, 2);
 
-        console.info('>>>>>>' + esJSON)
+    //     console.info('>>>>>>' + esJSON)
 
-        try {
-            await fs.promises.writeFile(filePath, esJSON, 'utf8');
-            console.log('Alterações salvas com sucesso.');
-        } catch (err) {
-            console.error(err);
-            throw new Error('Erro ao gravar as alterações no arquivo JSON.');
+    //     try {
+    //         await fs.promises.writeFile(filePath, esJSON, 'utf8');
+    //         console.log('Alterações salvas com sucesso.');
+    //     } catch (err) {
+    //         console.error(err);
+    //         throw new Error('Erro ao gravar as alterações no arquivo JSON.');
+    //     }
+
+    //     return es;
+    // };
+
+    const updateAllLanguages = async (newKey: string, newValue: string) => {
+        const langFiles = fs.readdirSync('languages');
+        for (const file of langFiles) {
+            if (file.endsWith('.json')) {
+                const lang = file.split('.')[0];
+                const filePath = `languages/${file}`;
+                const jsonData = await fs.promises.readFile(filePath, 'utf8');
+                const jsonObj = JSON.parse(jsonData) as Language;
+                if (file.includes('en.json')) {
+                    console.log(`skipping the file ${file}...`);
+                    continue;
+                }
+                const newValueTranslated = await translate(newValue, lang);
+                const newTranslatedWord = JSON.parse(newValueTranslated)['Translation'];
+                jsonObj[newKey] = newTranslatedWord;
+                const esJSON = JSON.stringify(jsonObj, null, 2);
+
+                try {
+                    await fs.promises.writeFile(filePath, esJSON, 'utf8');
+                    console.log(`Changes successfully saved to the file ${file}.`);
+                } catch (err) {
+                    console.error(err);
+                    throw new Error(`Error writing changes to file ${file}.`);
+                }
+            }
         }
-
-        return es;
     };
 
-    // const newPhraseTranslated = await putLanguages('es', 'new key', 'new value');
-    // console.log(newPhraseTranslated);
+    const deleteKeyFromAllLanguages = async (keyToDelete: string) => {
+        const languageFiles = fs.readdirSync('languages');
 
+        for (const file of languageFiles) {
+            if (file === 'en.json') continue;
 
+            const filePath = `languages/${file}`;
+            const jsonData = await fs.promises.readFile(filePath, 'utf8');
+            const jsonObj = JSON.parse(jsonData);
+            if (!(keyToDelete in jsonObj)) {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": { "Message": "Key not found." }
+                }
+            } else {
+                delete jsonObj[keyToDelete];
 
+                const updatedJsonData = JSON.stringify(jsonObj, null, 2);
 
+                try {
+                    await fs.promises.writeFile(filePath, updatedJsonData, 'utf8');
+                    console.log(`Key ${keyToDelete} deleted successfully ${file}`);
+                } catch (err) {
+                    console.error(err);
+                    throw new Error(`Error writing changes to file ${file}.`);
+                }
+            }
+        }
+    };
 
     const getLanguages = async (lang: string) => {
 
         try {
-
             const db = await database
-
             const Languages = db.collection('i18n')
-
             const filter = {}
-
             filter[lang] = { $exists: true }
-
             const resp = Languages.find(filter)
-
             const body = await resp.toArray()
 
             if (body) {
@@ -215,13 +267,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
-
     const buildLanguagePackage = async (text: string, lang: string) => {
 
-        //await translate(text, lang)
         await translate(text, lang)
-
         return
 
         try {
@@ -269,22 +317,19 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
-
-
     switch (req.method) {
         case "GET":
             await getLanguages(req.params.lang)
             break;
         case "POST":
-            // await buildLanguagePackage(req.body.text, req.params.lang)
             await translateObjectValues(req.params.lang);
             break;
         case "PUT":
-            await updateLanguages(req.params.lang, req.body.newKey, req.body.newValue)
+            await updateAllLanguages(req.body.newKey, req.body.newValue)
             break;
-
-
+        case "DELETE":
+            await deleteKeyFromAllLanguages(req.body.keyToDelete)
+            break;
         default:
             break;
     }
