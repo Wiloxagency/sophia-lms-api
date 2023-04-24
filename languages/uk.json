@@ -439,10 +439,14 @@
   "Influence of the": "Вплив",
   "Textile screen printing": "Текстильна екранна друкарська",
   "Basic economy": "Базова економіка",
-  "total hours ": "Загальна кількість годин",
   "Result": "Результат",
   "Incorrect": "Неправильно",
   "Explanation": "Пояснення",
   "True": "Вірно",
-  "False": "Ні"
+  "False": "Ні",
+  "New password": "Новий пароль",
+  "Quick access": "Швидкий доступ",
+  "Approved": "Затверджено",
+  "Code": "Код",
+  "Finished": "Завершено"
 }

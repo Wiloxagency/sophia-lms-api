@@ -439,10 +439,14 @@
   "Influence of the": "Vaikutus",
   "Textile screen printing": "Tekstiilin serigrafia",
   "Basic economy": "Perus talous",
-  "total hours ": "Kokonaistunnit",
   "Result": "Tulos",
   "Incorrect": "Virheellinen",
   "Explanation": "Selitys",
   "True": "Tosi",
-  "False": "Väärä"
+  "False": "Väärä",
+  "New password": "Uusi salasana",
+  "Quick access": "Pika-aloitus",
+  "Approved": "Hyväksytty",
+  "Code": "Koodi",
+  "Finished": "Valmis"
 }

@@ -439,10 +439,14 @@
   "Influence of the": "Влияние",
   "Textile screen printing": "Текстильная шелкография",
   "Basic economy": "Базовая экономика",
-  "total hours ": "Общее количество часов",
   "Result": "Результат",
   "Incorrect": "Неверно",
   "Explanation": "Объяснение",
   "True": "Истина",
-  "False": "Ложь"
+  "False": "Ложь",
+  "New password": "Новый пароль",
+  "Quick access": "Быстрый доступ",
+  "Approved": "Одобрено",
+  "Code": "Код",
+  "Finished": "Закончено"
 }

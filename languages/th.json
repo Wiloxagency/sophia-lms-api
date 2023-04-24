@@ -439,10 +439,14 @@
   "Influence of the": "อิทธิพลของ",
   "Textile screen printing": "การพิมพ์ผ้าด้วยหน้าจอ",
   "Basic economy": "การเศรษฐกิจพื้นฐาน",
-  "total hours ": "ชั่วโมงทั้งหมด",
   "Result": "ผลลัพธ์",
   "Incorrect": "ไม่ถูกต้อง",
   "Explanation": "คำอธิบาย",
   "True": "จริง",
-  "False": "เท็จ"
+  "False": "เท็จ",
+  "New password": "รหัสผ่านใหม่",
+  "Quick access": "การเข้าถึงที่รวดเร็ว",
+  "Approved": "ได้รับการอนุมัติ",
+  "Code": "โค้ด",
+  "Finished": "เสร็จสิ้น"
 }

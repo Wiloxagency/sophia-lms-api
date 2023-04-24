@@ -442,7 +442,12 @@
   "total hours ": "Ukupno sati",
   "Result": "Rezultat",
   "Incorrect": "Netačno",
-  "Explanation":"Objašnjenje",
+  "Explanation": "Objašnjenje",
   "True": "Tačno",
-  "False": "Netačno"
+  "False": "Netačno",
+  "New password": "Nova lozinka",
+  "Quick access": "Brzi pristup",
+  "Approved": "Odobreno",
+  "Code": "Kod",
+  "Finished": "Završeno"
 }

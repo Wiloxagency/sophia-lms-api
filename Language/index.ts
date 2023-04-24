@@ -213,7 +213,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": { "Message": "Key not found." }
                 }
             } else {
-                delete jsonObj[keyToDelete];
+                delete jsonObj[keyToDelete.trim()];
 
                 const updatedJsonData = JSON.stringify(jsonObj, null, 2);
 

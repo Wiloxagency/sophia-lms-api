@@ -439,10 +439,14 @@
   "Influence of the": "Mõju",
   "Textile screen printing": "Tekstiilvärvimine",
   "Basic economy": "Põhiline majandus",
-  "total hours ": "Kokku tunde",
   "Result": "Tulemus",
   "Incorrect": "Vale",
   "Explanation": "Selgitus",
   "True": "Tõene",
-  "False": "Väär"
+  "False": "Väär",
+  "New password": "Uus parool",
+  "Quick access": "Kiire juurdepääs",
+  "Approved": "Heaks kiidetud",
+  "Code": "Kood",
+  "Finished": "Valmis"
 }

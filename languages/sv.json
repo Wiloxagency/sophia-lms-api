@@ -439,10 +439,14 @@
   "Influence of the": "Påverkan av",
   "Textile screen printing": "Textil skärmtryck",
   "Basic economy": "Grundläggande ekonomi",
-  "total hours ": "Totalt antal timmar",
   "Result": "Resultat",
   "Incorrect": "Fel",
   "Explanation": "Förklaring",
   "True": "Sann",
-  "False": "Falskt"
+  "False": "Falskt",
+  "New password": "Nytt lösenord",
+  "Quick access": "Snabb åtkomst",
+  "Approved": "Godkänd",
+  "Code": "Kod",
+  "Finished": "Färdig"
 }
