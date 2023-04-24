@@ -126,15 +126,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const getUsers = async () => {
+    const getUsers = async (organizationCode: string) => {
+        let match = {}
+        if (organizationCode) {
+            match = {'organizationCode': organizationCode}
+        }
         try {
             const db = await database
             const Users = db.collection('user')
             const resp = Users.aggregate([
                 {
-                    '$match': {
-                        // 'organizationCode': req.params.organizationCode
-                    }
+                    '$match': match
                 },
                 {
                     '$sort':
@@ -254,7 +256,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             } else if (req.query.userEmail) {
                 await getUserByEmail()
             } else {
-                await getUsers()
+                await getUsers(req.query.organizationCode)
             }
             break;
 
