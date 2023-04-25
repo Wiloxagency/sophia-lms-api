@@ -439,7 +439,6 @@ export const template = {
     "Influence of the": "Influence of the",
     "Textile screen printing":"Textile screen printing",
     "Basic economy": "Basic economy",
-    "total hours ":"total hours ",
     "Result":"Result",
     "Incorrect":"Incorrect",
     "Explanation":"Explanation",
