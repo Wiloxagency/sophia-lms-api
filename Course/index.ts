@@ -57,7 +57,7 @@ const database = createConnection()
         }
     }
 
-    const getUserCourses = async (showCourses: string) => {
+    const getUserCourses = async () => {
 
         try {
             const db = await createConnection()
@@ -83,11 +83,11 @@ const database = createConnection()
                 }, {
                     '$project': {
                         '_id': 0,
+                        'dateCreated': '$dateCreated',
+                        'company': '$createdBy.company',
                         'curso': '$details.title',
                         'criado_por': '$createdBy.name',
-                        'email': '$createdBy.email',
-                        'dateCreated': '$dateCreated',
-                        'company': '$createdBy.company'
+                        'email': '$createdBy.email'
                     }
                 }, {
                     '$match': {
@@ -99,8 +99,9 @@ const database = createConnection()
                     }
                 }, {
                     '$sort': {
-                        'company': 1,
-                        'dateCreated': 1
+                        'dateCreated': -1,
+                        'company': 1
+                        
                     }
                 }, {
                     '$limit': 100
@@ -358,8 +359,8 @@ const database = createConnection()
         case "GET":
             if (req.params.courseCode) {
                 await getCourse(req.params.courseCode)
-            } else if (req.query.showCourses) {
-                await getUserCourses(req.query.showCourses)
+            } else if (req.query.showCourses=="true") {
+                await getUserCourses()
             } else {
                 await getCourses()
             }
