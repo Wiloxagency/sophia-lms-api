@@ -57,6 +57,95 @@ const database = createConnection()
         }
     }
 
+    const getUserCourses = async (showCourses: string) => {
+
+        try {
+            const db = await createConnection()
+            const Courses = db.collection("course")
+            const resp = Courses.aggregate([
+                {
+                    '$lookup': {
+                        'from': 'user',
+                        'localField': 'author_code',
+                        'foreignField': 'code',
+                        'as': 'createdBy'
+                    }
+                }, {
+                    '$unwind': {
+                        'path': '$createdBy'
+                    }
+                }, {
+                    '$match': {
+                        'createdBy.code': {
+                            '$exists': true
+                        }
+                    }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'curso': '$details.title',
+                        'criado_por': '$createdBy.name',
+                        'email': '$createdBy.email',
+                        'dateCreated': '$dateCreated',
+                        'company': '$createdBy.company'
+                    }
+                }, {
+                    '$match': {
+                        'company': {
+                            '$not': {
+                                '$eq': 'Edutecno'
+                            }
+                        }
+                    }
+                }, {
+                    '$sort': {
+                        'company': 1,
+                        'dateCreated': 1
+                    }
+                }, {
+                    '$limit': 100
+                }
+            ])
+
+            const body = await resp.toArray()
+
+            if (body) {
+
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "No courses found"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error getting courses"
+                }
+            }
+
+        }
+    }
+
     const updateCourse = async (courseCode: string) => {
 
         delete req.body._id
@@ -269,10 +358,11 @@ const database = createConnection()
         case "GET":
             if (req.params.courseCode) {
                 await getCourse(req.params.courseCode)
+            } else if (req.query.showCourses) {
+                await getUserCourses(req.query.showCourses)
             } else {
                 await getCourses()
             }
-
             break;
 
         default:
