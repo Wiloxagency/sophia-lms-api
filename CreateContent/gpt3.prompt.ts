@@ -1,4 +1,5 @@
 // Simple content generation foar AI paragraph generation
+// GPT
 export const contentGeneration = {
     es: {
         matches: [], 
@@ -38,6 +39,7 @@ export const contentGeneration = {
 // }
 
 // Course Introducion generation
+//ChatGPT
 export const introductionGeneration = {
     es: {
         matches: ["introducción", "introduccion"], 
@@ -53,6 +55,7 @@ export const introductionGeneration = {
     }
 }
  // Course Conclusions generation
+ // ChatGPT
 export const conclusionsGeneration = {
     es: {
         matches: ["conclusión", "conclusion", "conclusiones"], 
@@ -68,7 +71,8 @@ export const conclusionsGeneration = {
     }
 }
 
-// Content table (Syllabus) generation
+// Content table generation
+// GPT
 export const contentTable = { 
     es: {
         introduction: "Introducción",
@@ -85,6 +89,7 @@ export const contentTable = {
 }
 
 // Content table (Syllabus) generation with Instructional Design
+// En construcción
 export const contentTableInstructionalDesign = { 
     es: {
         introduction: "Introducción",
@@ -103,6 +108,7 @@ export const contentTableInstructionalDesign = {
 }
 
 // Phrase key extration
+// GPT
 export const keyphrases = {
     es : {
         prompt: "Extraer frases claves que representen ideas principales del siguiente texto:\n\n###\n\nv{text}\n\n###\n\n"
@@ -115,7 +121,8 @@ export const keyphrases = {
     },
 }
 
-// Phrase key extration
+// Title key extration
+// GPT
 export const titleExtraction = {
     es : {
         prompt: "Extrae un único título en español con un máximo de 5 palabras basado en la idea principal de un texto.\nTEXTO:\nv{text}\nTÍTULO:"
