@@ -17,6 +17,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             'status': 'Activo'
                         }
                     }, {
+                        '$addFields': {
+                            'groupCode': '$code'
+                        }
+                    }, {
                         '$lookup': {
                             'from': 'course',
                             'localField': 'courseCode',
@@ -29,7 +33,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     }, {
                         '$project': {
-                            'course': '$courses'
+                            'course': '$courses',
+                            'groupCode': '$code'
                         }
                     }, {
                         '$match': {

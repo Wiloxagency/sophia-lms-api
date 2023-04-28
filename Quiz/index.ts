@@ -48,6 +48,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'shortAnswer',
                 title: 'Quiz',
+                quizCode: req.body.quizCode,
                 elementQuiz: {
                     quizz_list: quizz_list,
                     isAICreated: true
@@ -112,13 +113,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 let completionQuizParts = response.data.choices[0].message.content.split("Frase principal: ").pop().split("Palabra extraída: ")
                 if (completionQuizParts.length == 2) {
                     let keyword = completionQuizParts[1].replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '').toLowerCase()
-                    console.log('_____________________________________________________')
+                    // console.log('_____________________________________________________')
 
                     // quizList.push(completionQuizParts[0])
 
-                    console.log(completionQuizParts[0])
-                    console.log(keyword)
-                    console.log(completionQuizParts[0].toLowerCase().includes(keyword))
+                    // console.log(completionQuizParts[0])
+                    // console.log(keyword)
+                    // console.log(completionQuizParts[0].toLowerCase().includes(keyword))
 
                     if (completionQuizParts[0].toLowerCase().includes(keyword)) {
                         quizList.push({ question: response.data.choices[0].message.content })
@@ -136,6 +137,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'completion',
                 title: 'Quiz',
+                quizCode: req.body.quizCode,
                 elementQuiz: {
                     quizz_list: quizz_list,
                     isAICreated: true
@@ -194,10 +196,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     ]
                 })
-                console.log('______________________________________________________')
-                console.log('OPENAI RESPONSE')
-                console.log(response.data.choices[0].message.content)
-                console.log('______________________________________________________')
+                // console.log('______________________________________________________')
+                // console.log('OPENAI RESPONSE')
+                // console.log(response.data.choices[0].message.content)
+                // console.log('______________________________________________________')
                 // return
                 let trueOrFalseQuizParts = response.data.choices[0].message.content.split("Frase verdadera: ").pop().split("Frase falsa: ")
                 if (trueOrFalseQuizParts.length == 2) {
@@ -223,6 +225,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizElementPayload = {
                 type: 'trueOrFalse',
                 title: 'Quiz',
+                quizCode: req.body.quizCode,
                 elementQuiz: {
                     quizz_list: quizz_list,
                     isAICreated: true
