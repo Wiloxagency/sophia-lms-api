@@ -60,7 +60,7 @@ const database = createConnection()
     const getUserCourses = async () => {
 
         try {
-            const db = await createConnection()
+            const db = await database
             const Courses = db.collection("course")
             const resp = Courses.aggregate([
                 {
@@ -271,18 +271,38 @@ const database = createConnection()
         }
     }
 
-    const getCourses = async () => {
+    const getCourses = async (search: string, approvalStatus: string, categories: string, dateCreated: string, skip: string, items_by_page: string) => {
+
         try {
 
             const db = await database
+            const collection = db.collection("course")
 
-            const Courses = db.collection('course')
+            const regexSearch = new RegExp(search, "i") // "i" indica que a busca é case-insensitive
+            const querySearch  = { $or: [
+                { 'code': { $regex: regexSearch } },
+                { 'organizationCode': { $regex: regexSearch } },
+                { 'author_code': { $regex: regexSearch } },
+                { 'details.title': { $regex: regexSearch } },
+                { 'details.summary': { $regex: regexSearch } }
+            ]}
+            
+            const regexData = new RegExp(dateCreated, "i") 
+            const queryData = { 'dateCreated': { $regex: regexData } }
 
-            const resp = Courses.find({})
+            const regexStatus = new RegExp(approvalStatus, "i") 
+            const queryStatus = { 'approvalStatus': { $regex: regexStatus } }
 
-            const body = await resp.toArray()
+            const regexCategories = new RegExp(categories, "i") 
+            const queryCategories = { 'details.categories': { $regex: regexCategories } }
 
-            if (body && body.length > 0) {
+            const skipNum = parseInt(skip)
+            const limitNum = parseInt(items_by_page)
+
+            const body = await collection.find(Object.assign(queryStatus, queryData, querySearch, queryCategories)).skip(skipNum).limit(limitNum).sort({'_id': -1}).toArray();
+
+            if (body) {
+
                 context.res = {
                     "status": 200,
                     "headers": {
@@ -290,27 +310,34 @@ const database = createConnection()
                     },
                     "body": body
                 }
-
             } else {
                 context.res = {
-                    "status": 204,
+                    "status": 500,
                     "headers": {
                         "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "No course found"
                     }
                 }
+
             }
-            
+
         } catch (error) {
+
             context.res = {
                 "status": 500,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "statusText": "Can't get courses"
+                "body": {
+                    "message": "Error getting courses"
+                }
             }
+
         }
-    
     }
+
 
     const deleteCourse = async () => {
         try {
@@ -362,7 +389,14 @@ const database = createConnection()
             } else if (req.query.showCourses=="true") {
                 await getUserCourses()
             } else {
-                await getCourses()
+                await getCourses(
+                    req.query.search,
+                    req.query.approvalStatus,
+                    req.query.categories,
+                    req.query.dateCreated,
+                    req.query.skip,
+                    req.query.items_by_page,
+                    )
             }
             break;
 
