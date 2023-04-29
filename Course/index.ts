@@ -386,7 +386,7 @@ const database = createConnection()
         case "GET":
             if (req.params.courseCode) {
                 await getCourse(req.params.courseCode)
-            } else if (req.query.showCourses=="true") {
+            } else if (req.query.showDemoCourses=="true") {
                 await getUserCourses()
             } else {
                 await getCourses(
