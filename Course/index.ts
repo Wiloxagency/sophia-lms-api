@@ -133,7 +133,7 @@ const database = createConnection()
             }
 
         } catch (error) {
-
+            await saveLog(`Error getting user courses, error ${error.message}`, "Error", "getUserCourses()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -324,7 +324,7 @@ const database = createConnection()
             }
 
         } catch (error) {
-
+            await saveLog(`Error getting courses, error ${error.message}`, "Error", "getCourses()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
