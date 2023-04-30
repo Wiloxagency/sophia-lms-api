@@ -191,11 +191,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const collection = db.collection("course")
 
             const queryOrganizationCode = query.organizationCode ? { 'organizationCode': query.organizationCode } : {}
+            const queryAuthorCode = query.authorCode ? { 'author_code': query.authorCode } : {}
 
             const regexSearch = new RegExp(query.search, "i") // "i" indica que a busca é case-insensitive
             const querySearch = {
                 $and: [
                     queryOrganizationCode,
+                    queryAuthorCode,
                     {
                         $or: [
                             { 'code': { $regex: regexSearch } },
