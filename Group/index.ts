@@ -62,11 +62,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     //     }
     // }
 
-    const getCourseGroups = async () => {
+    const getGroups = async (courseCode: string) => {
         try {
             db = await database
             const Groups = db.collection('group')
-            const resp = Groups.find({ courseCode: req.params.courseCode }).sort({ _id: -1 })
+            const resp = Groups.find({ courseCode: courseCode }).sort({ _id: -1 })
             const body = await resp.toArray()
 
             if (body) {
@@ -79,7 +79,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
 
             } else {
-                await saveLog("Error getting groups by course " , "Error", "Group()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error getting groups by course " , "Error", "getGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -275,7 +275,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            await getCourseGroups()
+            await getGroups(req.params.courseCode)
             break;
 
         case "DELETE":
