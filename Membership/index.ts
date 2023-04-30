@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -38,7 +39,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error creating membership: ${req.body}` + error.message, "Error", "createMembership()", "Membership/{code?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -76,6 +77,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error deleting membership by code: ${req.body.membership.code}` + error.message, "Error", "deleteMembership()", "Membership/{code?}")
         }
     }
 
@@ -114,7 +116,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error updating membership by code: ${req.body.membership.code}` + error.message, "Error", "updateMembership()", "Membership/{code?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -171,7 +173,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error getting membership by code: ${req.body.membership.code} ` + error.message, "Error", "getMembership()", "Membership/{code?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -217,6 +219,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
             
         } catch (error) {
+            await saveLog(`Error getting memberships, error ${error.message}`, "Error", "getMemberships()", "Membership/{code?}")
             context.res = {
                 "status": 500,
                 "headers": {

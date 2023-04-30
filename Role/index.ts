@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
+import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
@@ -40,7 +41,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error creating role: ${req.body}` + error.message, "Error", "createRole()", "Role/{roleCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -78,6 +79,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
+            await saveLog(`Error deleting role by code: ${req.body.role.code}` + error.message, "Error", "deleteRole()", "Role/{roleCode?}")
+
         }
     }
 
@@ -116,7 +119,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error updating role by code: ${req.body.role.code}` + error.message, "Error", "updateRole()", "Role/{roleCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -173,7 +176,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-
+            await saveLog(`Error getting role by code: ${req.body.role.code} ` + error.message, "Error", "getRole()", "Role/{roleCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -219,6 +222,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
             
         } catch (error) {
+            await saveLog(`Error getting roles, error ${error.message}`, "Error", "getRoles()", "Role/{roleCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
