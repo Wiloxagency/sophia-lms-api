@@ -1,6 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-import { saveLog } from "../shared/saveLog";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -55,7 +54,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog(`Error getting logs, error ${error.message}`, "Error", "getLogs()", "Log")
             context.res = {
                 "status": 500,
                 "headers": {
