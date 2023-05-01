@@ -13,7 +13,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 [
                     {
                         '$match': {
-                            'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16',
+                            'users.code': req.params.userCode,
                             'status': 'Activo'
                         }
                     }, {
@@ -22,7 +22,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                     }, {
                         '$match': {
-                            'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16',
+                            'users.code': req.params.userCode,
                             'status': 'Activo'
                         }
                     }, {
