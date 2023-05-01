@@ -1,7 +1,10 @@
-export const userAggregation = (userCode: string) => [
+export const userAggregation = (byUserCode: any, byUserEmail: any) => [
     {
         '$match': {
-            'code': userCode
+            $and: [
+                byUserCode,
+                byUserEmail
+            ]
         }
     }, {
         '$lookup': {

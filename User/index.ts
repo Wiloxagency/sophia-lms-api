@@ -63,13 +63,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const getUser = async (userCode: string) => {
+    const getUser = async (UserReq: HttpRequest) => {
+
+        const byUserCode = UserReq.params.userCode ? {"code": UserReq.params.userCode} : {}
+        const byUserEmail = req.query.email ? {"email": req.query.email} : {}
+
+        console.info(byUserCode, byUserEmail)
 
         try {
             const db = await database
             const Users = db.collection('user')
             const resp = Users.aggregate(
-                userAggregation(userCode)
+                userAggregation(byUserCode, byUserEmail)
             )
             const body = await resp.toArray()
             if (body && body.length > 0) {
@@ -251,11 +256,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            if (req.params.userCode) {
-                await getUser(req.params.userCode)
-            } else if (req.query.userEmail) {
-                await getUserByEmail()
-            } else {
+            if (req.params.userCode || req.query.email) {
+                await getUser(req)
+            }  else {
                 await getUsers(req.query.organizationCode)
             }
             break;
