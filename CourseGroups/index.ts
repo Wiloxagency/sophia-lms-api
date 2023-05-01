@@ -280,8 +280,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     return user
                 }
             })
-            let quizScores: any[]
-            if (filteredUser.quizScores == undefined) {
+            let quizScores: any[] = []
+            console.log(filteredUser)
+            if (filteredUser[0].quizScores == undefined) {
+                console.log('QUIZ SCORES WAS UNDEFINED')
                 quizScores = [
                     {
                         quizCode: req.body.quizCode,
@@ -289,6 +291,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 ]
             } else {
+                quizScores = filteredUser[0].quizScores
                 quizScores.push(
                     {
                         quizCode: req.body.quizCode,
@@ -296,34 +299,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 )
             }
-            console.log(group)
-            console.log('@@@@@@@@@@@@@@@@@@@@@')
-            console.log(group.users)
-            console.log('@@@@@@@@@@@@@@@@@@@@@')
-            console.log(group.users[indexFilteredUser])
-            console.log('@@@@@@@@@@@@@@@@@@@@@')
-            console.log(group.users[indexFilteredUser].quizScores)
-            console.log('@@@@@@@@@@@@@@@@@@@@@')
-            console.log(indexFilteredUser)
-
-            let quizScoresPath = group.users[indexFilteredUser].quizScores
-            console.log(quizScoresPath)
+            let quizScoresPath = `users.${indexFilteredUser}.quizScores`
+            console.log(quizScores)
             const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
                 $set: {
                     [quizScoresPath]: quizScores
                 }
             })
             const body = await updateGroupResponse
-
-            return
-            // let quizScores = 
-            if (group) {
+            if (body) {
                 context.res = {
                     "status": 201,
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": group
+                    "body": body
                 }
             } else {
                 await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "CourseGroups/{courseCode?}/{groupCode?}")

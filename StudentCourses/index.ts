@@ -13,12 +13,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 [
                     {
                         '$match': {
-                            'users.code': req.params.userCode,
+                            'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16',
                             'status': 'Activo'
                         }
                     }, {
-                        '$addFields': {
-                            'groupCode': '$code'
+                        '$unwind': {
+                            'path': '$users'
+                        }
+                    }, {
+                        '$match': {
+                            'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16',
+                            'status': 'Activo'
                         }
                     }, {
                         '$lookup': {
@@ -34,7 +39,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }, {
                         '$project': {
                             'course': '$courses',
-                            'groupCode': '$code'
+                            'groupCode': '$code',
+                            'quizScores': '$users.quizScores'
                         }
                     }, {
                         '$match': {
