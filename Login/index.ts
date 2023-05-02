@@ -33,7 +33,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
       } else {
         const resp = Users.aggregate(
-          userAggregation(body.code)
+          userAggregation( {"code": body.code}, {})
         )
         const body2 = await resp.toArray()
         delete body2[0].password

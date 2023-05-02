@@ -4,8 +4,8 @@ import { saveLog } from "../shared/saveLog";
 
 const database = createConnection()
 
+const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
- const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createCourse = async () => {
 
@@ -57,95 +57,7 @@ const database = createConnection()
         }
     }
 
-    const getUserCourses = async () => {
 
-        try {
-            const db = await createConnection()
-            const Courses = db.collection("course")
-            const resp = Courses.aggregate([
-                {
-                    '$lookup': {
-                        'from': 'user',
-                        'localField': 'author_code',
-                        'foreignField': 'code',
-                        'as': 'createdBy'
-                    }
-                }, {
-                    '$unwind': {
-                        'path': '$createdBy'
-                    }
-                }, {
-                    '$match': {
-                        'createdBy.code': {
-                            '$exists': true
-                        }
-                    }
-                }, {
-                    '$project': {
-                        '_id': 0,
-                        'dateCreated': '$dateCreated',
-                        'company': '$createdBy.company',
-                        'curso': '$details.title',
-                        'criado_por': '$createdBy.name',
-                        'email': '$createdBy.email'
-                    }
-                }, {
-                    '$match': {
-                        'company': {
-                            '$not': {
-                                '$eq': 'Edutecno'
-                            }
-                        }
-                    }
-                }, {
-                    '$sort': {
-                        'dateCreated': -1,
-                        'company': 1
-                        
-                    }
-                }, {
-                    '$limit': 100
-                }
-            ])
-
-            const body = await resp.toArray()
-
-            if (body) {
-
-                context.res = {
-                    "status": 200,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-            } else {
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "No courses found"
-                    }
-                }
-
-            }
-
-        } catch (error) {
-
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error getting courses"
-                }
-            }
-
-        }
-    }
 
     const updateCourse = async (courseCode: string) => {
 
@@ -169,7 +81,7 @@ const database = createConnection()
                     "body": body
                 }
             } else {
-                await saveLog(`Error updating course by code: ${req.body.course.code}` , "Error", "updateCourse()", "Courses/{courseCode?}")
+                await saveLog(`Error updating course by code: ${req.body.course.code}`, "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -243,7 +155,7 @@ const database = createConnection()
                     "body": body[0]
                 }
             } else {
-                await saveLog(`Error getting course by code: ${req.body.course.code}` , "Error", "updateCourse()", "Courses/{courseCode?}")
+                await saveLog(`Error getting course by code: ${req.body.course.code}`, "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -271,18 +183,50 @@ const database = createConnection()
         }
     }
 
-    const getCourses = async () => {
+    const getCourses = async (query: any) => {
+
         try {
 
             const db = await database
+            const collection = db.collection("course")
 
-            const Courses = db.collection('course')
+            const queryOrganizationCode = query.organizationCode ? { 'organizationCode': query.organizationCode } : {}
+            const queryAuthorCode = query.authorCode ? { 'author_code': query.authorCode } : {}
 
-            const resp = Courses.find({})
+            const regexSearch = new RegExp(query.search, "i") // "i" indica que a busca é case-insensitive
+            const querySearch = {
+                $and: [
+                    queryOrganizationCode,
+                    queryAuthorCode,
+                    {
+                        $or: [
+                            { 'code': { $regex: regexSearch } },
+                            { 'author_code': { $regex: regexSearch } },
+                            { 'details.title': { $regex: regexSearch } },
+                            { 'details.summary': { $regex: regexSearch } }
+                        ]
+                    }
 
-            const body = await resp.toArray()
+                ]
 
-            if (body && body.length > 0) {
+            }
+
+            const regexData = new RegExp(query.dateCreated, "i")
+            const queryData = { 'dateCreated': { $regex: regexData } }
+
+            const regexStatus = new RegExp(query.approvalStatus, "i")
+            const queryStatus = { 'approvalStatus': { $regex: regexStatus } }
+
+            const regexCategories = new RegExp(query.categories, "i")
+            const queryCategories = { 'details.categories': { $regex: regexCategories } }
+
+            const skipNum = parseInt(query.skip)
+            const limitNum = parseInt(query.items_by_page)
+
+            const body = await collection.find(Object.assign(queryStatus, queryData, querySearch, queryCategories)).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
+
+            if (body) {
+
                 context.res = {
                     "status": 200,
                     "headers": {
@@ -290,27 +234,34 @@ const database = createConnection()
                     },
                     "body": body
                 }
-
             } else {
                 context.res = {
-                    "status": 204,
+                    "status": 500,
                     "headers": {
                         "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "No course found"
                     }
                 }
+
             }
-            
+
         } catch (error) {
+            await saveLog(`Error getting courses, error ${error.message}`, "Error", "getCourses()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "statusText": "Can't get courses"
+                "body": {
+                    "message": "Error getting courses"
+                }
             }
+
         }
-    
     }
+
 
     const deleteCourse = async () => {
         try {
@@ -359,18 +310,14 @@ const database = createConnection()
         case "GET":
             if (req.params.courseCode) {
                 await getCourse(req.params.courseCode)
-            } else if (req.query.showCourses=="true") {
-                await getUserCourses()
             } else {
-                await getCourses()
+                await getCourses(req.query)
             }
             break;
 
         default:
             break;
     }
-
-
 }
 
 export default httpTrigger;

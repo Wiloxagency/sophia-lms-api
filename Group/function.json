@@ -11,7 +11,7 @@
         "put",
         "delete"
       ],
-      "route": "CourseGroups/{courseCode?}/{groupCode?}"
+      "route": "Group/{courseCode?}/{groupCode?}"
     },
     {
       "type": "http",
@@ -19,5 +19,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/CourseGroups/index.js"
+  "scriptFile": "../dist/Group/index.js"
 }

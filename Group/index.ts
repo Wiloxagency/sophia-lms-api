@@ -62,11 +62,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     //     }
     // }
 
-    const getCourseGroups = async () => {
+    const getGroups = async (courseCode: string) => {
         try {
             db = await database
             const Groups = db.collection('group')
-            const resp = Groups.find({ courseCode: req.params.courseCode }).sort({ _id: -1 })
+            const resp = Groups.find({ courseCode: courseCode }).sort({ _id: -1 })
             const body = await resp.toArray()
 
             if (body) {
@@ -79,7 +79,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
 
             } else {
-                await saveLog("Error getting groups by course ", "Error", "getCourseGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error getting groups by course " , "Error", "getGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -93,7 +93,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog("Error in CourseGroups method: " + error.message, "Error", "getCourseGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
+            await saveLog("Error in CourseGroups method: " + error.message, "Error", "Group()", "CourseGroups/{courseCode?}/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -126,7 +126,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
-                await saveLog("Error creating group", "Error", "createGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error creating group", "Error", "createGroup()", "Group/{courseCode?}/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -140,7 +140,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog("Error creating group: " + error.message, "Error", "createGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+            await saveLog("Error creating group: " + error.message, "Error", "createGroup()", "Group/{courseCode?}/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -176,7 +176,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
-                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "Group/{courseCode?}/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -190,7 +190,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog("Error updating courseGroup by code: " + error.message, "Error", "createGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+            await saveLog("Error updating courseGroup by code: " + error.message, "Error", "createGroup()", "Group/{courseCode?}/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -251,7 +251,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog(`Error deleting group by code: ${req.body.course.code}` + error.message, "Error", "deleteGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+            await saveLog(`Error deleting group by code: ${req.body.course.code}` + error.message, "Error", "deleteGroup()", "Group/{courseCode?}/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -356,7 +356,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            await getCourseGroups()
+            await getGroups(req.params.courseCode)
             break;
 
         case "DELETE":
