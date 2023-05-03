@@ -79,7 +79,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
 
             } else {
-                await saveLog("Error getting groups by course " , "Error", "getGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error getting groups by course ", "Error", "getGroups()", "CourseGroups/{courseCode?}/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -281,26 +281,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             })
             let quizScores: any[] = []
-            console.log(filteredUser)
+            let quizScorePayload: any = {
+                quizCode: req.body.quizCode,
+                score: req.body.score
+            }
+            // console.log(filteredUser)
             if (filteredUser[0].quizScores == undefined) {
-                console.log('QUIZ SCORES WAS UNDEFINED')
-                quizScores = [
-                    {
-                        quizCode: req.body.quizCode,
-                        score: req.body.score
-                    }
-                ]
+                // console.log('QUIZ SCORES WAS UNDEFINED')
+                if (req.body.isQuizManuallyCorrected == false) {
+                    quizScorePayload.isQuizManuallyCorrected = false
+                }
+                quizScores = [quizScorePayload]
             } else {
                 quizScores = filteredUser[0].quizScores
-                quizScores.push(
-                    {
-                        quizCode: req.body.quizCode,
-                        score: req.body.score
-                    }
-                )
+                if (req.body.isQuizManuallyCorrected == false) {
+                    quizScorePayload.isQuizManuallyCorrected = false
+                }
+                quizScores.push(quizScorePayload)
             }
             let quizScoresPath = `users.${indexFilteredUser}.quizScores`
-            console.log(quizScores)
+            // console.log(quizScores)
             const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
                 $set: {
                     [quizScoresPath]: quizScores
