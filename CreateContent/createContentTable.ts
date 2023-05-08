@@ -7,9 +7,9 @@ const configuration = new Configuration({
 });
 
 export async function createContentTable(
-    courseName: string,
-    maxSections: number,
-    language: string,
+    courseName: string, 
+    maxSections: number, 
+    languageName: string, 
     courseCode: string): Promise<string[]> {
 
     const openai = new OpenAIApi(configuration);
@@ -17,7 +17,7 @@ export async function createContentTable(
     const prompt = contentTable.
         replace(/v{maxSections}/g, maxSections.toString()).
         replace(/v{courseName}/g, courseName).
-        replace(/v{languageName}/g, language)
+        replace(/v{languageName}/g, languageName)
 
     console.info("Prompt:", prompt)
 
@@ -52,4 +52,6 @@ export async function createContentTable(
         return undefined
     }
 
+
+    
 }

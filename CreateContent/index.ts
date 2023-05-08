@@ -129,7 +129,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse = addSections(syllabus, currentCourse)
                 //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
 
-                //createContentCycle(currentCourse)
+                createContentCycle(currentCourse)
 
                 context.res = {
                     "status": 201,
