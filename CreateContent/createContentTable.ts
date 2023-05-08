@@ -9,7 +9,7 @@ const configuration = new Configuration({
 export async function createContentTable(
     courseName: string, 
     maxSections: number, 
-    language: string, 
+    languageName: string, 
     courseCode: string): Promise<string[]> {
 
     const openai = new OpenAIApi(configuration);
@@ -17,7 +17,7 @@ export async function createContentTable(
     const prompt = contentTable.
         replace(/v{maxSections}/g, maxSections.toString()).
         replace(/v{courseName}/g, courseName).
-        replace(/v{languageName}/g, language)
+        replace(/v{languageName}/g, languageName)
 
 
         try {
@@ -35,6 +35,8 @@ export async function createContentTable(
                 split("\n").
                 map( item =>{
                     return item.trim()
+                }).filter(item => {
+                    return item.length > 1
                 })
             
             return splittedcontentTable

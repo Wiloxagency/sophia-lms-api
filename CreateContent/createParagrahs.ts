@@ -1,9 +1,10 @@
 import { Configuration, OpenAIApi } from 'openai'
 import {
-    contentGeneration,
+    contentGeneration
+/*     ,
     introductionGeneration,
-    conclusionsGeneration
-} from "./gpt3.prompt";
+    conclusionsGeneration */
+} from "./prompts";
 import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from '../shared/saveLog';
 
@@ -60,14 +61,18 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
 
 export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
-    console.info(payload)
+    console.info("createParagraphs/payload-->", payload)
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const text: string = payload.text.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const index = payload.index
 
-    const courseStructure = payload.courseStructure.map((tableItem: string, idx: number) => {
-        return `${tableItem.trim()}\n`
+    // const courseStructure = payload.courseStructure.map((tableItem: string, idx: number) => {
+    //     return `${tableItem.trim()}\n`
+    // }).join("\n")
+
+    const promptCourseStructure = payload.courseStructure.map((tableItem: string, idx: number) => {
+        return `Item ${idx + 1}: ${tableItem.trim()}\n`
     }).join("\n")
 
     const numSection = payload.courseStructure.map((item: string) => { return item.trim() }).indexOf(payload.text.trim())
@@ -77,7 +82,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
             return idx != numSection
         }).
         map((tableItem: string, idx: number) => {
-            return `${contentGeneration[payload.language]["notInclude"]} ${tableItem.trim()}\n`
+            return `Do not include: ${tableItem.trim()}\n`
         }).join("\n")
 
     const maxParagraphs = payload.maxParagraphs
@@ -89,28 +94,31 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
 
     let formattedText = text.replace(/\.+$/, "")
 
-    if (introductionGeneration[payload.language]["matches"].includes(formattedText.toLowerCase())) {
-        prompt = introductionGeneration[payload.language]["prompt"].
-            replace(/v{context}/g, context)
-    } else if (conclusionsGeneration[payload.language]["matches"].includes(formattedText.toLowerCase())) {
-        prompt = conclusionsGeneration[payload.language]["prompt"].
-            replace(/v{context}/g, context)
-    } else {
-        let age = ""
-        if (payload.options && payload.options != null) {
-            age = contentGeneration[payload.language]["age"].
-                replace(/v{courseLevel}/g, payload.options.courseLevel).
-                replace(/v{fromAge}/g, payload.options.fromAge).
-                replace(/v{toAge}/g, payload.options.toAge)
-        }
-        prompt = contentGeneration[payload.language]["prompt"].
-            replace(/v{context}/g, context).
-            replace(/v{courseStructure}/g, courseStructure).
-            replace(/v{numSection}/g, numSection + 1).
-            replace(/v{text}/g, formattedText).
-            replace(/v{age}/g, age).
-            replace(/v{notInclude}/g, notInclude)
-    }
+    // if (introductionGeneration[payload.language]["matches"].includes(formattedText.toLowerCase())) {
+    //     prompt = introductionGeneration[payload.language]["prompt"].
+    //         replace(/v{context}/g, context)
+    // } else if (conclusionsGeneration[payload.language]["matches"].includes(formattedText.toLowerCase())) {
+    //     prompt = conclusionsGeneration[payload.language]["prompt"].
+    //         replace(/v{context}/g, context)
+    // } else {
+        // let age = ""
+        // if (payload.options && payload.options != null) {
+        //     age = contentGeneration[payload.language]["age"].
+        //         replace(/v{courseLevel}/g, payload.options.courseLevel).
+        //         replace(/v{fromAge}/g, payload.options.fromAge).
+        //         replace(/v{toAge}/g, payload.options.toAge)
+        // }
+        console.info("v{context}-->", context)
+        console.info("contentGeneration-->", contentGeneration)
+        prompt = contentGeneration.
+            replace(/v{context}/gm, context).
+            replace(/v{courseStructure}/gm, promptCourseStructure).
+            replace(/v{numSection}/gm, (numSection + 1).toString()).
+            replace(/v{text}/gm, formattedText).
+           // replace(/v{age}/g, age).
+            replace(/v{notInclude}/gm, notInclude)
+    //}
+    console.info("contentGeneration-->", contentGeneration)
 
     try {
         const response = await openai.createCompletion({
