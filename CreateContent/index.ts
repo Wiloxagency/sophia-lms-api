@@ -20,7 +20,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const autoBreak = req.body.autoBreak
     const maxSections = req.body.maxSections
     const maxParagraphs = req.body.maxParagraphs
-    const language = req.body.language ? req.body.language : "es"
+    const language = req.body.language ? req.body.language : "es-MX"
+    const languageName = req.body.languageName ? req.body.languageName : "Spanish"
     const lessonTheme = req.body.lessonTheme
     const contentTable = req.body.contentTable
 
@@ -121,7 +122,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         case "generateByTitle":
 
-            const syllabus = await createContentTable(courseTitle, maxSections, language, courseCode)
+            const syllabus = await createContentTable(courseTitle, maxSections, languageName, courseCode)
 
             if (syllabus) {
 
@@ -135,7 +136,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": currentCourse
+                    "body": {syllabus: syllabus, currentCourse: currentCourse}
                 }
 
 

@@ -7,9 +7,9 @@ const configuration = new Configuration({
 });
 
 export async function createContentTable(
-    courseName: string, 
-    maxSections: number, 
-    language: string, 
+    courseName: string,
+    maxSections: number,
+    language: string,
     courseCode: string): Promise<string[]> {
 
     const openai = new OpenAIApi(configuration);
@@ -19,28 +19,37 @@ export async function createContentTable(
         replace(/v{courseName}/g, courseName).
         replace(/v{languageName}/g, language)
 
+    console.info("Prompt:", prompt)
 
-        try {
-            const response = await openai.createCompletion({
-                model: "text-davinci-003",
-                prompt: prompt,
-                temperature: 0.7,
-                max_tokens: 2500,
-                top_p: 1,
-                frequency_penalty: 0,
-                presence_penalty: 0,
-            })
-            let splittedcontentTable = response.data.choices[0].text.
-                replace(/\d{1,2}\./g, "").
-                split("\n").
-                map( item =>{
-                    return item.trim()
-                })
-            
-            return splittedcontentTable
-        } catch (error) {
-            await saveLog(`Error creating Content Table for course: ${courseCode}.`, "Error", "createContentTable()", "Courses/{courseCode}/CreateContent")
-            return undefined
-        }
-    
+    try {
+        const response = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: prompt,
+            temperature: 0.7,
+            max_tokens: 2500,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+        })
+
+        console.info(response.data.choices[0].text)
+        let splittedcontentTable = response.data.choices[0].text.
+            replace(/\d{1,2}\./g, "")
+            .
+            split("\n").
+            map(item => {
+                return item.trim()
+            }).filter(item => {
+                return item.length > 1
+            }
+            )
+
+        console.info("splittedcontentTable:", splittedcontentTable)
+
+        return splittedcontentTable
+    } catch (error) {
+        await saveLog(`Error creating Content Table for course: ${courseCode}.`, "Error", "createContentTable()", "Courses/{courseCode}/CreateContent")
+        return undefined
+    }
+
 }
