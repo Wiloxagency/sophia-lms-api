@@ -21,7 +21,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         index: 0,
         maxParagraphs: 15,
         courseStructure: req.body.syllabus,
-        language: "es",
+        language: req.body.language,
+        languageName: req.body.languageName,
         courseCode: req.body.courseCode
     }
     const lesson = {

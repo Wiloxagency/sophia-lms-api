@@ -10,26 +10,7 @@ export const contentTable =
 
 // Multilanguage content generation
 export const contentGeneration = 
-`You have a course with the following title:
-
-v{context}
-
-The course index contains the following sections:
-
-v{promptCourseStructure}
-
-In the context of the mentioned course, develop only item v{numSection}: v{text}.
-
-The created content must comply with the following criteria:
-
-It must be written in Spanish.
-It must be divided into paragraphs of 30 words each.
-Paragraphs must be relevant.
-Paragraphs must not be redundant in content.
-Do not include information in an item that belongs to any of the other items.
-The paragraphs should be as extensive as possible but concise regarding item v{numSection}.
-The paragraphs should be analyzed, and in case of grammatical or syntactical errors, they should be corrected.
-
-v{notInclude}
-
-From: v{text}, we can mention that:`
+"Considering the context of the course \"v{courseName}\" and as an expert in the area of content " +
+"development, create an extensive content in v{languageName} explaining the subject \"v{text}\", "+ 
+"the paragraphs must be relevant and the information must be exclusively from that subject. The table of " + 
+"content contains the following items:\n\nv{courseStructure}"

@@ -34,8 +34,7 @@ export async function createContentTable(
 
         console.info(response.data.choices[0].text)
         let splittedcontentTable = response.data.choices[0].text.
-            replace(/\d{1,2}\./g, "")
-            .
+            replace(/\d{1,2}\./g, "").
             split("\n").
             map(item => {
                 return item.trim()

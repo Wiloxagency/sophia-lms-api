@@ -43,9 +43,12 @@ export async function createContentCycle(course: any) {
             index: 0,
             maxParagraphs: 15,
             courseStructure: syllabus,
-            language: "es",
+            language: course.language.split("-")[0],
+            languageName: course.language,
             courseCode: course.code
         }
+
+        console.info("payload 51", payload)
 
         // Create Content
         const contentCycle = async (sectionCounter: number) => {

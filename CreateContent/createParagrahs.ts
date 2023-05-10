@@ -62,6 +62,7 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
 export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
     console.info("createParagraphs/payload-->", payload)
+    const languageName = payload.languageName
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const text: string = payload.text.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
@@ -90,7 +91,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
         context = text
     }
     const openai = new OpenAIApi(configuration)
-    let prompt = ""
+    //let prompt = ""
 
     let formattedText = text.replace(/\.+$/, "")
 
@@ -109,16 +110,16 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
         //         replace(/v{toAge}/g, payload.options.toAge)
         // }
         console.info("v{context}-->", context)
-        console.info("contentGeneration-->", contentGeneration)
-        prompt = contentGeneration.
-            replace(/v{context}/gm, context).
-            replace(/v{courseStructure}/gm, promptCourseStructure).
-            replace(/v{numSection}/gm, (numSection + 1).toString()).
-            replace(/v{text}/gm, formattedText).
-           // replace(/v{age}/g, age).
-            replace(/v{notInclude}/gm, notInclude)
+        
+        const prompt = contentGeneration.
+            replace(/v{courseName}/g, context).
+            replace(/v{languageName}/g, languageName).
+            replace(/v{text}/g, formattedText).
+            replace(/v{courseStructure}/g, promptCourseStructure)
+            
+            
     //}
-    console.info("contentGeneration-->", contentGeneration)
+    console.info("contentGeneration-->", prompt)
 
     try {
         const response = await openai.createCompletion({

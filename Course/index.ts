@@ -81,7 +81,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
-                await saveLog(`Error updating course by code: ${req.body.course.code}`, "Error", "updateCourse()", "Courses/{courseCode?}")
+                await saveLog(`Error updating course by code: ${courseCode}`, "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -95,7 +95,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog(`Error updating course by code: ${req.body.course.code}` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
+            await saveLog(`Error updating course by code: ${courseCode}` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -155,7 +155,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body[0]
                 }
             } else {
-                await saveLog(`Error getting course by code: ${req.body.course.code}`, "Error", "updateCourse()", "Courses/{courseCode?}")
+                await saveLog(`Error getting course by code: ${courseCode}`, "Error", "updateCourse()", "Courses/{courseCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -169,7 +169,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog(`Error getting course by code: ${req.body.course.code} ` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
+            await saveLog(`Error getting course by code: ${courseCode} ` + error.message, "Error", "updateCourse()", "Courses/{courseCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
