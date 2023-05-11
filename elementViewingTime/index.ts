@@ -8,8 +8,8 @@ var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     delete req.body._id
+    // console.log(req.body)
     try {
-        return
         const db = await database
         const CourseGroups = db.collection('group')
         const groupPromise = CourseGroups.findOne({ 'code': req.body.groupCode })
@@ -21,42 +21,60 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 return user
             }
         })
-
-        let elementTimePayload: any = {
-            elementCode: req.body.elementCode,
-            time: 15,
-            status: ''
-        }
-
         let elementTimePath
-        // let elementTime
-
+        // 👇🏼 IF THERE AREN'T ANY TIME REGISTRIES
         if (filteredUser[0].elementTimes == undefined) {
-
+            let elementTimesPayload: any = [
+                {
+                    elementCode: req.body.elementCode,
+                    time: 15,
+                    status: ''
+                }
+            ]
+            elementTimePath = `users.${indexFilteredUser}.elementTimes`
             const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
                 $set: {
-                    [elementTimePath]: elementTimePayload
+                    [elementTimePath]: elementTimesPayload
                 }
             })
             const body = await updateGroupResponse
-
-        } else {
-
-            let indexElementTime = filteredUser[0].elementTimes.filter((elementTime: any, indexElementTime: number) => {
-                if (elementTime.code == req.body.elementCode) {
-                    return indexElementTime
+        }
+        else {
+            let indexElementTime
+            let indexElementTimeFilter = filteredUser[0].elementTimes.filter((elementTime: any, indexElement: number) => {
+                if (elementTime.elementCode == req.body.elementCode) {
+                    indexElementTime = indexElement
+                    return
                 }
             })
-            console.log(filteredUser[0].elementTimes[indexElementTime])
-        }
-
-        const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
-            $set: {
-                [elementTimePath]: elementTimePayload
+            // 👇🏼 IF ELEMENT HAS NO PREVIOUS ENTRY
+            if (indexElementTime == undefined) {
+                elementTimePath = `users.${indexFilteredUser}.elementTimes`
+                let elementTimes = filteredUser[0].elementTimes
+                let elementTimePayload: any =
+                    {
+                        elementCode: req.body.elementCode,
+                        time: 15,
+                        status: ''
+                    }
+                elementTimes.push(elementTimePayload)
+                const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
+                    $set: {
+                        [elementTimePath]: elementTimes
+                    }
+                })
+                const body = await updateGroupResponse
+            } else {
+                elementTimePath = `users.${indexFilteredUser}.elementTimes.${indexElementTime}.time`
+                let updatedTime = filteredUser[0].elementTimes[indexElementTime].time + 15
+                const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
+                    $set: {
+                        [elementTimePath]: updatedTime
+                    }
+                })
+                const body = await updateGroupResponse
             }
-        })
-        const body = await updateGroupResponse
-
+        }
         context.res = {
             "status": 200,
             "headers": {
