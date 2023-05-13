@@ -8,7 +8,7 @@ var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     delete req.body._id
-    // console.log(req.body)
+    console.log(req.body)
     try {
         const db = await database
         const CourseGroups = db.collection('group')
@@ -28,7 +28,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 {
                     elementCode: req.body.elementCode,
                     time: 15,
-                    status: ''
+                    status: 'completed'
                 }
             ]
             elementTimePath = `users.${indexFilteredUser}.elementTimes`
@@ -55,7 +55,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     {
                         elementCode: req.body.elementCode,
                         time: 15,
-                        status: ''
+                        status: 'completed'
                     }
                 elementTimes.push(elementTimePayload)
                 const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
