@@ -248,9 +248,31 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     async function createUsersFromExcel() {
-        console.log(req.body)
+
+        // 👇🏼 THIS CODE FINDS DUPLICATES
+        // const db = await database
+        // const Users = db.collection('user')
+        // const resp = Users.aggregate(
+        //     [
+        //         {
+        //             '$group': {
+        //                 '_id': '$email',
+        //                 'emailOccurrences': {
+        //                     '$push': '$email'
+        //                 }
+        //             }
+        //         }
+        //     ]
+        // )
+        // const body = await resp.toArray()
+        // let duplicatedUsers = body.filter((student: any) => {
+        //     if (student.emailOccurrences.length == 1) {
+        //         return student
+        //     }
+        // })
+        // console.log(duplicatedUsers)
+        // return
         try {
-            // return
             const db = await database
             const Users = db.collection('user')
             let addedFields = req.body.map(student => {
@@ -265,20 +287,35 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     company: req.query.company,
                     position: student.Cargo,
                     password: student.Email
-                  }
+                }
             })
             // console.log(addedFields)
             const insertManyStudents = Users.insertMany(addedFields, { ordered: false })
             await insertManyStudents
+            // try {
+            //     await insertManyStudents
+            // } catch (error) {
+            //     console.log(error.code)
+            //     if (error.code == 11000) {
+            //         context.res.status(201).json(error.writeErrors)
+            //     } else {
+            //         context.res.status(500).json(error)
+            //     }
+            // }
         } catch (error) {
-            await saveLog(`Error uploading users.`, "Error", "createUsersFromExcel()", "Users")
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error updating user by code"
+            // console.log(error.writeErrors)
+            if (error.code == 11000) {
+                context.res.status(201).json(error.writeErrors)
+            } else {
+                await saveLog(`Error uploading users.`, "Error", "createUsersFromExcel()", "Users")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error updating user by code"
+                    }
                 }
             }
         }
