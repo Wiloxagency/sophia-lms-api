@@ -129,6 +129,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse = addSections(syllabus, currentCourse)
                 //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
 
+
+                currentCourse.language = language
+                currentCourse.languageName = languageName
+                currentCourse.voice = voice
+
                 createContentCycle(currentCourse)
 
                 context.res = {

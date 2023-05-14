@@ -21,7 +21,12 @@ export async function createContentCycle(course: any) {
     const Courses = db.collection("course")
 
     await Courses.findOneAndUpdate({ code: course.code }, {
-        $set: { sections: course.sections }
+        $set: { 
+            sections: course.sections,
+            language: course.language,
+            languageName: course.languageName,
+            voice: course.voice
+        }
     })
 
     const startCreation = new Date()
