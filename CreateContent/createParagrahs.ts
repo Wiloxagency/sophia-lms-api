@@ -1,9 +1,9 @@
 import { Configuration, OpenAIApi } from 'openai'
 import {
     contentGeneration
-/*     ,
-    introductionGeneration,
-    conclusionsGeneration */
+    /*     ,
+        introductionGeneration,
+        conclusionsGeneration */
 } from "./prompts";
 import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from '../shared/saveLog';
@@ -102,45 +102,40 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     //     prompt = conclusionsGeneration[payload.language]["prompt"].
     //         replace(/v{context}/g, context)
     // } else {
-        // let age = ""
-        // if (payload.options && payload.options != null) {
-        //     age = contentGeneration[payload.language]["age"].
-        //         replace(/v{courseLevel}/g, payload.options.courseLevel).
-        //         replace(/v{fromAge}/g, payload.options.fromAge).
-        //         replace(/v{toAge}/g, payload.options.toAge)
-        // }
-        console.info("v{context}-->", context)
-        
-        const prompt = contentGeneration.
-            replace(/v{courseName}/g, context).
-            replace(/v{languageName}/g, languageName).
-            replace(/v{text}/g, formattedText).
-            replace(/v{courseStructure}/g, promptCourseStructure)
-            
-            
+    // let age = ""
+    // if (payload.options && payload.options != null) {
+    //     age = contentGeneration[payload.language]["age"].
+    //         replace(/v{courseLevel}/g, payload.options.courseLevel).
+    //         replace(/v{fromAge}/g, payload.options.fromAge).
+    //         replace(/v{toAge}/g, payload.options.toAge)
+    // }
+    console.info("v{context}-->", context)
+
+    const prompt = contentGeneration.
+        replace(/v{courseName}/g, context).
+        replace(/v{languageName}/g, languageName).
+        replace(/v{text}/g, formattedText).
+        replace(/v{courseStructure}/g, promptCourseStructure)
+
+
     //}
     console.info("contentGeneration-->", prompt)
 
     try {
-        const response = await openai.createChatCompletion({
-            model: "gpt-4",
-            messages: [
-                {
-                    role: "system",
-                    content: 'You are expert in the area of content development.'
-                },
-                {
-                    role: "user",
-                    content: prompt
-                    // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
-                }
-            ]
+        const response = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: prompt,
+            temperature: 1,
+            max_tokens: 2500,
+            top_p: 0.5,
+            frequency_penalty: 0.71,
+            presence_penalty: 0,
         })
-        let data = response.data.choices[0].message.content.trim()
-    
+        let data = response.data.choices[0].text.trim()
+
         const formattedData = formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1)
         const paragraphs = splitParagraphs(formattedData, true)
-    
+
         return { "content": paragraphs, "sectionIndex": index }
 
     } catch (error) {
@@ -148,5 +143,5 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
         console.error(error)
         return { "content": null, "sectionIndex": index }
     }
-    
+
 }
