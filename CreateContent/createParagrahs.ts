@@ -122,16 +122,21 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     console.info("contentGeneration-->", prompt)
 
     try {
-        const response = await openai.createCompletion({
-            model: "text-davinci-003",
-            prompt: prompt,
-            temperature: 1,
-            max_tokens: 2500,
-            top_p: 0.5,
-            frequency_penalty: 0.71,
-            presence_penalty: 0,
+        const response = await openai.createChatCompletion({
+            model: "gpt-4",
+            messages: [
+                {
+                    role: "system",
+                    content: 'You are expert in the area of content development.'
+                },
+                {
+                    role: "user",
+                    content: prompt
+                    // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+                }
+            ]
         })
-        let data = response.data.choices[0].text.trim()
+        let data = response.data.choices[0].message.content.trim()
     
         const formattedData = formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1)
         const paragraphs = splitParagraphs(formattedData, true)
