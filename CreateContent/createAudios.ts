@@ -26,9 +26,8 @@ async function getAccessToken(subscriptionKey: string, courseCode: string) {
 
 function textToSpeech(accessToken: string, text: string, writableStream: any, voice: string, language: string, courseCode: string) {
 
-    //const languageCode = isoLanguage[language]
-    const languageCode = "ja-JP"
-    const jpVoice = "ja-JP-DaichiNeural"
+    // const languageCode = isoLanguage[language]
+    const languageCode = language
 
      return new Promise((resolve, reject)  => {
         try {
@@ -38,11 +37,12 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
                 .att("xml:lang", "en-us")
                 .ele("voice")
                 .att("xml:lang", "en-us")
-                .att('name', 'Microsoft Server Speech Text to Speech Voice (' + languageCode + ', ' + jpVoice + ')')
+                .att('name', 'Microsoft Server Speech Text to Speech Voice (' + languageCode + ', ' + voice + ')')
                 .txt(text)
                 .end()
 
             let body = xml_body.toString()
+            console.info("xml_body.toString-->", body)
 
             let options = {
                 method: "POST",
