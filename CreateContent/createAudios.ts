@@ -33,10 +33,10 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
             let xml_body = xmlbuilder
                 .create("speak")
                 .att("version", "1.0")
-                .att("xml:lang", "en-us")
+                .att("xml:lang", language.toLocaleLowerCase())
                 .ele("voice")
-                .att("xml:lang", "en-us")
-                .att('name', 'Microsoft Server Speech Text to Speech Voice (' + languageCode + ', ' + voice + ')')
+                .att("xml:lang", language.toLocaleLowerCase())
+                .att('name', 'Microsoft Server Speech Text to Speech Voice (' + language + ', ' + voice + ')')
                 .txt(text)
                 .end()
 

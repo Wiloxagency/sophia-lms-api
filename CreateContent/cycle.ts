@@ -49,7 +49,7 @@ export async function createContentCycle(course: any) {
             maxParagraphs: 15,
             courseStructure: syllabus,
             language: course.language.split("-")[0],
-            languageName: course.language,
+            languageName: course.languageName,
             courseCode: course.code
         }
 
@@ -83,7 +83,7 @@ export async function createContentCycle(course: any) {
 
                     const paragraphContent = currentParagraphs.content[paragraphCounter]
 
-                    const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
+                    const currentAudio = await createAudio(paragraphContent, course.voice, course.language, course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
                     const currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
                     console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["audioUrl"] = currentAudio.url
