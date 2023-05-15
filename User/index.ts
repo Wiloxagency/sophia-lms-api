@@ -5,19 +5,20 @@ import { userAggregation } from "./aggregation";
 import bcrypt = require("bcryptjs");
 import { saveLog } from "../shared/saveLog";
 import { strict } from "assert";
+import { v4 as uuidv4 } from 'uuid'
 
 const database = createConnection()
 var users = []
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    function hashPassword(textPassword: string): string  {
+    function hashPassword(textPassword: string): string {
 
         return bcrypt.hashSync(textPassword, 10)
 
     }
 
-    const createUser = async () => {  
+    const createUser = async () => {
         let newUser = req.body
         try {
             const db = await database
@@ -65,8 +66,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const getUser = async (UserReq: HttpRequest) => {
 
-        const byUserCode = UserReq.params.userCode ? {"code": UserReq.params.userCode} : {}
-        const byUserEmail = req.query.email ? {"email": req.query.email} : {}
+        const byUserCode = UserReq.params.userCode ? { "code": UserReq.params.userCode } : {}
+        const byUserEmail = req.query.email ? { "email": req.query.email } : {}
 
         console.info(byUserCode, byUserEmail)
 
@@ -125,7 +126,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 }
             }
-        } catch (error) { 
+        } catch (error) {
             await saveLog(`Error getting user by email: ${req.body.email}, error ${error.message}`, "Error", "getUserByEmail()", "Users/{userCode?}")
 
         }
@@ -134,7 +135,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const getUsers = async (organizationCode: string) => {
         let match = {}
         if (organizationCode) {
-            match = {'organizationCode': organizationCode}
+            match = { 'organizationCode': organizationCode }
         }
         try {
             const db = await database
@@ -186,7 +187,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (req.body.password) {
                 req.body.password = hashPassword(req.body.password)
             }
-            
+
             const resp = Users.findOneAndUpdate({ 'code': userCode }, { $set: req.body })
             const body = await resp
             if (body) {
@@ -246,10 +247,89 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    async function createUsersFromExcel() {
+
+        // 👇🏼 THIS CODE FINDS DUPLICATES
+        // const db = await database
+        // const Users = db.collection('user')
+        // const resp = Users.aggregate(
+        //     [
+        //         {
+        //             '$group': {
+        //                 '_id': '$email',
+        //                 'emailOccurrences': {
+        //                     '$push': '$email'
+        //                 }
+        //             }
+        //         }
+        //     ]
+        // )
+        // const body = await resp.toArray()
+        // let duplicatedUsers = body.filter((student: any) => {
+        //     if (student.emailOccurrences.length == 1) {
+        //         return student
+        //     }
+        // })
+        // console.log(duplicatedUsers)
+        // return
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            let addedFields = req.body.map(student => {
+                return {
+                    name: student.Nombre,
+                    last_access: '',
+                    email: student.Email,
+                    role: 'student',
+                    status: 'active',
+                    code: uuidv4(),
+                    phone: student.Teléfono,
+                    company: req.query.company,
+                    position: student.Cargo,
+                    password: student.Email
+                }
+            })
+            // console.log(addedFields)
+            const insertManyStudents = Users.insertMany(addedFields, { ordered: false })
+            await insertManyStudents
+            // try {
+            //     await insertManyStudents
+            // } catch (error) {
+            //     console.log(error.code)
+            //     if (error.code == 11000) {
+            //         context.res.status(201).json(error.writeErrors)
+            //     } else {
+            //         context.res.status(500).json(error)
+            //     }
+            // }
+        } catch (error) {
+            // console.log(error.writeErrors)
+            if (error.code == 11000) {
+                context.res.status(201).json(error.writeErrors)
+            } else {
+                await saveLog(`Error uploading users.`, "Error", "createUsersFromExcel()", "Users")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error updating user by code"
+                    }
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
-            await createUser()
-            break;
+            if (req.query.excel == 'true') {
+                await createUsersFromExcel()
+                break;
+            } else {
+                await createUser()
+                break;
+            }
 
         case "PUT":
             await updateUser(req.params.userCode)
@@ -258,7 +338,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case "GET":
             if (req.params.userCode || req.query.email) {
                 await getUser(req)
-            }  else {
+            } else {
                 await getUsers(req.query.organizationCode)
             }
             break;
