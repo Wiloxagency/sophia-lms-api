@@ -38,9 +38,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     role: "user",
                     content: req.body.prompt
                 }
-            ],
-            temperature: req.body.temperature,
-            max_tokens: req.body.max_tokens
+            ]
 
           });
 
