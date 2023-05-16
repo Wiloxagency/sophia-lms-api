@@ -11,7 +11,7 @@
         "put",
         "delete"
       ],
-      "route": "Group/{courseCode?}/{groupCode?}"
+      "route": "Group/{groupCode?}"
     },
     {
       "type": "http",
