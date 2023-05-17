@@ -9,8 +9,14 @@ export const contentTable =
 "Item 18.\n19. Item 19.\n20. Conclusion.\n\nTable of contents:"
 
 // Multilanguage content generation
-export const contentGeneration = 
+export const contentGenerationDropme = 
 "Considering the context of the course \"v{courseName}\" and as an expert in the area of content " +
 "development, create an extensive content in v{languageName} explaining the subject \"v{text}\", "+ 
 "the paragraphs must be relevant and the information must be exclusively from that subject. The table of " + 
 "content contains the following items:\n\nv{courseStructure}"
+
+// Multilanguage content generation
+export const contentGeneration = {
+    "role": "An expert in the area of content development",
+    "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject."
+}

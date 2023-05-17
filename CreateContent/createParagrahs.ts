@@ -111,27 +111,42 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     // }
     console.info("v{context}-->", context)
 
-    const prompt = contentGeneration.
+    const prompt = contentGeneration.prompt.
         replace(/v{courseName}/g, context).
         replace(/v{languageName}/g, languageName).
-        replace(/v{text}/g, formattedText).
-        replace(/v{courseStructure}/g, promptCourseStructure)
-
+        replace(/v{text}/g, formattedText)
 
     //}
     console.info("contentGeneration-->", prompt)
 
     try {
-        const response = await openai.createCompletion({
-            model: "text-davinci-003",
-            prompt: prompt,
-            temperature: 1,
-            max_tokens: 2500,
-            top_p: 0.5,
-            frequency_penalty: 0.71,
-            presence_penalty: 0,
-        })
-        let data = response.data.choices[0].text.trim()
+        // const response = await openai.createCompletion({
+        //     model: "text-davinci-003",
+        //     prompt: prompt,
+        //     temperature: 1,
+        //     max_tokens: 2500,
+        //     top_p: 0.5,
+        //     frequency_penalty: 0.71,
+        //     presence_penalty: 0,
+        // })
+        // let data = response.data.choices[0].text.trim()
+
+        const response = await openai.createChatCompletion({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: contentGeneration.role
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ]
+
+          })
+
+        let data = response.data.choices[0].message.content.trim()
 
         const formattedData = formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1)
         const paragraphs = splitParagraphs(formattedData, true)
