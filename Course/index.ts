@@ -184,9 +184,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const getCourses = async (query: any) => {
-
         try {
-
             const db = await database
             const collection = db.collection("course")
 
@@ -217,13 +215,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const regexStatus = new RegExp(query.approvalStatus, "i")
             const queryStatus = { 'approvalStatus': { $regex: regexStatus } }
 
-            const regexCategories = new RegExp(query.categories, "i")
-            const queryCategories = { 'details.categories': { $regex: regexCategories } }
+            // const regexCategories = new RegExp(query.categories, "i")
+            // const queryCategories = { 'details.categories': { $regex: regexCategories } }
 
             const skipNum = parseInt(query.skip)
             const limitNum = parseInt(query.items_by_page)
 
-            const body = await collection.find(Object.assign(queryStatus, queryData, querySearch, queryCategories)).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
+            const body = await collection.find(Object.assign(queryStatus, queryData, querySearch
+                // , queryCategories
+                )).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
 
             if (body) {
 
