@@ -132,7 +132,7 @@ export async function createContentCycle(course: any) {
                     console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData
 
-                    const keyPhrases = await createkeyphrases(paragraphContent, "es", course.code)
+                    const keyPhrases = await createkeyphrases(paragraphContent, course.languageName, course.code)
                     currentParagrah["keyPhrases"] = keyPhrases
                     console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
 

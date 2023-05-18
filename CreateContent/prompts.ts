@@ -1,4 +1,4 @@
-// Simple course syllabus generation
+// Simple course syllabus generation - GPT-3
 export const contentTable = 
 "As a professional college professor who has specialized in research papers, write in v{languageName} " +
 "a v{maxSections} item table of contents for a course called \"v{courseName}\". The first item should " +
@@ -8,15 +8,11 @@ export const contentTable =
 "Item 11.\n12. Item 12.\n13. Item 13.\n14. Item 14.\n15. Item 15.\n16. Item 16.\n17. Item 17.\n18. " +
 "Item 18.\n19. Item 19.\n20. Conclusion.\n\nTable of contents:"
 
-// Multilanguage content generation
-export const contentGenerationDropme = 
-"Considering the context of the course \"v{courseName}\" and as an expert in the area of content " +
-"development, create an extensive content in v{languageName} explaining the subject \"v{text}\", "+ 
-"the paragraphs must be relevant and the information must be exclusively from that subject. The table of " + 
-"content contains the following items:\n\nv{courseStructure}"
-
-// Multilanguage content generation
+// Multilanguage content generation - ChatGPT-3.5-turbo
 export const contentGeneration = {
     "role": "An expert in the area of content development",
     "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject."
 }
+
+// Keyphrases extractor - GPT-3
+export const  keyphrases =  "From the following text, extract key phrases in v{languageName} that represent the main ideas of the paragraph, they must be literal phrases found in the text.\n\nExample:\n\nBrain disorders are conditions that affect the structure or function of the brain. These include Alzheimer's disease, stroke, autism, epilepsy and Parkinson's disease. Brain diseases can be caused by genetic factors, infections, trauma or lifestyle factors such as drug abuse. Treatment for brain disorders depends on the type and severity of the condition but may include medications, therapy and surgery.\n\nKey phrases: Brain disorders are conditions, these include Alzheimer's disease, brain diseases, treatment for brain disorders, therapy and surgery\n\nTEXT: v{text}\n\nKEY PHRASES:"
