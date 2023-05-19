@@ -62,7 +62,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     //     }
     // }
 
-    const getGroups = async (courseCode: string) => {
+    const getCourseGroups = async (courseCode: string) => {
         try {
             db = await database
             const Groups = db.collection('group')
@@ -159,7 +159,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         delete req.body._id
 
         try {
-
+            console.log(req.body)
+            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+            console.log(groupCode)
             const db = await database
             const CourseGroups = db.collection('group')
 
@@ -239,7 +241,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             } else {
                 context.res = {
-                    "status": 204,
+                    "status": 400,
                     "headers": {
                         "Content-Type": "application/json"
                     },
@@ -356,7 +358,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            await getGroups(req.params.courseCode)
+            await getCourseGroups(req.query.courseCode)
             break;
 
         case "DELETE":
