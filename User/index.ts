@@ -13,9 +13,7 @@ var users = []
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     function hashPassword(textPassword: string): string {
-
         return bcrypt.hashSync(textPassword, 10)
-
     }
 
     const createUser = async () => {
@@ -65,12 +63,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const getUser = async (UserReq: HttpRequest) => {
-
         const byUserCode = UserReq.params.userCode ? { "code": UserReq.params.userCode } : {}
-        const byUserEmail = req.query.email ? { "email": req.query.email } : {}
-
-        console.info(byUserCode, byUserEmail)
-
+        const byUserEmail = req.query.userEmail ? { "email": req.query.userEmail } : {}
+        // console.info(byUserCode, byUserEmail)
         try {
             const db = await database
             const Users = db.collection('user')
@@ -336,7 +331,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            if (req.params.userCode || req.query.email) {
+            if (req.params.userCode || req.query.userEmail) {
                 await getUser(req)
             } else {
                 await getUsers(req.query.organizationCode)
@@ -351,7 +346,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
     }
 
-
-};
+}
 
 export default httpTrigger
