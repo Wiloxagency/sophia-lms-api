@@ -1,12 +1,14 @@
 import { Configuration, OpenAIApi } from 'openai'
 import {
-    contentGeneration
+    conclusionGeneration,
+    contentGeneration, introductionGeneration
     /*     ,
         introductionGeneration,
         conclusionsGeneration */
 } from "./prompts";
 import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from '../shared/saveLog';
+import { extraWords } from '../Language/extrawords';
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -63,6 +65,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
 
     console.info("createParagraphs/payload-->", payload)
     const languageName = payload.languageName
+    const languageShortIso = payload.language.split("-")[0]
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const key = payload.key.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
     const text: string = payload.text.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
@@ -111,25 +114,49 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     // }
     console.info("v{context}-->", context)
 
-    const prompt = contentGeneration.prompt.
+
+    const typeDetected = extraWords.filter(extraWord => {
+        return extraWord.lang == languageShortIso
+    })[0]
+
+    console.info("typeDetected-->>", typeDetected)
+
+    const introductionFound = (typeDetected.Introduction.filter(introductionWord => {
+        return formattedText.indexOf(introductionWord) === 0
+    }).length > 0)
+    console.info("introductionFound-->", introductionFound)
+
+    const conclusionFound = (typeDetected.Conclusion.filter(conclusionWord => {
+        return formattedText.indexOf(conclusionWord)  === 0
+    }).length > 0)
+    console.info("conclusionFound-->", conclusionFound)
+
+    const contentType = introductionFound ? "Introduction" : conclusionFound ? "Conclusion" : "Normal"
+    let prompt = ""
+
+    switch (contentType) {
+        case "Introduction":
+            prompt = introductionGeneration.prompt
+            break;
+
+        case "Conclusion":
+            prompt = conclusionGeneration.prompt
+            break;
+
+        default:
+            prompt = contentGeneration.prompt
+            break;
+    }
+
+    prompt = prompt.
         replace(/v{courseName}/g, context).
         replace(/v{languageName}/g, languageName).
-        replace(/v{text}/g, formattedText)
+        replace(/v{text}/g, formattedText).
+        replace(/v{promptCourseStructure}/g, promptCourseStructure)
 
-    //}
-    console.info("contentGeneration-->", prompt)
+    console.info(contentType + " Prompt -->", prompt)
 
     try {
-        // const response = await openai.createCompletion({
-        //     model: "text-davinci-003",
-        //     prompt: prompt,
-        //     temperature: 1,
-        //     max_tokens: 2500,
-        //     top_p: 0.5,
-        //     frequency_penalty: 0.71,
-        //     presence_penalty: 0,
-        // })
-        // let data = response.data.choices[0].text.trim()
 
         const response = await openai.createChatCompletion({
             model: "gpt-3.5-turbo",
@@ -144,7 +171,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
                 }
             ]
 
-          })
+        })
 
         let data = response.data.choices[0].message.content.trim()
 

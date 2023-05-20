@@ -10,8 +10,18 @@ export const contentTable =
 
 // Multilanguage content generation - ChatGPT-3.5-turbo
 export const contentGeneration = {
-    "role": "An expert in the area of content development",
+    "role": "You are an expert in the area of content development",
     "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject."
+}
+
+export const introductionGeneration = {
+    "role": "You are an expert in the area of content development",
+    "prompt": "Create a general introduction in v{languageName} for a course called \"v{courseName}\".The introduction should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
+}
+
+export const conclusionGeneration = {
+    "role": "You are an expert in the area of content development",
+    "prompt": "Create a general conclusion in v{languageName} for a course called \"v{courseName}\".The conclusion should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
 }
 
 // Keyphrases extractor - GPT-3
