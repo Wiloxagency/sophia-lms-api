@@ -124,11 +124,11 @@ export async function createContentCycle(course: any) {
                         // }
                         // DIDTalks()
                     }
-                    const extractedTitle = await extractTitle(paragraphContent, "es", course.code)
+                    const extractedTitle = await extractTitle(paragraphContent, payload.text, course.languageName, course.details.title, course.code, )
                     console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
                     currentParagrah["titleAI"] = extractedTitle.title
 
-                    const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", "es", [], course.code)
+                    const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
                     console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData
 

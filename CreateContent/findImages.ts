@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { Configuration, OpenAIApi } from 'openai'
 import { titleExtraction } from "./gpt3.prompt"
+
 import sharp = require('sharp')
 import { v4 as uuidv4 } from 'uuid'
 import { saveLog } from '../shared/saveLog'
@@ -46,7 +47,7 @@ export async function findImages(
     sectionTitle: string,
     courseTitle: string,
     imageAspect: string,
-    language: string,
+    languageName: string,
     imagesIds: string[],
     courseCode: string): Promise<{ image: {}, thumb: {}, finalImage: {}, imagesIds: string[], urlBing: string }> {
     /*
@@ -63,7 +64,7 @@ export async function findImages(
     let urlsBing: string[] = [
 
         bingUrlBase +
-        encodeURIComponent(courseTitle + " " + sectionTitle + " " + paragraphTitle) +
+        encodeURIComponent(paragraphTitle) +
         imgQueryOptions,
 
         bingUrlBase +
@@ -102,7 +103,7 @@ export async function findImages(
                 foundImage = { url: item["contentUrl"], width: item["width"], height: item["height"], imageId: item["imageId"] }
                 let finalImage = { url: "", width: 0, height: 0 }
 
-                const input = (await axios({ url: foundImage.url, responseType: "arraybuffer" })).data as Buffer
+                const input = (await axios({ url: foundImage.url, responseType: "arraybuffer", timeout:15000 })).data as Buffer
                 const output = await sharp(input)
                     .resize(1200, 675)
                     .jpeg()

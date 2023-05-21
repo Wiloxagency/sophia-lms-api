@@ -76,7 +76,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         console.info(`Audio for section ${sectionIndex}}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
         currentParagrah.audioUrl = currentAudio.url
 
-        const extractedTitle = await extractTitle(paragraphContent, "es", req.body.courseCode)
+        const extractedTitle = await extractTitle(paragraphContent, payload.text,"es", req.body.courseTitle, req.body.courseCode)
         console.info(`Title for section ${sectionIndex}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
         currentParagrah.titleAI = extractedTitle.title
 

@@ -63,7 +63,7 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
 
 export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
 
-    console.info("createParagraphs/payload-->", payload)
+    //console.info("createParagraphs/payload-->", payload)
     const languageName = payload.languageName
     const languageShortIso = payload.language.split("-")[0]
     let context = payload.context.replace(/curso de/gi, "").replace(/curso/gi, "").trim()
@@ -112,14 +112,14 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
     //         replace(/v{fromAge}/g, payload.options.fromAge).
     //         replace(/v{toAge}/g, payload.options.toAge)
     // }
-    console.info("v{context}-->", context)
+    //console.info("v{context}-->", context)
 
 
     const typeDetected = extraWords.filter(extraWord => {
         return extraWord.lang == languageShortIso
     })[0]
 
-    console.info("typeDetected-->>", typeDetected)
+    //console.info("typeDetected-->>", typeDetected)
 
     const introductionFound = (typeDetected.Introduction.filter(introductionWord => {
         return formattedText.indexOf(introductionWord) === 0
@@ -154,7 +154,7 @@ export async function createParagraphs(payload: paragraphCreation): Promise<{ co
         replace(/v{text}/g, formattedText).
         replace(/v{promptCourseStructure}/g, promptCourseStructure)
 
-    console.info(contentType + " Prompt -->", prompt)
+    //console.info(contentType + " Prompt -->", prompt)
 
     try {
 

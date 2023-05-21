@@ -42,7 +42,7 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
                 .end()
 
             let body = xml_body.toString()
-            console.info("xml_body.toString-->", body)
+            //console.info("xml_body.toString-->", body)
 
             let options = {
                 method: "POST",

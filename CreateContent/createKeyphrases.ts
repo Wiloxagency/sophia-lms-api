@@ -15,7 +15,7 @@ export async function createkeyphrases(text: string, languageName:string, course
         replace(/v{text}/g, text.trim()).
         replace(/v{languageName}/g, languageName.trim())
 
-        console.info("Keyphrases prompt -->", prompt)
+        //console.info("Keyphrases prompt -->", prompt)
 
         try {
 
