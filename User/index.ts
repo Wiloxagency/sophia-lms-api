@@ -127,25 +127,31 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const getUsers = async (organizationCode: string) => {
-        let match = {}
-        if (organizationCode) {
-            match = { 'organizationCode': organizationCode }
-        }
+    const getUsers = async (query: any) => {
         try {
             const db = await database
             const Users = db.collection('user')
-            const resp = Users.aggregate([
-                {
-                    '$match': match
-                },
-                {
-                    '$sort':
-                        { '_id': -1 }
-                }
-            ])
-            const body = await resp.toArray()
-            if (body && body.length > 0) {
+            const queryOrganizationCode = query.organizationCode ? { 'organizationCode': query.organizationCode } : {}
+            const regexSearch = new RegExp(query.search, "i") // "i" indica que a busca é case-insensitive
+            const querySearch = {
+                $and: [
+                    queryOrganizationCode,
+                    {
+                        $or: [
+                            { 'name': { $regex: regexSearch } },
+                            { 'email': { $regex: regexSearch } },
+                            { 'code': { $regex: regexSearch } }
+                        ]
+                    }
+
+                ]
+            }
+            const skipNum = parseInt(query.skip)
+            const limitNum = parseInt(query.items_by_page)
+            const body = await Users.find(Object.assign(querySearch
+                // , queryCategories
+            )).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
+            if (body) {
                 context.res = {
                     "status": 200,
                     "headers": {
@@ -334,7 +340,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (req.params.userCode || req.query.userEmail) {
                 await getUser(req)
             } else {
-                await getUsers(req.query.organizationCode)
+                await getUsers(req.query)
             }
             break;
 
