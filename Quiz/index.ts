@@ -423,6 +423,30 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const downloadQuiz = async () => {
+        try {
+            // console.log('DOWNLOADING')
+            // console.log(req.query.courseCode, req.query.indexSection, req.query.indexElement)
+            const db = await database
+            const Courses = db.collection('course')
+            // console.log(req.body)
+            let courseFindOnePromise = Courses.findOne({ code: req.query.courseCode })
+            let course = await courseFindOnePromise
+            console.log(course.sections[req.query.indexSection].elements[req.query.indexElement])
+        } catch (error) {
+            await saveLog(`Error downloading quiz, error ${error.message}`, "Error", "downloadQuiz()", "Quiz")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
 
@@ -448,6 +472,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 if (req.body.quizType == 'completion') {
                     await correctCompletionQuiz()
                 }
+            } else if (req.body.operation == 'download') {
+                await downloadQuiz()
             }
 
             break;
