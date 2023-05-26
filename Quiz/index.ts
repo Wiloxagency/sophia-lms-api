@@ -432,7 +432,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             // console.log(req.body)
             let courseFindOnePromise = Courses.findOne({ code: req.query.courseCode })
             let course = await courseFindOnePromise
-            console.log(course.sections[req.query.indexSection].elements[req.query.indexElement])
+            let quiz = course.sections[req.query.indexSection].elements[req.query.indexElement]
+
+            if (quiz.type == 'quizz') {
+                console.log()
+
+
+            }
+            if (quiz.type == 'shortAnswer') {
+            }
+            if (quiz.type == 'completion') {
+            }
+            if (quiz.type == 'trueOrFalse') {
+                 {}
+            }
+
         } catch (error) {
             await saveLog(`Error downloading quiz, error ${error.message}`, "Error", "downloadQuiz()", "Quiz")
             context.res = {
