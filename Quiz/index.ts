@@ -2,6 +2,14 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { Configuration, OpenAIApi } from 'openai'
 import { saveLog } from "../shared/saveLog";
+import { DocumentCreator } from "./downloadQuiz"
+import { v4 as uuidv4 } from 'uuid'
+
+import { Packer } from 'docx';
+import * as fs from "fs";
+import { BlobServiceClient, ContainerClient } from '@azure/storage-blob'
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
+
 const database = createConnection()
 
 // OpenAI Credentials
@@ -425,7 +433,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const downloadQuiz = async () => {
         try {
-            // console.log('DOWNLOADING')
             // console.log(req.query.courseCode, req.query.indexSection, req.query.indexElement)
             const db = await database
             const Courses = db.collection('course')
@@ -434,21 +441,46 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let course = await courseFindOnePromise
             let quiz = course.sections[req.query.indexSection].elements[req.query.indexElement]
 
+            let quizBuffer: Buffer
+            const documentCreatorResponse = new DocumentCreator()
+            let quizDocument: any
+
             if (quiz.type == 'quizz') {
-                console.log()
-
-
+                // console.log(quiz.elementQuiz.quizz_list)
+                quizDocument = documentCreatorResponse.createMultipleChoiceDoc(
+                    [quiz.elementQuiz.quizz_list]
+                )
             }
             if (quiz.type == 'shortAnswer') {
+                quizDocument = documentCreatorResponse.createShortAnswerDoc(
+                    [quiz.elementQuiz.quizz_list]
+                )
             }
             if (quiz.type == 'completion') {
             }
             if (quiz.type == 'trueOrFalse') {
-                 {}
             }
 
+            await Packer.toBuffer(quizDocument).then((buffer) => {
+                // fs.writeFileSync("My Document.docx", buffer);   
+                quizBuffer = buffer
+            })
+
+            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+            const containerClient = blobServiceClient.getContainerClient("quizzes");
+            const blobName = uuidv4() + ".docx"
+            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+            await blockBlobClient.upload(quizBuffer, quizBuffer.length);
+
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": { "url": blockBlobClient.url }
+            }
         } catch (error) {
-            await saveLog(`Error downloading quiz, error ${error.message}`, "Error", "downloadQuiz()", "Quiz")
+            await saveLog(`Error downloading quiz: ${error.message}`, "Error", "downloadQuiz()", "Quiz")
             context.res = {
                 "status": 500,
                 "headers": {
