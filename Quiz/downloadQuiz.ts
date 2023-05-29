@@ -61,9 +61,10 @@ export class DocumentCreator {
                     children: [
                         this.createHeading("Preguntas"),
                         ...quizList
-                            .map((quiz: any) => {
+                            .map((quiz: any, indexQuiz: number) => {
                                 const arr: Paragraph[] = []
                                 arr.push(
+                                    this.createHeading(((indexQuiz + 1).toString() + ')')),
                                     new Paragraph({
                                         children: [
                                             new TextRun({
