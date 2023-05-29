@@ -166,6 +166,37 @@ export class DocumentCreator {
         return document
     }
 
+    createCompletionDoc([quizList]: any): Document {
+        const document = new Document({
+            sections: [
+                {
+                    children: [
+                        this.createHeading("Preguntas"),
+                        ...quizList
+                            .map((quiz: any, indexQuiz: number) => {
+                                const arr: Paragraph[] = []
+                                arr.push(
+                                    this.createHeading(((indexQuiz + 1).toString() + ')')),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: quiz.question
+                                            })
+                                        ],
+                                        spacing: {
+                                            before: 200,
+                                        }
+                                    })
+                                )
+                                return arr
+                            })
+                            .reduce((prev: any, curr: any) => prev.concat(curr), []),
+                    ]
+                }]
+        })
+        return document
+    }
+
     public createHeading(text: string): Paragraph {
         return new Paragraph({
             text: text,
