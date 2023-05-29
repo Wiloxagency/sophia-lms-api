@@ -457,8 +457,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 )
             }
             if (quiz.type == 'completion') {
+                // quizDocument = documentCreatorResponse.createCompletionDoc(
+                //     [quiz.elementQuiz.quizz_list]
+                // )
             }
             if (quiz.type == 'trueOrFalse') {
+                quizDocument = documentCreatorResponse.createTrueOrFalseDoc(
+                    [quiz.elementQuiz.quizz_list]
+                )
             }
 
             await Packer.toBuffer(quizDocument).then((buffer) => {

@@ -1,4 +1,5 @@
 import {
+    BorderStyle,
     Document, HeadingLevel, Paragraph, TextRun
 } from "docx";
 
@@ -10,14 +11,32 @@ export class DocumentCreator {
                     children: [
                         this.createHeading("Preguntas"),
                         ...quizList
-                            .map((quiz: any) => {
+                            .map((quiz: any, indexQuiz: number) => {
                                 const arr: Paragraph[] = []
                                 arr.push(
+                                    this.createHeading(((indexQuiz + 1).toString() + ')')),
                                     new Paragraph({
                                         children: [
                                             new TextRun({
+                                                text: "Pregunta: ",
+                                                bold: true
+                                            }),
+                                            new TextRun({
                                                 text: quiz.question,
-
+                                            })
+                                        ],
+                                        spacing: {
+                                            before: 200,
+                                        }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: "Fuente: ",
+                                                bold: true
+                                            }),
+                                            new TextRun({
+                                                text: quiz.source,
                                             })
                                         ],
                                         spacing: {
@@ -79,6 +98,70 @@ export class DocumentCreator {
                     ]
                 }
             ]
+        })
+        return document
+    }
+
+    createTrueOrFalseDoc([quizList]: any): Document {
+        const document = new Document({
+            sections: [
+                {
+                    children: [
+                        this.createHeading("Preguntas"),
+                        ...quizList
+                            .map((quiz: any, indexQuiz: number) => {
+                                const arr: Paragraph[] = []
+                                arr.push(
+                                    this.createHeading(((indexQuiz + 1).toString() + ')')),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: "Frase verdadera: ",
+                                                bold: true
+                                            }),
+                                            new TextRun({
+                                                text: quiz.true.trim()
+                                            })
+                                        ],
+                                        spacing: {
+                                            before: 200,
+                                        }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: "Frase falsa: ",
+                                                bold: true
+                                            }),
+                                            new TextRun({
+                                                text: quiz.false.trim()
+                                            })
+                                        ],
+                                        spacing: {
+                                            before: 200,
+                                        }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: "Fuente: ",
+                                                bold: true
+                                            }),
+                                            new TextRun({
+                                                text: quiz.source.trim()
+                                            })
+                                        ],
+                                        spacing: {
+                                            before: 200,
+                                            after: 200
+                                        }
+                                    })
+                                )
+                                return arr
+                            })
+                            .reduce((prev: any, curr: any) => prev.concat(curr), []),
+                    ]
+                }]
         })
         return document
     }
