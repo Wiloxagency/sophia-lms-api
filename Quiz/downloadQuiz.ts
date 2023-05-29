@@ -148,7 +148,7 @@ export class DocumentCreator {
                                                 bold: true
                                             }),
                                             new TextRun({
-                                                text: quiz.source.trim()
+                                                text: quiz.source ? quiz.source.trim() : ''
                                             })
                                         ],
                                         spacing: {

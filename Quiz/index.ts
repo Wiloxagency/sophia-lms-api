@@ -433,10 +433,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const downloadQuiz = async () => {
         try {
-            // console.log(req.query.courseCode, req.query.indexSection, req.query.indexElement)
+            // console.log(req.query)
             const db = await database
             const Courses = db.collection('course')
-            // console.log(req.body)
             let courseFindOnePromise = Courses.findOne({ code: req.query.courseCode })
             let course = await courseFindOnePromise
             let quiz = course.sections[req.query.indexSection].elements[req.query.indexElement]
@@ -446,7 +445,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let quizDocument: any
 
             if (quiz.type == 'quizz') {
-                // console.log(quiz.elementQuiz.quizz_list)
                 quizDocument = documentCreatorResponse.createMultipleChoiceDoc(
                     [quiz.elementQuiz.quizz_list]
                 )
