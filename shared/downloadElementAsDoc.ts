@@ -1,10 +1,23 @@
 import {
     BorderStyle,
-    Document, HeadingLevel, Paragraph, TextRun
+    Document, HeadingLevel, ImageRun, Paragraph, TextRun
 } from "docx";
+import * as fs from "fs";
 
 export class DocumentCreator {
-    createShortAnswerDoc([quizList]: any): Document {
+
+    createHeading(text: string): Paragraph {
+        return new Paragraph({
+            text: text,
+            heading: HeadingLevel.HEADING_1,
+            thematicBreak: true,
+            spacing: {
+                before: 200,
+            }
+        })
+    }
+
+    createShortAnswerQuizDoc([quizList]: any): Document {
         const document = new Document({
             sections: [
                 {
@@ -54,7 +67,7 @@ export class DocumentCreator {
         return document
     }
 
-    createMultipleChoiceDoc([quizList]: any): Document {
+    createMultipleChoiceQuizDoc([quizList]: any): Document {
         const document = new Document({
             sections: [
                 {
@@ -103,7 +116,7 @@ export class DocumentCreator {
         return document
     }
 
-    createTrueOrFalseDoc([quizList]: any): Document {
+    createTrueOrFalseQuizDoc([quizList]: any): Document {
         const document = new Document({
             sections: [
                 {
@@ -167,7 +180,7 @@ export class DocumentCreator {
         return document
     }
 
-    createCompletionDoc([quizList]: any): Document {
+    createCompletionQuizDoc([quizList]: any): Document {
         const document = new Document({
             sections: [
                 {
@@ -198,15 +211,40 @@ export class DocumentCreator {
         return document
     }
 
-    public createHeading(text: string): Paragraph {
-        return new Paragraph({
-            text: text,
-            heading: HeadingLevel.HEADING_1,
-            thematicBreak: true,
-            spacing: {
-                before: 200,
-            }
+    createTextDocument(receivedTextElement: any, imageBuffer: Buffer): Document {
+        const document = new Document({
+            sections: [
+                {
+                    children: [
+                        this.createHeading(receivedTextElement.title),
+                        new Paragraph({
+                            children: [
+                                new ImageRun({
+                                    data: Buffer.from(imageBuffer),
+                                    transformation: {
+                                        width: 720,
+                                        height: 405,
+                                    },
+                                })
+                            ],
+                            spacing: {
+                                before: 200,
+                            }
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: receivedTextElement.content
+                                })
+                            ],
+                            spacing: {
+                                before: 200,
+                            }
+                        })
+                    ]
+                }]
         })
+        return document
     }
 
 }

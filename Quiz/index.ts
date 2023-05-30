@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { Configuration, OpenAIApi } from 'openai'
 import { saveLog } from "../shared/saveLog";
-import { DocumentCreator } from "./downloadQuiz"
+import { DocumentCreator } from "../shared/downloadElementAsDoc"
 import { v4 as uuidv4 } from 'uuid'
 
 import { Packer } from 'docx';
@@ -431,36 +431,36 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const downloadQuiz = async () => {
+    const downloadQuiz = async (courseCode: string, indexSection: string, indexElement: string) => {
         try {
             // console.log(req.query)
             const db = await database
             const Courses = db.collection('course')
-            let courseFindOnePromise = Courses.findOne({ code: req.query.courseCode })
+            let courseFindOnePromise = Courses.findOne({ code: courseCode })
             let course = await courseFindOnePromise
-            let quiz = course.sections[req.query.indexSection].elements[req.query.indexElement]
+            let quiz = course.sections[parseInt(indexSection)].elements[parseInt(indexElement)]
 
             let quizBuffer: Buffer
             const documentCreatorResponse = new DocumentCreator()
             let quizDocument: any
 
             if (quiz.type == 'quizz') {
-                quizDocument = documentCreatorResponse.createMultipleChoiceDoc(
+                quizDocument = documentCreatorResponse.createMultipleChoiceQuizDoc(
                     [quiz.elementQuiz.quizz_list]
                 )
             }
             if (quiz.type == 'shortAnswer') {
-                quizDocument = documentCreatorResponse.createShortAnswerDoc(
+                quizDocument = documentCreatorResponse.createShortAnswerQuizDoc(
                     [quiz.elementQuiz.quizz_list]
                 )
             }
             if (quiz.type == 'completion') {
-                quizDocument = documentCreatorResponse.createCompletionDoc(
+                quizDocument = documentCreatorResponse.createCompletionQuizDoc(
                     [quiz.elementQuiz.quizz_list]
                 )
             }
             if (quiz.type == 'trueOrFalse') {
-                quizDocument = documentCreatorResponse.createTrueOrFalseDoc(
+                quizDocument = documentCreatorResponse.createTrueOrFalseQuizDoc(
                     [quiz.elementQuiz.quizz_list]
                 )
             }
@@ -523,7 +523,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     await correctCompletionQuiz()
                 }
             } else if (req.body.operation == 'download') {
-                await downloadQuiz()
+                await downloadQuiz(
+                    req.query.courseCode,
+                    req.query.indexSection,
+                    req.query.indexElement
+                    )
             }
 
             break;
