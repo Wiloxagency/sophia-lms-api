@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
 const fetch = require("node-fetch");
+import { downloadTextElementAsDoc } from "../TextElement/download";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -191,6 +192,16 @@ const httpTrigger: AzureFunction = async function (
             const blockBlobClient =
               containerClient.getBlockBlobClient(LessonFileName);
             await blockBlobClient.upload(fileContent, fileContent.length);
+          } else if (element && element.type === "html") {
+            const indexSection = 0;
+            const indexElement = 0;
+            const sectionIndex = indexSection.toString();
+            const elementIndex = indexElement.toString();
+            await downloadTextElementAsDoc(
+              courseCode,
+              sectionIndex,
+              elementIndex
+            );
           }
 
           if (elementIndex < resp.sections[sectionIndex].elements.length - 1) {
