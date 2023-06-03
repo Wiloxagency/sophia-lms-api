@@ -193,15 +193,18 @@ const httpTrigger: AzureFunction = async function (
               containerClient.getBlockBlobClient(LessonFileName);
             await blockBlobClient.upload(fileContent, fileContent.length);
           } else if (element && element.type === "html") {
-            const indexSection = 0;
-            const indexElement = 0;
-            const sectionIndex = indexSection.toString();
-            const elementIndex = indexElement.toString();
-            await downloadTextElementAsDoc(
+      
+
+            const docUrl = await downloadTextElementAsDoc(
               courseCode,
-              sectionIndex,
-              elementIndex
-            );
+              sectionIndex.toString(),
+              elementIndex.toString()
+            )
+
+            console.info("docUrl-->", docUrl)
+            console.info("sectionIndex.toString()-->",  sectionIndex.toString())
+            console.info("elementIndex.toString()-->", elementIndex.toString())
+            
           }
 
           if (elementIndex < resp.sections[sectionIndex].elements.length - 1) {
