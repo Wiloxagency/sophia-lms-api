@@ -193,18 +193,28 @@ const httpTrigger: AzureFunction = async function (
               containerClient.getBlockBlobClient(LessonFileName);
             await blockBlobClient.upload(fileContent, fileContent.length);
           } else if (element && element.type === "html") {
-      
-
             const docUrl = await downloadTextElementAsDoc(
               courseCode,
               sectionIndex.toString(),
               elementIndex.toString()
-            )
+            );
+            const fileName = docUrl.substring(docUrl.lastIndexOf("/") + 1);
 
-            console.info("docUrl-->", docUrl)
-            console.info("sectionIndex.toString()-->",  sectionIndex.toString())
-            console.info("elementIndex.toString()-->", elementIndex.toString())
-            
+            const response = await fetch(docUrl);
+            if (!response.ok) {
+              throw new Error("Failed to fetch file.");
+            }
+
+            const fileHtml = await response.buffer();
+
+            const containerClient =
+              blobServiceClient.getContainerClient("scorms");
+            const HtmlFileName = `S${
+              sectionIndex + 1
+            }-${courseCode}/${fileName}`;
+            const blockBlobClient =
+              containerClient.getBlockBlobClient(HtmlFileName);
+            await blockBlobClient.upload(fileHtml, fileHtml.length);
           }
 
           if (elementIndex < resp.sections[sectionIndex].elements.length - 1) {
