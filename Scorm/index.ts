@@ -6,6 +6,7 @@ import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
 const fetch = require("node-fetch");
 import { downloadTextElementAsDoc } from "../TextElement/download";
+import { downloadQuiz } from "../Quiz/download";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -151,9 +152,10 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Courses = db.collection("course");
       const resp = await Courses.findOne({ code: courseCode });
-
       const sectionCycle = async (sectionIndex: number) => {
         let lessonCounter = 1;
+        let htmlFileCount = 1;
+        let quizFileCount = 1;
         const elementCycle = async (elementIndex: number) => {
           const element = resp.sections[sectionIndex].elements[elementIndex];
 
@@ -198,7 +200,8 @@ const httpTrigger: AzureFunction = async function (
               sectionIndex.toString(),
               elementIndex.toString()
             );
-            const fileName = docUrl.substring(docUrl.lastIndexOf("/") + 1);
+
+            docUrl.substring(docUrl.lastIndexOf("/") + 1);
 
             const response = await fetch(docUrl);
             if (!response.ok) {
@@ -209,12 +212,44 @@ const httpTrigger: AzureFunction = async function (
 
             const containerClient =
               blobServiceClient.getContainerClient("scorms");
-            const HtmlFileName = `S${
+            const HtmlFileName = `S${sectionIndex + 1}-${courseCode}/Text-S${
               sectionIndex + 1
-            }-${courseCode}/${fileName}`;
+            }-T${htmlFileCount}.docx`;
+
             const blockBlobClient =
               containerClient.getBlockBlobClient(HtmlFileName);
             await blockBlobClient.upload(fileHtml, fileHtml.length);
+            htmlFileCount++;
+          } else if (
+            (element && element.type === "shortAnswer") ||
+            "trueOrFalse" ||
+            "completion" ||
+            "quizz"
+          ) {
+            const docUrlQuiz = await downloadQuiz(
+              courseCode,
+              sectionIndex.toString(),
+              elementIndex.toString()
+            );
+
+            docUrlQuiz.substring(docUrlQuiz.lastIndexOf("/") + 1);
+
+            const response = await fetch(docUrlQuiz);
+            if (!response.ok) {
+              throw new Error("Failed to fetch file.");
+            }
+
+            const fileQuiz = await response.buffer();
+
+            const containerClient =
+              blobServiceClient.getContainerClient("scorms");
+            const QuizzFileName = `S${sectionIndex + 1}-${courseCode}/Quiz-S${
+              sectionIndex + 1
+            }-Q${quizFileCount}.docx`;
+            const blockBlobClient =
+              containerClient.getBlockBlobClient(QuizzFileName);
+            await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+            quizFileCount++;
           }
 
           if (elementIndex < resp.sections[sectionIndex].elements.length - 1) {
@@ -305,7 +340,7 @@ const httpTrigger: AzureFunction = async function (
 
         for (const folderName of folderNames) {
           // Verifique se o nome da pasta contém o courseCode
-          if (folderName.includes(courseCode || ".pdf")) {
+          if (folderName.includes(courseCode || ".pdf" || ".docx")) {
             for await (const blob of containerClient.listBlobsFlat({
               prefix: `${folderName}/`,
             })) {

@@ -1,15 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createConnection } from "../shared/mongo";
 import { downloadTextElementAsDoc } from "./download";
-
-
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
- 
-
   switch (req.method) {
     case "POST":
       if (req.query.operation == "download") {
