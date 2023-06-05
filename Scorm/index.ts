@@ -7,6 +7,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 const fetch = require("node-fetch");
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
+import * as path from "path";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -93,21 +94,24 @@ const httpTrigger: AzureFunction = async function (
       resources.resource.file[`file_${imageFileCount}`] = newImageFile;
     });
 
+    const newJsFile = {
+      "@href": "js/engine.sophia.1.0.js",
+    };
+    const jsFileCount = Object.keys(resources.resource.file).length;
+    resources.resource.file[`file_${jsFileCount}`] = newJsFile;
+
     const xmlString = `
-    <resources>
-      <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
-    
-            ${Object.keys(resources.resource.file)
-              .map(
-                (key) =>
-                  `<file href="${resources.resource.file[key]["@href"]}" />`
-              )
-              .join("\n  ")}
-    
-      </resource>
-    </resources>
+<resources>
+  <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
+
+    ${Object.keys(resources.resource.file)
+      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+      .join("\n  ")}
+
+  </resource>
+</resources>
 </manifest>
-    `;
+`;
 
     const containerClient = blobServiceClient.getContainerClient("scorms");
     const newManifest = base + organizations + xmlString;
@@ -136,6 +140,11 @@ const httpTrigger: AzureFunction = async function (
       zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
       zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
     }
+
+    const jsFolderPath = path.join("js");
+    const jsFilePath = path.join(jsFolderPath, "engine.sophia.1.0.js");
+    const newJsContent = `"use strict";(self.webpackChunkmy_project=self.webpackChunkmy_project||[]).push([[95],{7095:(s,a,_)=>{_.r(a),_.d(a,{AdminModule:()=>D,httpTranslateLoader:()=>E});var r=_(6895),l=_(4796),d=_(4763),o=_(4463),M=_(529),u=_(9832),m=_(4006),t=_(4650);let D=(()=>{class n{}return n.\u0275fac=function(P){return new(P||n)},n.\u0275mod=t.oAB({type:n}),n.\u0275inj=t.cJS({imports:[r.ez,l.c,d.Bz,m.u5,o.aw.forChild({loader:{provide:o.Zw,useFactory:E,deps:[M.eN]}})]}),n})();function E(n){return new u.w(n)}}}]);`;
+    zipLesson.addFile(jsFilePath, Buffer.from(newJsContent));
 
     const zipBufferCourse = zipLesson.toBuffer();
 
