@@ -178,10 +178,7 @@ const httpTrigger: AzureFunction = async function (
                 }).length > 0
             )
           ) {
-            if (elementIndex >= elements.length - 1) {
-              return null;
-            }
-            return elementCycle(elementIndex + 1);
+            elementCycle(elementIndex + 1);
           }
 
           const element = resp.sections[sectionIndex].elements[elementIndex];
