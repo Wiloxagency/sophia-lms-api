@@ -105,8 +105,8 @@ const httpTrigger: AzureFunction = async function (
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
 
     ${Object.keys(resources.resource.file)
-        .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
-        .join("\n  ")}
+      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+      .join("\n  ")}
 
   </resource>
 </resources>
@@ -162,13 +162,28 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       const resp = await Courses.findOne({ code: courseCode });
       const sectionCycle = async (sectionIndex: number) => {
+        const elements = req.body.elements;
         let lessonCounter = 1;
         let htmlFileCount = 1;
         let quizFileCount = 1;
         const elementCycle = async (elementIndex: number) => {
-          if (!(req.body.elements.filter(sectionIdx => { 
-            return sectionIdx[0] == sectionIndex 
-          }).filter(elemntIdx => { return elemntIdx[1] == elementIndex }).length > 0)) { elementCycle(elementIndex + 1) }
+          if (
+            !(
+              elements
+                .filter((sectionIdx) => {
+                  return sectionIdx[0] == sectionIndex;
+                })
+                .filter((elemntIdx) => {
+                  return elemntIdx[1] == elementIndex;
+                }).length > 0
+            )
+          ) {
+            if (elementIndex >= elements.length - 1) {
+              return null;
+            }
+            return elementCycle(elementIndex + 1);
+          }
+
           const element = resp.sections[sectionIndex].elements[elementIndex];
 
           if (element && element.type === "Lección Engine") {
@@ -200,8 +215,9 @@ const httpTrigger: AzureFunction = async function (
 
             const containerClient =
               blobServiceClient.getContainerClient("scorms");
-            const LessonFileName = `S${sectionIndex + 1
-              }-${courseCode}/${fileName}`;
+            const LessonFileName = `S${
+              sectionIndex + 1
+            }-${courseCode}/${fileName}`;
             const blockBlobClient =
               containerClient.getBlockBlobClient(LessonFileName);
             await blockBlobClient.upload(fileContent, fileContent.length);
@@ -223,8 +239,9 @@ const httpTrigger: AzureFunction = async function (
 
             const containerClient =
               blobServiceClient.getContainerClient("scorms");
-            const HtmlFileName = `S${sectionIndex + 1}-${courseCode}/Text-S${sectionIndex + 1
-              }-T${htmlFileCount}.docx`;
+            const HtmlFileName = `S${sectionIndex + 1}-${courseCode}/Text-S${
+              sectionIndex + 1
+            }-T${htmlFileCount}.docx`;
 
             const blockBlobClient =
               containerClient.getBlockBlobClient(HtmlFileName);
@@ -253,8 +270,9 @@ const httpTrigger: AzureFunction = async function (
 
             const containerClient =
               blobServiceClient.getContainerClient("scorms");
-            const QuizzFileName = `S${sectionIndex + 1}-${courseCode}/Quiz-S${sectionIndex + 1
-              }-Q${quizFileCount}.docx`;
+            const QuizzFileName = `S${sectionIndex + 1}-${courseCode}/Quiz-S${
+              sectionIndex + 1
+            }-Q${quizFileCount}.docx`;
             const blockBlobClient =
               containerClient.getBlockBlobClient(QuizzFileName);
             await blockBlobClient.upload(fileQuiz, fileQuiz.length);
