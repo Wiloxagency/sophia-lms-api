@@ -46,7 +46,7 @@ export async function createkeyphrases(text: string, languageName:string, course
         } catch (error) {
             await saveLog(`Error creating keyphrases in course: ${courseCode}.`, "Error", "createkeyphrases()", "Courses/{courseCode}/CreateContent")
             console.error(error)
-            return
+            return undefined
         }
 
    
