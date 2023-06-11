@@ -161,138 +161,153 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Courses = db.collection("course");
       const resp = await Courses.findOne({ code: courseCode });
-      const sectionCycle = async (sectionIndex: number) => {
-        const elements = req.body.elements;
-        let lessonCounter = 1;
-        let htmlFileCount = 1;
-        let quizFileCount = 1;
-        const elementCycle = async (elementIndex: number) => {
-          if (
-            !(
-              elements
-                .filter((sectionIdx) => {
-                  return sectionIdx[0] == sectionIndex;
-                })
-                .filter((elemntIdx) => {
-                  return elemntIdx[1] == elementIndex;
-                }).length > 0
-            )
-          ) {
-            elementCycle(elementIndex + 1);
-          }
 
-          const element = resp.sections[sectionIndex].elements[elementIndex];
+      const elements = req.body.elements;
+      const sectionCount = resp.sections.length;
 
-          if (element && element.type === "Lección Engine") {
-            const scormPayload = {
-              courseTitle: resp.details.title,
-              lesson: element,
-              sectionIndex: sectionIndex + 1,
-              elementIndex: elementIndex + 1,
-              lessonCounter: lessonCounter,
-              courseCode: courseCode,
-            };
+      let sectionIndex = 0;
+      let lessonCounter = 0;
+      let htmlFileCount = 1;
+      let quizFileCount = 1;
 
-            const response = await createScorm(scormPayload);
-            console.log(response);
-            lessonCounter++;
-          } else if (element && element.type === "file") {
-            const fileUrl = element.elementFile.url;
-            const fileNameDB = element.elementFile.name;
-            const fileName = fileNameDB.substring(
-              fileNameDB.lastIndexOf("/") + 1
+      while (sectionIndex <= sectionCount - 1) {
+        if (resp.sections[sectionIndex]) {
+          const section = resp.sections[sectionIndex];
+          const elementCount = section.elements.length;
+
+          let elementIndex = 0;
+          lessonCounter = 0;
+          quizFileCount = 1;
+
+          while (elementIndex <= elementCount) {
+            const element = section.elements[elementIndex];
+
+            const elementsToProcess = elements.filter(
+              ([sectionIdx, elementIdx]) =>
+                sectionIdx === sectionIndex && elementIdx === elementIndex
             );
 
-            const response = await fetch(fileUrl);
-            if (!response.ok) {
-              throw new Error("Failed to fetch file.");
+            if (elementsToProcess.length > 0) {
+              if (element.type === "Lección Engine") {
+                const scormPayload = {
+                  courseTitle: resp.details.title,
+                  lesson: element,
+                  sectionIndex: sectionIndex + 1,
+                  elementIndex: elementIndex + 1,
+                  lessonCounter: lessonCounter + 1,
+                  courseCode: courseCode,
+                };
+
+                await createScorm(scormPayload);
+
+                lessonCounter++;
+              } else if (element.type === "file") {
+                const fileUrl = element.elementFile.url;
+                const fileNameDB = element.elementFile.name;
+                const fileName = fileNameDB.substring(
+                  fileNameDB.lastIndexOf("/") + 1
+                );
+
+                const response = await fetch(fileUrl);
+                if (!response.ok) {
+                  throw new Error("Falha ao buscar o arquivo.");
+                }
+
+                const fileContent = await response.buffer();
+
+                const containerClient =
+                  blobServiceClient.getContainerClient("scorms");
+                const LessonFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/${fileName}`;
+                const blockBlobClient =
+                  containerClient.getBlockBlobClient(LessonFileName);
+                await blockBlobClient.upload(fileContent, fileContent.length);
+              } else if (element.type === "html") {
+                if (element.elementText.content && element.elementText.cover) {
+                  const docUrl = await downloadTextElementAsDoc(
+                    courseCode,
+                    sectionIndex.toString(),
+                    elementIndex.toString()
+                  );
+
+                  docUrl.substring(docUrl.lastIndexOf("/") + 1);
+
+                  const response = await fetch(docUrl);
+                  if (!response.ok) {
+                    throw new Error("Falha ao buscar o arquivo.");
+                  }
+
+                  const fileHtml = await response.buffer();
+
+                  const containerClient =
+                    blobServiceClient.getContainerClient("scorms");
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-${courseCode}/Text-S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
+
+                  const blockBlobClient =
+                    containerClient.getBlockBlobClient(HtmlFileName);
+                  await blockBlobClient.upload(fileHtml, fileHtml.length);
+                  htmlFileCount++;
+                } else {
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
+                  console.log(
+                    `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
+                  );
+                }
+              } else if (
+                element.type === "shortAnswer" ||
+                element.type === "trueOrFalse" ||
+                element.type === "completion" ||
+                element.type === "quizz"
+              ) {
+                const docUrlQuiz = await downloadQuiz(
+                  courseCode,
+                  sectionIndex.toString(),
+                  elementIndex.toString()
+                );
+
+                docUrlQuiz.substring(docUrlQuiz.lastIndexOf("/") + 1);
+
+                const response = await fetch(docUrlQuiz);
+                if (!response.ok) {
+                  throw new Error("Falha ao buscar o arquivo.");
+                }
+
+                const fileQuiz = await response.buffer();
+
+                const containerClient =
+                  blobServiceClient.getContainerClient("scorms");
+                const QuizzFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/Quiz-S${
+                  sectionIndex + 1
+                }-Q${quizFileCount}.docx`;
+                const blockBlobClient =
+                  containerClient.getBlockBlobClient(QuizzFileName);
+                await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+                quizFileCount++;
+              }
             }
 
-            const fileContent = await response.buffer();
-
-            const containerClient =
-              blobServiceClient.getContainerClient("scorms");
-            const LessonFileName = `S${
-              sectionIndex + 1
-            }-${courseCode}/${fileName}`;
-            const blockBlobClient =
-              containerClient.getBlockBlobClient(LessonFileName);
-            await blockBlobClient.upload(fileContent, fileContent.length);
-          } else if (element && element.type === "html") {
-            const docUrl = await downloadTextElementAsDoc(
-              courseCode,
-              sectionIndex.toString(),
-              elementIndex.toString()
-            );
-
-            docUrl.substring(docUrl.lastIndexOf("/") + 1);
-
-            const response = await fetch(docUrl);
-            if (!response.ok) {
-              throw new Error("Failed to fetch file.");
-            }
-
-            const fileHtml = await response.buffer();
-
-            const containerClient =
-              blobServiceClient.getContainerClient("scorms");
-            const HtmlFileName = `S${sectionIndex + 1}-${courseCode}/Text-S${
-              sectionIndex + 1
-            }-T${htmlFileCount}.docx`;
-
-            const blockBlobClient =
-              containerClient.getBlockBlobClient(HtmlFileName);
-            await blockBlobClient.upload(fileHtml, fileHtml.length);
-            htmlFileCount++;
-          } else if (
-            (element && element.type === "shortAnswer") ||
-            "trueOrFalse" ||
-            "completion" ||
-            "quizz"
-          ) {
-            const docUrlQuiz = await downloadQuiz(
-              courseCode,
-              sectionIndex.toString(),
-              elementIndex.toString()
-            );
-
-            docUrlQuiz.substring(docUrlQuiz.lastIndexOf("/") + 1);
-
-            const response = await fetch(docUrlQuiz);
-            if (!response.ok) {
-              throw new Error("Failed to fetch file.");
-            }
-
-            const fileQuiz = await response.buffer();
-
-            const containerClient =
-              blobServiceClient.getContainerClient("scorms");
-            const QuizzFileName = `S${sectionIndex + 1}-${courseCode}/Quiz-S${
-              sectionIndex + 1
-            }-Q${quizFileCount}.docx`;
-            const blockBlobClient =
-              containerClient.getBlockBlobClient(QuizzFileName);
-            await blockBlobClient.upload(fileQuiz, fileQuiz.length);
-            quizFileCount++;
+            elementIndex++;
           }
 
-          if (elementIndex < resp.sections[sectionIndex].elements.length - 1) {
-            await elementCycle(elementIndex + 1);
-          } else {
-            console.info("End of element cycle in:", elementIndex);
+          sectionIndex++;
+        } else {
+          console.error(
+            `Seção ${sectionIndex} não encontrada em resp.sections`
+          );
+          sectionIndex++;
+        }
+      }
 
-            if (sectionIndex < resp.sections.length - 1) {
-              await sectionCycle(sectionIndex + 1);
-            } else {
-              console.info("End of section cycle in:", sectionIndex);
-            }
-          }
-        };
-
-        await elementCycle(0);
-      };
-
-      await sectionCycle(0);
+      console.info("Fim do ciclo de seções.");
 
       async function createZipCourse(
         containerName: string,
