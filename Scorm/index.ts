@@ -154,6 +154,34 @@ const httpTrigger: AzureFunction = async function (
         containerClient.getBlockBlobClient(LessonBlobName);
       await blockBlobClient.upload(zipBufferCourse, zipBufferCourse.length);
     }
+    const saveScormDb = async function (courseCode: string) {
+      const db = await database;
+      const Scorms = db.collection("scorm");
+      const currentDate = new Date();
+      const day = String(currentDate.getDate()).padStart(2, "0");
+      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const year = currentDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+
+      const Courses = db.collection("course");
+      const findCourse = await Courses.findOne({ code: courseCode });
+      const authorCode = findCourse.author_code;
+
+      const Users = db.collection("user");
+      const findUser = await Users.findOne({ code: authorCode });
+      const authorName = findUser.name;
+
+      const scormData = {
+        data_scorm: formattedDate,
+        title: scormPayload.courseTitle,
+        author_name: authorName,
+      };
+
+      const result = await Scorms.insertOne(scormData);
+      console.log("Dados do SCORM salvos com sucesso:", result.insertedId);
+    };
+
+    saveScormDb(req.body.courseCode);
   }
 
   async function loadCourse(courseCode: string) {
