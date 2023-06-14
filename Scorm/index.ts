@@ -18,6 +18,8 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 
 const database = createConnection();
 let scormId: any;
+let numberLessons = 0;
+let numberRecourses = 0;
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -179,14 +181,13 @@ const httpTrigger: AzureFunction = async function (
       title: titleCourse,
       author_name: authorName,
       status: "building",
+      content: `lessons: ${numberLessons}, recourses: ${numberRecourses}`,
     };
 
     const result = await Scorms.insertOne(scormData);
     scormId = result.insertedId;
     console.log("Dados do SCORM salvos com sucesso:", result.insertedId);
   };
-
-  await saveScormDb(req.body.courseCode);
 
   const updateScormStatus = async function () {
     const db = await database;
@@ -208,6 +209,8 @@ const httpTrigger: AzureFunction = async function (
       let lessonCounter = 0;
       let htmlFileCount = 1;
       let quizFileCount = 1;
+      numberLessons = 0;
+      numberRecourses = 0;
 
       while (sectionIndex <= sectionCount - 1) {
         if (resp.sections[sectionIndex]) {
@@ -240,6 +243,7 @@ const httpTrigger: AzureFunction = async function (
                 await createScorm(scormPayload);
 
                 lessonCounter++;
+                numberLessons++;
               } else if (element.type === "file") {
                 const fileUrl = element.elementFile.url;
                 const fileNameDB = element.elementFile.name;
@@ -262,6 +266,7 @@ const httpTrigger: AzureFunction = async function (
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(LessonFileName);
                 await blockBlobClient.upload(fileContent, fileContent.length);
+                numberRecourses++;
               } else if (element.type === "html") {
                 if (element.elementText.content && element.elementText.cover) {
                   const docUrl = await downloadTextElementAsDoc(
@@ -299,6 +304,7 @@ const httpTrigger: AzureFunction = async function (
                     `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
                   );
                 }
+                numberRecourses++;
               } else if (
                 element.type === "shortAnswer" ||
                 element.type === "trueOrFalse" ||
@@ -331,6 +337,7 @@ const httpTrigger: AzureFunction = async function (
                   containerClient.getBlockBlobClient(QuizzFileName);
                 await blockBlobClient.upload(fileQuiz, fileQuiz.length);
                 quizFileCount++;
+                numberRecourses++;
               }
             }
 
@@ -346,8 +353,7 @@ const httpTrigger: AzureFunction = async function (
         }
       }
 
-      console.info("Fim do ciclo de seções.");
-
+      await saveScormDb(req.body.courseCode);
       async function createZipCourse(
         containerName: string,
         zipFileName: string
