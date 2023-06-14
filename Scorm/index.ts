@@ -17,7 +17,7 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 );
 
 const database = createConnection();
-
+let scormId: any;
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -154,35 +154,46 @@ const httpTrigger: AzureFunction = async function (
         containerClient.getBlockBlobClient(LessonBlobName);
       await blockBlobClient.upload(zipBufferCourse, zipBufferCourse.length);
     }
-    const saveScormDb = async function (courseCode: string) {
-      const db = await database;
-      const Scorms = db.collection("scorm");
-      const currentDate = new Date();
-      const day = String(currentDate.getDate()).padStart(2, "0");
-      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
-      const year = currentDate.getFullYear();
-      const formattedDate = `${day}/${month}/${year}`;
+  }
 
-      const Courses = db.collection("course");
-      const findCourse = await Courses.findOne({ code: courseCode });
-      const authorCode = findCourse.author_code;
+  const saveScormDb = async function (courseCode: string) {
+    const db = await database;
+    const Scorms = db.collection("scorm");
+    const currentDate = new Date();
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const year = currentDate.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
 
-      const Users = db.collection("user");
-      const findUser = await Users.findOne({ code: authorCode });
-      const authorName = findUser.name;
+    const Courses = db.collection("course");
+    const findCourse = await Courses.findOne({ code: courseCode });
+    const authorCode = findCourse.author_code;
+    const titleCourse = findCourse.details.title;
 
-      const scormData = {
-        data_scorm: formattedDate,
-        title: scormPayload.courseTitle,
-        author_name: authorName,
-      };
+    const Users = db.collection("user");
+    const findUser = await Users.findOne({ code: authorCode });
+    const authorName = findUser.name;
 
-      const result = await Scorms.insertOne(scormData);
-      console.log("Dados do SCORM salvos com sucesso:", result.insertedId);
+    const scormData = {
+      data_scorm: formattedDate,
+      title: titleCourse,
+      author_name: authorName,
+      status: "building",
     };
 
-    saveScormDb(req.body.courseCode);
-  }
+    const result = await Scorms.insertOne(scormData);
+    scormId = result.insertedId;
+    console.log("Dados do SCORM salvos com sucesso:", result.insertedId);
+  };
+
+  await saveScormDb(req.body.courseCode);
+
+  const updateScormStatus = async function () {
+    const db = await database;
+    const Scorms = db.collection("scorm");
+    await Scorms.updateOne({ _id: scormId }, { $set: { status: "done" } });
+    console.info("status alterado com sucesso.");
+  };
 
   async function loadCourse(courseCode: string) {
     try {
@@ -427,6 +438,7 @@ const httpTrigger: AzureFunction = async function (
         .catch((error) => {
           console.error("Erro ao excluir as pastas:", error);
         });
+      await updateScormStatus();
     } catch (error) {
       await saveLog(
         `Error creating scorm: ${req.body}` + error.message,
