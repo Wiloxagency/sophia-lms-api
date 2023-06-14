@@ -9,6 +9,12 @@ import { createkeyphrases } from "./createKeyphrases";
 
 const database = createConnection()
 
+function wait(seconds: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, seconds * 1000);
+    });
+}
+
 export async function createContentCycle(course: any) {
 
     let payload: paragraphCreation
@@ -21,7 +27,7 @@ export async function createContentCycle(course: any) {
     const Courses = db.collection("course")
 
     await Courses.findOneAndUpdate({ code: course.code }, {
-        $set: { 
+        $set: {
             sections: course.sections,
             language: course.language,
             languageName: course.languageName,
@@ -79,52 +85,53 @@ export async function createContentCycle(course: any) {
                 }
 
                 // Create Audios & find images
+
+                var currentParagrah: any
                 const multimediaCycle = async (paragraphCounter: number) => {
 
                     const paragraphContent = currentParagraphs.content[paragraphCounter]
 
-                    const currentAudio = await createAudio(paragraphContent, course.voice, course.language, course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
-                    const currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
-                    console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
-                    currentParagrah["audioUrl"] = currentAudio.url
-                    if (
-                        course.createAvatarIntro &&
-                        paragraphCounter == 0 &&
-                        currentAudio.sectionIndex == 0 &&
-                        currentAudio.paragraphIndex == 0
-                    ) {
-                        // const DIDTalks = async () => {
-                        const DIDTalksResponse = await fetch('https://api.d-id.com/talks', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': 'Basic YldGemRHVnlRSGRwYkc5NFlXZGxibU41TG1OdmJROmtxNHVkdFd0OFg4M2tIODYtWVB6Zw==',
-                                'Content-Type': 'application/json'
-                            },
-                            // body: '{\n    "source_url": "https://sophieassets.blob.core.windows.net/images/sofio.png",\n    "script": {\n        "type": "text",\n        "input": "Esta es una prueba hecha desde Postman.",\n        "provider": {\n            "type": "microsoft",\n            "voice_id": "es-CL-LorenzoNeural"\n        }\n    }\n}',
-                            body: JSON.stringify({
-                                'source_url': 'https://sophieassets.blob.core.windows.net/images/sofio.png',
-                                'script': {
-                                    'type': 'text',
-                                    'input': paragraphContent,
-                                    'provider': {
-                                        'type': 'microsoft',
-                                        'voice_id': 'es-CL-LorenzoNeural'
-                                    }
-                                }
-                            })
-                        })
-                        let DIDTalksResponseParsed = await DIDTalksResponse.json()
-                        let DIDIntroVideoId = DIDTalksResponseParsed.id
-                        // console.log(DIDIntroVideoId)
+                    // Start creating an audio for a paragraph
+                    const createAudioFn = async (tries: number) => {
+                        const currentAudio = await createAudio(paragraphContent, course.voice, course.language, course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
+                        if (currentAudio.url== undefined) {
+                            if (tries <= 5) {
+                                await wait(3 * (tries + 1))
+                                await createAudioFn(tries + 1)
 
-                        await Courses.findOneAndUpdate({ code: course.code }, {
-                            $set: { avatarIntroUrl: DIDIntroVideoId }
-                        })
+                            } else {
+                                await saveLog(`Fatal error creating audio for course: ${course.code}, sectionIndex ${currentParagraphs.sectionIndex}.`, "Error", "createAudio()", "Courses/{courseCode}/CreateContent")
 
-                        // }
-                        // DIDTalks()
+                            }
+                        }
+                        currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
+                        console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                        currentParagrah["audioUrl"] = currentAudio.url
                     }
-                    const extractedTitle = await extractTitle(paragraphContent, payload.text, course.languageName, course.details.title, course.code, )
+                    await createAudioFn(0)
+
+
+                    // Start stract english title for images context searching
+                    var extractedTitle = {
+                        title: ""
+                    }
+                    const extractTitleFn = async (tries: number) => {
+                        await wait(3)
+                        extractedTitle = await extractTitle(paragraphContent, payload.text, course.languageName, course.details.title, course.code)
+                        if (extractedTitle.title == "") {
+                            if (tries <= 3) {
+                                await wait(3 * (tries + 1))
+                                await extractTitleFn(tries + 1)
+
+                            } else {
+                                extractedTitle = {
+                                    title: payload.text
+                                }
+                            }
+                        }
+                    }
+                    await extractTitleFn(0)
+
                     console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
                     currentParagrah["titleAI"] = extractedTitle.title
 
@@ -132,9 +139,21 @@ export async function createContentCycle(course: any) {
                     console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData
 
-                    const keyPhrases = await createkeyphrases(paragraphContent, course.languageName, course.code)
-                    currentParagrah["keyPhrases"] = keyPhrases
-                    console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                    const createKeyPhrasesFn = async (tries: number) => {
+                        let keyPhrases = await createkeyphrases(paragraphContent, course.languageName, course.code)
+                        if (keyPhrases == undefined) {
+                            if (tries <= 3) {
+                                await wait(3 * (tries + 1))
+                                await createKeyPhrasesFn(tries + 1)
+
+                            } else {
+                                keyPhrases = []
+                            }
+                        }
+                        currentParagrah["keyPhrases"] = keyPhrases
+                        console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)    
+                    }
+                    await createKeyPhrasesFn(0)
 
                     //create an empty video structure too
                     currentParagrah["videoData"] = {

@@ -199,9 +199,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (parsed) {
 
                 currentCourse = addWordSections(currentCourse)
-                currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-                createContentCycle(currentCourse)
+                //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
+                
+                currentCourse.language = language
+                currentCourse.languageName = languageName
+                currentCourse.voice = voice
 
+                createContentCycle(currentCourse)
+                
                 context.res = {
                     "status": 201,
                     "headers": {

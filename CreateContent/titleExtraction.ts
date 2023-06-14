@@ -65,8 +65,8 @@ export async function extractTitle(
         return { title: obj.resp }
 
     } catch (error) {
-        console.error("Error trying to extract a title --> ", error)
-        await saveLog(`Error trying to extract a title for course: ${courseCode}.`, "Error", "extractTitle()", "Courses/{courseCode}/CreateContent")
+
+        await saveLog(`Error trying to extract a title for course: ${courseCode}. Error: ${error.message}`, "Error", "extractTitle()", "Courses/{courseCode}/CreateContent")
         return { title: "" }
     }
 
