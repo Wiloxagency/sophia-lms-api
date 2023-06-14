@@ -177,16 +177,32 @@ const httpTrigger: AzureFunction = async function (
     const authorName = findUser.name;
 
     const scormData = {
+      courseCode: courseCode,
       data_scorm: formattedDate,
       title: titleCourse,
       author_name: authorName,
       status: "building",
       content: `lessons: ${numberLessons}, recourses: ${numberRecourses}`,
+      downloads: 0,
     };
-
-    const result = await Scorms.insertOne(scormData);
-    scormId = result.insertedId;
-    console.log("Dados do SCORM salvos com sucesso:", result.insertedId);
+    const query = {
+      courseCode: scormData.courseCode,
+    };
+    const update = {
+      $set: {
+        courseCode: scormData.courseCode,
+        data_scorm: scormData.data_scorm,
+        title: scormData.title,
+        author_name: scormData.author_name,
+        status: scormData.status,
+        downloads: scormData.downloads,
+        content: `lessons: ${numberLessons}, recourses: ${numberRecourses}`,
+      },
+    };
+    const options = { upsert: true };
+    const result = await Scorms.updateOne(query, update, options);
+    scormId = result.upsertedId;
+    console.info("scorm criado ou atualizado com sucesso.");
   };
 
   const updateScormStatus = async function () {
