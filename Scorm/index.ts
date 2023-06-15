@@ -200,15 +200,17 @@ const httpTrigger: AzureFunction = async function (
       },
     };
     const options = { upsert: true };
-    const result = await Scorms.updateOne(query, update, options);
-    scormId = result.upsertedId;
+    await Scorms.updateOne(query, update, options);
     console.info("scorm criado ou atualizado com sucesso.");
   };
 
-  const updateScormStatus = async function () {
+  const updateScormStatus = async function (courseCode: string) {
     const db = await database;
     const Scorms = db.collection("scorm");
-    await Scorms.updateOne({ _id: scormId }, { $set: { status: "done" } });
+    await Scorms.updateOne(
+      { courseCode: courseCode },
+      { $set: { status: "done" } }
+    );
     console.info("status alterado com sucesso.");
   };
 
@@ -460,7 +462,7 @@ const httpTrigger: AzureFunction = async function (
         .catch((error) => {
           console.error("Erro ao excluir as pastas:", error);
         });
-      await updateScormStatus();
+      await updateScormStatus(courseCode);
     } catch (error) {
       await saveLog(
         `Error creating scorm: ${req.body}` + error.message,
