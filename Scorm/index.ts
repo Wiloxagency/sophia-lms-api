@@ -17,9 +17,7 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 );
 
 const database = createConnection();
-let scormId: any;
-let numberLessons = 0;
-let numberRecourses = 0;
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -158,7 +156,10 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-  const saveScormDb = async function (courseCode: string) {
+  let numberLessons = 0;
+  let numberRecourses = 0;
+
+  async function saveScormDb(courseCode: string) {
     const db = await database;
     const Scorms = db.collection("scorm");
     const currentDate = new Date();
@@ -202,9 +203,26 @@ const httpTrigger: AzureFunction = async function (
     const options = { upsert: true };
     await Scorms.updateOne(query, update, options);
     console.info("scorm criado ou atualizado com sucesso.");
-  };
+    await createInstructionsDoc(scormData);
+  }
 
-  const updateScormStatus = async function (courseCode: string) {
+  let arquivo: string;
+  async function createInstructionsDoc(scormData: {
+    title: string;
+    author_name: string;
+    content: string;
+  }) {
+    const title = scormData.title;
+    const authorName = scormData.author_name;
+    const content = scormData.content;
+    const doc = `Instruções de uso do zipCourse: 
+    title: ${title}
+    author: ${authorName}
+    content: ${content}`;
+    arquivo = doc;
+  }
+
+  async function updateScormStatus(courseCode: string) {
     const db = await database;
     const Scorms = db.collection("scorm");
     await Scorms.updateOne(
@@ -212,7 +230,7 @@ const httpTrigger: AzureFunction = async function (
       { $set: { status: "done" } }
     );
     console.info("status alterado com sucesso.");
-  };
+  }
 
   async function loadCourse(courseCode: string) {
     try {
@@ -374,7 +392,8 @@ const httpTrigger: AzureFunction = async function (
       await saveScormDb(req.body.courseCode);
       async function createZipCourse(
         containerName: string,
-        zipFileName: string
+        zipFileName: string,
+        arquivo: string
       ): Promise<void> {
         const blobServiceClient = BlobServiceClient.fromConnectionString(
           AZURE_STORAGE_CONNECTION_STRING
@@ -382,7 +401,6 @@ const httpTrigger: AzureFunction = async function (
         const containerClient =
           blobServiceClient.getContainerClient(containerName);
         const zipCourse = new admZip();
-
         for await (const blob of containerClient.listBlobsFlat()) {
           if (!blob.name.startsWith("Course")) {
             const blobClient = containerClient.getBlobClient(blob.name);
@@ -390,7 +408,9 @@ const httpTrigger: AzureFunction = async function (
             const buffer = await streamToBuffer(
               downloadResponse.readableStreamBody
             );
+
             zipCourse.addFile(blob.name, buffer);
+            zipCourse.addFile("instructions.docx", Buffer.from(arquivo));
           }
         }
 
@@ -398,7 +418,6 @@ const httpTrigger: AzureFunction = async function (
         const zipBlobName = zipFileName;
         const blockBlobClient = containerClient.getBlockBlobClient(zipBlobName);
         await blockBlobClient.uploadData(zipBuffer);
-
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
         );
@@ -418,7 +437,7 @@ const httpTrigger: AzureFunction = async function (
           readableStream.on("error", reject);
         });
       }
-      await createZipCourse("scorms", `Course-${courseCode}.zip`)
+      await createZipCourse("scorms", `Course-${courseCode}.zip`, arquivo)
         .then(() => {
           console.log("Arquivo ZIP criado e salvo com sucesso");
         })
