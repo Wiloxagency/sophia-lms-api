@@ -273,6 +273,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         // })
         // console.log(duplicatedUsers)
         // return
+
+        // console.log(req.body)
         try {
             const db = await database
             const Users = db.collection('user')
@@ -287,7 +289,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     phone: student.Teléfono,
                     company: req.query.company,
                     position: student.Cargo,
-                    password: student.Email
+                    password: student.Email,
+                    language: req.query.language
                 }
             })
             // console.log(addedFields)
