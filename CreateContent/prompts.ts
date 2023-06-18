@@ -31,3 +31,6 @@ export const  keyphrases =  "From the following text, extract key phrases in v{l
 
 // Images finder - ChatGPT-3.5-turbo
 export const searchImages = "We have a course in v{languageName} called: \"v{courseName}\", the first module of the course is: \"v{sectionTitle}\" and the first paragraph of the module contains the following information: \"v{paragraphContent}\".\n\nConsidering the previous information, write in English a short and accurate title related to that paragraph in the context of the course and module.\n\nThe answer must not exceed 5 words and must be in Json format, following the next structure: {resp: phrase}"
+
+// Images finder - GPT-3
+export const searchImagesGpt3 = "We have a course in spanish called: \"v{courseName}\", the first module of the course is: \"v{sectionTitle}\" and the first paragraph of the module contains the following information:\n###\n\"v{paragraphContent}\"\n###\nConsidering the previous information, write in English a short and accurate title related to that paragraph in the context of the course and module.\nThe phrase must not exceed 5 words.\n###\nThe phrase is:"
