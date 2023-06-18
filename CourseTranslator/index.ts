@@ -33,8 +33,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const course = await findCourseResponse
         const courseClone = JSON.parse(JSON.stringify(course))
 
-        // courseClone.details.title = await translateArray([{ Text: course.details.title }])
-        // courseClone.details.summary = await translateArray([{ Text: course.details.summary }])
+        // courseClone.details.title = await translateArray([{ Text: course.details.title }], req.query.targetLanguage)
+        // courseClone.details.summary = await translateArray([{ Text: course.details.summary }], req.query.targetLanguage)
+        courseClone.details.title = await translateArray([{ Text: course.details.title }], req.query.targetLanguage)
+        courseClone.details.summary = 'This summary title has been translated'
         courseClone.sections
             .forEach((section: any, indexSection: number) => {
                 courseClone.sections[indexSection].title = indexSection + ': This section title has been translated'
@@ -47,26 +49,53 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                                 .forEach((paragraph: any, indexParagraph: number) => {
 
                                     courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph] = indexParagraph + ': This paragraph title has been translated'
+                                        .paragraphs[indexParagraph].content
+                                        = indexParagraph + ': This paragraph content has been translated'
 
+                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
+                                        .paragraphs[indexParagraph].audioScript
+                                        = indexParagraph + ': This paragraph audio script has been translated'
+
+                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
+                                        .paragraphs[indexParagraph].audioUrl
+                                        = ''
+
+                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
+                                        .paragraphs[indexParagraph].keyPhrases = []
+
+                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
+                                        .paragraphs[indexParagraph].splitAudioScript = []
                                 })
-
-                            console.log(course.sections[indexSection].elements[indexElement].elementLesson.paragraphs[0].content)
-                            course.sections[indexSection].elements[indexElement].elementLesson.paragraphs[0].content = ''
                         }
                     })
             })
-        console.log(courseClone)
+        // console.log(courseClone)
+
+        context.res = {
+            "status": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": courseClone
+        }
     }
     catch (error) {
         await saveLog(`Error translating course. ` + error.message, "Error", "CourseTranslator", "CourseTranslator")
     }
 }
 
-async function translateArray(arrayToTranslate: [{ Text: string }]) {
+async function translateArray(
+    arrayToTranslate: [{ Text: string }],
+    targetLanguage: string,
+    indexSection?: number,
+    indexElement?: number,
+    indexParagraph?: number) {
+    // const url = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=de'
+    //  + targetLanguage
+    // console.log(url)
     try {
         const body = await axios.post(
-            'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=de',
+            'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=' + targetLanguage,
             arrayToTranslate,
             requestConfiguration
         )
