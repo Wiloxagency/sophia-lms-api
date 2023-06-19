@@ -34,9 +34,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         courseClone.details.summary = await translateArray([{ Text: course.details.summary }], req.query.targetLanguage)
         courseClone.approvalStatus = 'Pending approval'
         courseClone.language = req.params.targetLanguage
+        courseClone.languageName = req.params.languageName
         courseClone.dateCreated = (new Date()).toISOString().split('T')[0]
-        // TODO: IMPLEMENT THIS 👇🏼
-        courseClone.languageName = 'FUNCTION NOT YET IMPLEMENTED'
 
         for await (const [indexSection, section] of course.sections.entries()) {
             courseClone.sections[indexSection].title
