@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog"
 import axios, { AxiosResponse } from 'axios'
+import { v4 as uuidv4 } from 'uuid'
 
 const database = createConnection()
 
@@ -20,67 +21,90 @@ const requestConfiguration = {
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    let tempBody = [
-        {
-            "Text": "Hallo. Bist du fertig?"
-        }
-    ]
-
     try {
         const db = await database
         const Courses = db.collection('course')
         const findCourseResponse = Courses.findOne({ "code": req.query.courseCode })
         const course = await findCourseResponse
         const courseClone = JSON.parse(JSON.stringify(course))
+        delete courseClone._id
 
-        // courseClone.details.title = await translateArray([{ Text: course.details.title }], req.query.targetLanguage)
-        // courseClone.details.summary = await translateArray([{ Text: course.details.summary }], req.query.targetLanguage)
+        courseClone.code = uuidv4()
         courseClone.details.title = await translateArray([{ Text: course.details.title }], req.query.targetLanguage)
-        courseClone.details.summary = 'This summary title has been translated'
-        courseClone.sections
-            .forEach((section: any, indexSection: number) => {
-                courseClone.sections[indexSection].title = indexSection + ': This section title has been translated'
+        courseClone.details.summary = await translateArray([{ Text: course.details.summary }], req.query.targetLanguage)
+        courseClone.approvalStatus = 'Pending approval'
+        courseClone.language = req.params.targetLanguage
+        courseClone.dateCreated = (new Date()).toISOString().split('T')[0]
+        // TODO: IMPLEMENT THIS 👇🏼
+        courseClone.languageName = 'FUNCTION NOT YET IMPLEMENTED'
 
-                section.elements
-                    .forEach((element: any, indexElement: number) => {
-                        if (element.type == 'Lección Engine') {
+        for await (const [indexSection, section] of course.sections.entries()) {
+            courseClone.sections[indexSection].title
+                = await translateArray([{ Text: section.title }], req.query.targetLanguage)
 
-                            course.sections[indexSection].elements[indexElement].elementLesson.paragraphs
-                                .forEach((paragraph: any, indexParagraph: number) => {
+            for await (const [indexElement, element] of section.elements.entries()) {
+                if (element.type == 'Lección Engine') {
+                    for await (const [indexParagraph, paragraph] of element.elementLesson.paragraphs.entries()) {
+                        let translatedParagraphContent
+                            = await translateArray([{ Text: paragraph.content }], req.query.targetLanguage)
 
-                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph].content
-                                        = indexParagraph + ': This paragraph content has been translated'
+                        courseClone.sections[indexSection].elements[indexElement].elementLesson
+                            .paragraphs[indexParagraph].content
+                            = translatedParagraphContent
 
-                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph].audioScript
-                                        = indexParagraph + ': This paragraph audio script has been translated'
+                        courseClone.sections[indexSection].elements[indexElement].elementLesson
+                            .paragraphs[indexParagraph].audioScript
+                            = translatedParagraphContent
 
-                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph].audioUrl
-                                        = ''
+                        courseClone.sections[indexSection].elements[indexElement].elementLesson
+                            .paragraphs[indexParagraph].audioUrl
+                            = ''
 
-                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph].keyPhrases = []
+                        courseClone.sections[indexSection].elements[indexElement].elementLesson
+                            .paragraphs[indexParagraph].keyPhrases = []
 
-                                    courseClone.sections[indexSection].elements[indexElement].elementLesson
-                                        .paragraphs[indexParagraph].splitAudioScript = []
-                                })
-                        }
-                    })
-            })
-        // console.log(courseClone)
+                        courseClone.sections[indexSection].elements[indexElement].elementLesson
+                            .paragraphs[indexParagraph].splitAudioScript = []
+                    }
+                }
+            }
+        }
 
-        context.res = {
-            "status": 200,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": courseClone
+        const insertCoursePromise = Courses.insertOne(courseClone)
+        const insertCourseResponse = await insertCoursePromise
+
+        if (insertCourseResponse) {
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": insertCourseResponse
+            }
+        } else {
+            await saveLog(`Error translating course ` + req.query.courseCode, "Error", "CourseTranslator", "CourseTranslator")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error translating course"
+                }
+            }
         }
     }
     catch (error) {
         await saveLog(`Error translating course. ` + error.message, "Error", "CourseTranslator", "CourseTranslator")
+        context.res = {
+            "status": 500,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": {
+                "message": "Error translating course"
+            }
+        }
     }
 }
 
@@ -90,9 +114,6 @@ async function translateArray(
     indexSection?: number,
     indexElement?: number,
     indexParagraph?: number) {
-    // const url = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=de'
-    //  + targetLanguage
-    // console.log(url)
     try {
         const body = await axios.post(
             'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=' + targetLanguage,
