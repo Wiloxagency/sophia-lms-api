@@ -15,7 +15,7 @@ function wait(seconds: number) {
     });
 }
 
-export async function createContentCycle(course: any) {
+export async function createContentCycle(course: any, sectionIndex: number, lessonIndex: number ) {
 
     let payload: paragraphCreation
     if (!(course.sections && course.sections.length > 0)) {
@@ -202,7 +202,7 @@ export async function createContentCycle(course: any) {
             }
             await lessonCycle(0)
         }
-        contentCycle(0)
+        contentCycle(7)
 
     } catch (error) {
         await saveLog(`Bad structure found in course: ${course.code}.`, "Error", "createContentCycle()", "Courses/{courseCode}/CreateContent")

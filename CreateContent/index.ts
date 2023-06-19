@@ -134,7 +134,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse)
+                createContentCycle(currentCourse,0 ,0)
 
                 context.res = {
                     "status": 201,
@@ -167,7 +167,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 currentCourse = addSections(contentTable, currentCourse)
                 currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-                createContentCycle(currentCourse)
+                createContentCycle(currentCourse,0 ,0)
 
                 context.res = {
                     "status": 201,
@@ -205,7 +205,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse)
+                createContentCycle(currentCourse,0 ,0)
                 
                 context.res = {
                     "status": 201,
