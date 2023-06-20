@@ -40,23 +40,23 @@ async function translateCourse(req) {
         delete courseClone.approvedBy
 
         courseClone.code = uuidv4()
-        courseClone.details.title = await azureTranslateArray([{ Text: course.details.title }], req.query.targetLanguageISO)
-        courseClone.details.summary = await azureTranslateArray([{ Text: course.details.summary }], req.query.targetLanguageISO)
+        courseClone.details.title = await azureTranslateArray([{ Text: course.details.title }], req.query.targetLanguageFullISO)
+        courseClone.details.summary = await azureTranslateArray([{ Text: course.details.summary }], req.query.targetLanguageFullISO)
         courseClone.approvalStatus = 'Pending approval'
-        courseClone.language = req.query.targetLanguageISO
+        courseClone.language = req.query.targetLanguageFullISO
         courseClone.languageName = req.query.targetLanguageName
         courseClone.dateCreated = (new Date()).toISOString().split('T')[0]
         courseClone.voice = req.query.voice
 
         for await (const [indexSection, section] of course.sections.entries()) {
             courseClone.sections[indexSection].title
-                = await azureTranslateArray([{ Text: section.title }], req.query.targetLanguageISO)
+                = await azureTranslateArray([{ Text: section.title }], req.query.targetLanguageFullISO)
 
             for await (const [indexElement, element] of section.elements.entries()) {
                 if (element.type == 'Lección Engine') {
                     for await (const [indexParagraph, paragraph] of element.elementLesson.paragraphs.entries()) {
                         let translatedParagraphContent
-                            = await azureTranslateArray([{ Text: paragraph.content }], req.query.targetLanguageISO)
+                            = await azureTranslateArray([{ Text: paragraph.content }], req.query.targetLanguageFullISO)
 
                         courseClone.sections[indexSection].elements[indexElement].elementLesson
                             .paragraphs[indexParagraph].content
@@ -88,13 +88,13 @@ async function translateCourse(req) {
 
 async function azureTranslateArray(
     arrayToTranslate: [{ Text: string }],
-    targetLanguageISO: string,
+    targetLanguageFullISO: string,
     indexSection?: number,
     indexElement?: number,
     indexParagraph?: number) {
     try {
         const body = await axios.post(
-            'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=' + targetLanguageISO,
+            'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=' + targetLanguageFullISO.slice(0, 2),
             arrayToTranslate,
             requestConfiguration
         )
