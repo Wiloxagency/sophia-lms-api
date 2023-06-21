@@ -134,14 +134,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse,0 ,0)
+                createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": {syllabus: syllabus, currentCourse: currentCourse}
+                    "body": { syllabus: syllabus, currentCourse: currentCourse }
                 }
 
 
@@ -167,7 +167,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 currentCourse = addSections(contentTable, currentCourse)
                 currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-                createContentCycle(currentCourse,0 ,0)
+                createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
@@ -200,13 +200,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 currentCourse = addWordSections(currentCourse)
                 //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-                
+
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse,0 ,0)
-                
+                createContentCycle(currentCourse, 0, 0)
+
                 context.res = {
                     "status": 201,
                     "headers": {
@@ -228,6 +228,76 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 }
             }
+
+            break;
+
+
+        case "resume":
+
+            currentCourse.type = "resume"
+
+            try {
+
+                let found = false
+
+                for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
+
+                    const elements = currentCourse.sections[sectionIndex].elements
+
+                    for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
+
+                        if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs == 0) {
+
+                            createContentCycle(currentCourse, sectionIndex, elementIndex)
+
+                            context.res = {
+                                "status": 201,
+                                "headers": {
+                                    "Content-Type": "application/json"
+                                },
+                                "body": {
+                                    "msg": `Starting resume at Section ${sectionIndex}, Lesson ${elementIndex}`
+                                }
+                            }
+
+                            found = true
+
+                            break
+                        }
+
+                    }
+
+                }
+
+                if (!found) {
+                    context.res = {
+                        "status": 204,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        }
+                    }
+                }
+
+            } catch (error) {
+
+                await saveLog(`Error resuming course: ${courseCode}, error: ${error.message}`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating docx content"
+                    }
+                }
+            }
+
+
+
+
+
+
+
 
             break;
 

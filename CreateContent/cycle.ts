@@ -26,18 +26,26 @@ export async function createContentCycle(course: any, sectionIndex: number, less
     const db = await database
     const Courses = db.collection("course")
 
-    await Courses.findOneAndUpdate({ code: course.code }, {
-        $set: {
-            sections: course.sections,
-            language: course.language,
-            languageName: course.languageName,
-            voice: course.voice
-        }
-    })
-
     const startCreation = new Date()
     let totalParagraphCounter = 0
-    await saveLog(`Start content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
+
+    if (!(course.type && course.ty=="resume")) {
+
+        await Courses.findOneAndUpdate({ code: course.code }, {
+            $set: {
+                sections: course.sections,
+                language: course.language,
+                languageName: course.languageName,
+                voice: course.voice
+            }
+        })
+    
+        
+        await saveLog(`Start content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
+    
+    
+        
+    }
 
 
 
@@ -200,9 +208,9 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                 //     await lessonCycle(lessonCounter+1)
                 // }
             }
-            await lessonCycle(0)
+            await lessonCycle(lessonIndex)
         }
-        contentCycle(7)
+        contentCycle(sectionIndex)
 
     } catch (error) {
         await saveLog(`Bad structure found in course: ${course.code}.`, "Error", "createContentCycle()", "Courses/{courseCode}/CreateContent")
