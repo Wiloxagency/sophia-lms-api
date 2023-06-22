@@ -54,7 +54,6 @@ const httpTrigger: AzureFunction = async function (
       }
       // console.log(quizList)
       let sectionElementsPath = `sections.${req.body.indexSection}.elements`;
-      let sectionElements = course.sections[req.body.indexSection].elements;
       let quizz_list = quizList;
       let quizElementPayload = {
         type: "shortAnswer",
@@ -65,16 +64,13 @@ const httpTrigger: AzureFunction = async function (
           isAICreated: true,
         },
       };
-      sectionElements.push(quizElementPayload);
+      // sectionElements.push(quizElementPayload);
       // console.log(sectionElements)
-      const updatePromise = Courses.findOneAndUpdate(
+
+      const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
-        {
-          $set: {
-            [sectionElementsPath]: sectionElements,
-          },
-        }
-      );
+        { $push: { [sectionElementsPath]: quizElementPayload } }
+      )
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -162,7 +158,7 @@ const httpTrigger: AzureFunction = async function (
       }
       // console.log(quizList)
       let sectionElementsPath = `sections.${req.body.indexSection}.elements`;
-      let sectionElements = course.sections[req.body.indexSection].elements;
+      // let sectionElements = course.sections[req.body.indexSection].elements;
       let quizz_list = quizList;
       let quizElementPayload = {
         type: "completion",
@@ -173,14 +169,12 @@ const httpTrigger: AzureFunction = async function (
           isAICreated: true,
         },
       };
-      sectionElements.push(quizElementPayload);
+      // sectionElements.push(quizElementPayload);
       // console.log(sectionElements)
-      const updatePromise = Courses.findOneAndUpdate(
+      const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $set: {
-            [sectionElementsPath]: sectionElements,
-          },
+          $push: { [sectionElementsPath]: quizElementPayload }
         }
       );
       await updatePromise;
@@ -265,7 +259,7 @@ const httpTrigger: AzureFunction = async function (
       }
       // console.log(quizList)
       let sectionElementsPath = `sections.${req.body.indexSection}.elements`;
-      let sectionElements = course.sections[req.body.indexSection].elements;
+      // let sectionElements = course.sections[req.body.indexSection].elements;
       let quizz_list = quizList;
       let quizElementPayload = {
         type: "trueOrFalse",
@@ -276,16 +270,14 @@ const httpTrigger: AzureFunction = async function (
           isAICreated: true,
         },
       };
-      sectionElements.push(quizElementPayload);
+      // sectionElements.push(quizElementPayload)
       // console.log(sectionElements)
-      const updatePromise = Courses.findOneAndUpdate(
+      const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $set: {
-            [sectionElementsPath]: sectionElements,
-          },
+          $push: { [sectionElementsPath]: quizElementPayload }
         }
-      );
+      )
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
