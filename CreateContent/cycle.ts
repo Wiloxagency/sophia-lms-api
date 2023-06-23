@@ -3,7 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { createParagraphs } from "./createParagrahs"
 import { findImages } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph"
-import { saveLog } from "../shared/saveLog";
+import { deleteCourseCreationLog, saveCourseCreationLog, saveLog } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
 
@@ -15,22 +15,17 @@ function wait(seconds: number) {
     });
 }
 
-export async function createContentCycle(course: any, sectionIndex: number, lessonIndex: number ) {
-
+export async function createContentCycle(course: any, sectionIndex: number, lessonIndex: number) {
     let payload: paragraphCreation
     if (!(course.sections && course.sections.length > 0)) {
         await saveLog(`Course: ${course.code} has not sections`, "Error", "createContentCycle()", "Courses/{courseCode}/CreateContent")
         return
     }
-
     const db = await database
     const Courses = db.collection("course")
-
     const startCreation = new Date()
     let totalParagraphCounter = 0
-
-    if (!(course.type && course.ty=="resume")) {
-
+    if (!(course.type && course.ty == "resume")) {
         await Courses.findOneAndUpdate({ code: course.code }, {
             $set: {
                 sections: course.sections,
@@ -39,22 +34,12 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                 voice: course.voice
             }
         })
-    
-        
         await saveLog(`Start content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
-    
-    
-        
     }
-
-
-
     try {
-
         let syllabus = course.sections.map((item: any) => {
             return item.title
         })
-
         payload = {
             context: course.details.title,
             key: "",
@@ -66,14 +51,10 @@ export async function createContentCycle(course: any, sectionIndex: number, less
             languageName: course.languageName,
             courseCode: course.code
         }
-
         console.info("payload 51", payload)
-
         // Create Content
         const contentCycle = async (sectionCounter: number) => {
-
             const lessonCycle = async (lessonCounter: number) => {
-
                 let currentParagraphs: any
                 if (course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.length == 0) {
                     console.warn("creating paragraph")
@@ -84,29 +65,22 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                         return { content: text, audioScript: text }
                     })
                 } else {
-
-
                     currentParagraphs = { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter }
                     course.sections[currentParagraphs.sectionIndex].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
                         return { content: text, audioScript: text }
                     })
                 }
-
                 // Create Audios & find images
-
                 var currentParagrah: any
                 const multimediaCycle = async (paragraphCounter: number) => {
-
                     const paragraphContent = currentParagraphs.content[paragraphCounter]
-
                     // Start creating an audio for a paragraph
                     const createAudioFn = async (tries: number) => {
                         const currentAudio = await createAudio(paragraphContent, course.voice, course.language, course.code, currentParagraphs.sectionIndex, lessonCounter, paragraphCounter)
-                        if (currentAudio.url== undefined) {
+                        if (currentAudio.url == undefined) {
                             if (tries <= 5) {
                                 await wait(3 * (tries + 1))
                                 await createAudioFn(tries + 1)
-
                             } else {
                                 await saveLog(`Fatal error creating audio for course: ${course.code}, sectionIndex ${currentParagraphs.sectionIndex}.`, "Error", "createAudio()", "Courses/{courseCode}/CreateContent")
 
@@ -117,8 +91,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                         currentParagrah["audioUrl"] = currentAudio.url
                     }
                     await createAudioFn(0)
-
-
+                    saveCourseCreationLog(course.code, course.details.title)
                     // Start stract english title for images context searching
                     var extractedTitle = {
                         title: ""
@@ -130,7 +103,6 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             if (tries <= 3) {
                                 await wait(3 * (tries + 1))
                                 await extractTitleFn(tries + 1)
-
                             } else {
                                 extractedTitle = {
                                     title: payload.text
@@ -153,13 +125,12 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             if (tries <= 3) {
                                 await wait(3 * (tries + 1))
                                 await createKeyPhrasesFn(tries + 1)
-
                             } else {
                                 keyPhrases = []
                             }
                         }
                         currentParagrah["keyPhrases"] = keyPhrases
-                        console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)    
+                        console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     }
                     await createKeyPhrasesFn(0)
 
@@ -186,6 +157,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             const endCreation = new Date()
                             const totalCreationTime = Math.abs(Math.round((startCreation.getTime() - endCreation.getTime()) / 1000 / 60))
                             await saveLog(`Update content for course: ${course.code}. ${course.sections.length} Sections and ${totalParagraphCounter} Slides was created in ${totalCreationTime} minutes.`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
+                            deleteCourseCreationLog(course.code)
                         } else {
                             await Courses.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
