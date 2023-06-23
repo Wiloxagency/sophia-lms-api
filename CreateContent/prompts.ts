@@ -16,7 +16,7 @@ export const contentTable = {
         "\"v{courseDescription}\".\n" +
         "The first item should be the introduction of the course and the last item should be the conclusion.\n" +
         "write that table of contents in the following format: \n\n" +
-        "1. Introduction." +
+        "1. Introduction.\n" +
         "2. Item 2.\n" +
         "3. Item 3.\n" +
         "...\n" +
