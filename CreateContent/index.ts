@@ -15,6 +15,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const courseCode = req.body.courseCode
     const generationType = req.body.type
     const courseTitle = req.body.courseTitle
+    const courseDescription = req.body.courseDescription
     const voice = req.body.voice
     const parsed = req.body.parsed
     const autoBreak = req.body.autoBreak
@@ -122,7 +123,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         case "generateByTitle":
 
-            const syllabus = await createContentTable(courseTitle, maxSections, languageName, courseCode)
+            const syllabus = await createContentTable(courseTitle, maxSections, languageName, courseCode, courseDescription)
 
             if (syllabus) {
 

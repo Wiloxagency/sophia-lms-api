@@ -1,5 +1,5 @@
 // Simple course syllabus generation - GPT-3
-export const contentTable =
+export const contentTable_dropme =
     "As a professional college professor who has specialized in research papers, write in v{languageName} " +
     "a v{maxSections} item table of contents for a course called \"v{courseName}\". The first item should " +
     "be the introduction of the course and the last item should be the conclusion. Here is an example of " +
@@ -8,18 +8,21 @@ export const contentTable =
     "Item 11.\n12. Item 12.\n13. Item 13.\n14. Item 14.\n15. Item 15.\n16. Item 16.\n17. Item 17.\n18. " +
     "Item 18.\n19. Item 19.\n20. Conclusion.\n\nTable of contents:"
 
-export const newContentTable =
-    "As a professional college professor who has specialized in research papers,\n" +
-    "write in v{languageName} a sequence of v{maxSections} items belonging to a table of contents of a course \n" +
-    "called: \"v{courseName}\". Consider the course description:\n" +
-    "\"v{courseDescription}\".\n" +
-    "The first item should be the introduction of the course and the last item should be the conclusion.\n" +
-    "write those instructions in the following format: \n\n" +
-    "1. Introduction."
-    "2. Item 2.\n" +
-    "3. Item 3.\n" +
-    "...\n" +
-    "v{maxSections}. Conclusion.\n" 
+export const contentTable = {
+    "role": "You are an expert in the area of content development",
+    "prompt": "As a professional college professor who has specialized in research papers, " +
+        "write in v{languageName} a sequence of v{maxSections} items belonging to a table of contents of a course " +
+        "called: \"v{courseName}\". Consider the course description:\n" +
+        "\"v{courseDescription}\".\n" +
+        "The first item should be the introduction of the course and the last item should be the conclusion.\n" +
+        "write that table of contents in the following format: \n\n" +
+        "1. Introduction." +
+        "2. Item 2.\n" +
+        "3. Item 3.\n" +
+        "...\n" +
+        "v{maxSections}. Conclusion.\n",
+    "resp": "The table of contents is:"
+}
 
 // Content generation - ChatGPT-3.5-turbo
 export const contentGeneration = {
