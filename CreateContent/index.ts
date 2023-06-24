@@ -127,7 +127,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             section.lessons.forEach((lesson: any) => {
                 let paragraphs = []
                 lesson.paragraphs.forEach((paragraph: any, paragraphIndex: number) => {
-                    const content = paragraphIndex == 0 ? paragraph.content : lesson.lessonTitle + ": " + paragraph.content
+                    const content = paragraphIndex == 0 ?  lesson.lessonTitle + ": " + paragraph.content : paragraph.content 
                     paragraphs.push(content)
                 });
                 lessons.push(
