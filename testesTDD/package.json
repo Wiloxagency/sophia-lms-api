@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "jest.config.js",
   "scripts": {
-    "test": "jest -c ./jest.unit.json --detectOpenHandles --verbose",
+    "test": "jest -c ./jest.unit.json",
     "test: coverage":  "jest --coverage -c ./jest.unit.json"
   },
   "devDependencies": {
