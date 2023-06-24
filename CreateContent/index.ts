@@ -84,7 +84,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return currentCourse
     }
 
-    const addWordSections = (currentCourse: {}): {} => {
+    const addWordSections_dropme = (currentCourse: {}): {} => {
 
         let sections = []
         parsed.forEach((section: any) => {
@@ -108,6 +108,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             sections.push(
                 {
                     "title": section.name,
+                    "elements": lessons
+                }
+            )
+        })
+        currentCourse["sections"] = sections
+
+
+        return currentCourse
+
+    }
+
+    const addWordSections = (currentCourse: {}): {} => {
+
+        let sections = []
+        parsed.forEach((section: any) => {
+            let lessons = []
+            section.lessons.forEach((lesson: any) => {
+                let paragraphs = []
+                lesson.paragraphs.forEach((paragraph: any, paragraphIndex: number) => {
+                    const content = paragraphIndex == 0 ? paragraph.content : lesson.lessonTitle + ": " + paragraph.content
+                    paragraphs.push(content)
+                });
+                lessons.push(
+                    {
+                        "type": "Lección Engine",
+                        "title": "Presentation",
+                        "elementLesson": {
+                            "lessonTheme": lessonTheme,
+                            "paragraphs": paragraphs
+                        }
+                    }
+                )
+            })
+            sections.push(
+                {
+                    "title": section.sectionTitle,
                     "elements": lessons
                 }
             )
