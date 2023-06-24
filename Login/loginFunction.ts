@@ -10,19 +10,15 @@ export const login: AzureFunction = async function (
   req: HttpRequest
 ) {
   try {
-    console.log(req.body);
     const db = await database;
     var { email, password } = req.body;
     const regex = new RegExp(req.body.email);
     const Users = db.collection("user");
     const resp = Users.findOne({ email: { $regex: new RegExp(regex, "i") } });
     const body = await resp;
-    console.info("body -->", body);
     if (body) {
       const savedPassword = body.password;
       const found = bcrypt.compareSync(password, savedPassword);
-      //console.info ("hashDB -->", savedPassword)
-      //console.info ("found -->", found)
 
       if (found === false) {
         return {
