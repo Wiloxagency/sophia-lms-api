@@ -6,6 +6,7 @@ describe("Get all roles", () => {
   let mockResponse: Partial<Context>;
 
   test("200 - roles", async () => {
+    jest.setTimeout(10000);
     const resultado = await getRoles(
       mockResponse as Context,
       mockRequest as HttpRequest

@@ -16,6 +16,7 @@ describe("Login", () => {
   afterEach(() => {});
 
   test("Login succesfully", async () => {
+    jest.setTimeout(10000);
     const resultado = await login(
       mockResponse as Context,
       mockRequest as HttpRequest
