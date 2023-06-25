@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { getRoles } from "../Role/roleFunction";
+import { getRoles } from "../../Role/roleFunction";
 
 describe("Get all roles", () => {
   let mockRequest: Partial<HttpRequest>;

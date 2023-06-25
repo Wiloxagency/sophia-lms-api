@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { login } from "../Login/loginFunction";
+import { login } from "../../Login/loginFunction";
 import { ObjectId } from "bson";
 
 describe("Login", () => {
