@@ -3,6 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog"
 import axios, { AxiosResponse } from 'axios'
 import { v4 as uuidv4 } from 'uuid'
+import { createAudio } from "../CreateContent/createAudios";
 
 const database = createConnection()
 
@@ -16,6 +17,12 @@ const requestConfiguration = {
         'Ocp-Apim-Subscription-Region': 'eastus2',
         'charset': 'UTF-8'
     }
+}
+
+function wait(seconds: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, seconds * 1000);
+    });
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -75,6 +82,23 @@ async function translateCourse(req) {
 
                         courseClone.sections[indexSection].elements[indexElement].elementLesson
                             .paragraphs[indexParagraph].splitAudioScript = []
+
+                        const createAudioFn = async (tries: number) => {
+                            const currentAudio = await createAudio(translatedParagraphContent, courseClone.voice, courseClone.language, courseClone.code, indexSection, indexElement, indexParagraph)
+                            if (currentAudio.url == undefined) {
+                                if (tries <= 5) {
+                                    await wait(3 * (tries + 1))
+                                    await createAudioFn(tries + 1)
+                                } else {
+                                    await saveLog(`Fatal error creating audio for course: ${courseClone.code}, sectionIndex ${indexSection}.`, "Error", "createAudio()", "CourseTranslator")
+                                }
+                            }
+                            // console.info(`Audio for section ${indexSection + 1}/${course.sections.length}, paragraph ${indexParagraph + 1}/${element.paragraphs.length} created`)
+                            // console.info(`Audio for section ${indexSection + 1}/${course.sections.length}, paragraph ${indexParagraph + 1}/${currentParagraphs.content.length} created`)
+                            courseClone.sections[indexSection].elements[indexElement].elementLesson
+                                .paragraphs[indexParagraph].audioUrl = currentAudio.url
+                        }
+                        await createAudioFn(0)
                     }
                 }
             }
