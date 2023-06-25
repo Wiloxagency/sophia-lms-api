@@ -7,6 +7,7 @@ export interface paragraphCreation {
     courseStructure: string[]
     language: string,
     languageName: string,
-    courseCode: string
+    courseCode: string,
+    voice?: string,
     options?: { courseLevel: number, fromAge: number, toAge: number }
 }

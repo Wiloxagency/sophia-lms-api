@@ -23,8 +23,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         courseStructure: req.body.syllabus,
         language: req.body.language,
         languageName: req.body.languageName,
-        courseCode: req.body.courseCode
+        courseCode: req.body.courseCode,
+        voice: req.body.voice
     }
+
     const lesson = {
         type: "Lección Engine",
         title: "Presentation",
@@ -46,9 +48,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } catch (error) {
         await saveLog(`Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`, "Error", "AzureFunction()", "Courses/{courseCode}/CreateLesson")
         throw new Error(error.message);
-        
+
     }
-    
+
 
     const updatedCourse = await Course.findOne(
         { code: req.body.courseCode }
@@ -60,7 +62,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     // Create Audios & find images
     const multimediaCycle = async (paragraphCounter: number) => {
-
+        console.log(paragraphCounter)
 
         const paragraphContent = currentParagraphs.content[paragraphCounter]
         const currentParagrah = {
@@ -72,11 +74,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             keyPhrases: []
         }
         const sectionIndex = req.body.indexSection
-        const currentAudio = await createAudio(paragraphContent, "JorgeNeural", "es", req.body.courseCode, sectionIndex, req.body.elementIndex, paragraphCounter)
+        const currentAudio = await createAudio(paragraphContent, payload.voice, payload.language, req.body.courseCode, sectionIndex, req.body.elementIndex, paragraphCounter)
         console.info(`Audio for section ${sectionIndex}}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
         currentParagrah.audioUrl = currentAudio.url
 
-        const extractedTitle = await extractTitle(paragraphContent, payload.text,"es", req.body.courseTitle, req.body.courseCode)
+        const extractedTitle = await extractTitle(paragraphContent, payload.text, "es", req.body.courseTitle, req.body.courseCode)
         console.info(`Title for section ${sectionIndex}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
         currentParagrah.titleAI = extractedTitle.title
 
@@ -106,16 +108,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const newSectionPath = `sections.${req.body.indexSection}.elements.${elementIndex}`
             try {
                 await Course.updateOne(
-                { code: req.body.courseCode },
-                {
-                    $set: { [newSectionPath]: lesson }
-                }
-            )
+                    { code: req.body.courseCode },
+                    {
+                        $set: { [newSectionPath]: lesson }
+                    }
+                )
             } catch (error) {
                 await saveLog(`Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`, "Error", "AzureFunction()", "Courses/{courseCode}/CreateLesson")
 
             }
-            
+
         } else {
             await multimediaCycle(paragraphCounter)
         }
