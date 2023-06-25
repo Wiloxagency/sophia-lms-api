@@ -5,17 +5,18 @@ describe("Get all roles", () => {
   let mockRequest: Partial<HttpRequest>;
   let mockResponse: Partial<Context>;
 
-  test("200 - roles", async () => {
-    jest.setTimeout(10000);
-    const resultado = await getRoles(
-      mockResponse as Context,
-      mockRequest as HttpRequest
-    );
+  beforeEach(() => {
+    mockRequest = {};
+    mockResponse = {};
+  });
 
-    expect(resultado.status).toBe(200);
-    expect(
-      resultado.body.map((obj: any) => ({ ...obj, _id: obj._id.toString() }))
-    ).toEqual([
+  afterEach(() => {
+    mockRequest = {};
+    mockResponse = {};
+  });
+
+  test("200 - roles", async () => {
+    const expectedResult = [
       {
         _id: "63e6feb863a544cc6e0c678c",
         name: "Administrator",
@@ -52,6 +53,16 @@ describe("Get all roles", () => {
         name: "Instructor",
         permissions: [],
       },
-    ]);
+    ];
+
+    const resultado = await getRoles(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(200);
+    expect(
+      resultado.body.map((obj: any) => ({ ...obj, _id: obj._id.toString() }))
+    ).toEqual(expectedResult);
   });
 });

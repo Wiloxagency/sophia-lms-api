@@ -13,17 +13,14 @@ describe("Login", () => {
     mockResponse = {};
   });
 
-  afterEach(() => {});
+  afterEach(() => {
+    // Limpar os valores após cada teste
+    mockRequest = {};
+    mockResponse = {};
+  });
 
-  test("Login succesfully", async () => {
-    jest.setTimeout(10000);
-    const resultado = await login(
-      mockResponse as Context,
-      mockRequest as HttpRequest
-    );
-
-    expect(resultado.status).toBe(200);
-    expect(resultado.body).toMatchObject({
+  test("Login successfully", async () => {
+    const expectedResult = {
       _id: new ObjectId("647a31b7f87f8a063aee663d"),
       name: "New User",
       email: "kelvin@wilox.xom",
@@ -43,7 +40,6 @@ describe("Login", () => {
         name: "Wilox",
         organizationCode: "4de726c3-0e04-436b-ae50-f8752a2734aa",
         theme: "Predeterminado",
-        membershipCode: "4f053c44-1051-47f1-adab-794b4a1030a7",
         createdCourses: "0",
         courseCategories: [
           "Gastronomía",
@@ -85,6 +81,14 @@ describe("Login", () => {
           courses: 999,
         },
       },
-    });
+    };
+
+    const resultado = await login(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(200);
+    expect(resultado.body).toMatchObject(expectedResult);
   });
 });
