@@ -4,7 +4,7 @@
     "testMatch": [
         "**/?(*.)+(test).ts"
     ],
-    "testTimeout": 15000,
+    "testTimeout": 10000,
     "resetMocks": true,
     "clearMocks": true
 }
