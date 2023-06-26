@@ -29,7 +29,7 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
     // const languageCode = isoLanguage[language]
     const languageCode = language
 
-     return new Promise((resolve, reject)  => {
+    return new Promise((resolve, reject) => {
         try {
             let xml_body = xmlbuilder
                 .create("speak")
@@ -79,7 +79,7 @@ export async function createAudio(
     elementIndex: number,
     paragraphIndex: number
 ): Promise<{ url: string, sectionIndex: number, elementIndex: number, paragraphIndex: number }> {
-
+    // console.log(text, voice, language, courseCode, sectionIndex, elementIndex, paragraphIndex)
     const mp3Name = uuidv4() + ".mp3"
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY, courseCode)
