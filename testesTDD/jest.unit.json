@@ -1,13 +1,7 @@
 {
   "preset": "ts-jest",
   "testMatch": ["**/tests/**/*.test.ts"],
-  "testTimeout": 5000,
   "resetMocks": true,
   "clearMocks": true,
-  "collectCoverage": true,
-  "watchAll": false,
-  "collectCoverageFrom": ["<rootDir>/**/*.test.{js,jsx,ts,tsx}"],
-  "testEnvironment": "node",
-  "coveragePathIgnorePatterns": ["/node_modules/", "api-testing"],
-  "testPathIgnorePatterns": ["/node_modules/", "api-testing"]
+  "testEnvironment": "node"
 }

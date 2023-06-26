@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "jest.config.js",
   "scripts": {
-    "test": "jest --config jest.unit.json --detectOpenHandles --forceExit"
+    "test": "jest --config jest.unit.json --detectOpenHandles --forceExit --maxWorkers=1"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",
