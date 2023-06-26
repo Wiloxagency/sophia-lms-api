@@ -6,20 +6,16 @@ describe("Login", () => {
   let mockRequest: Partial<HttpRequest>;
   let mockResponse: Partial<Context>;
 
-  beforeEach(() => {
-    mockRequest = {
-      body: { email: "kelvin@wilox.xom", password: "kelvin@wilox.xom" },
-    };
-    mockResponse = {};
-  });
-
   afterEach(() => {
-    // Limpar os valores após cada teste
     mockRequest = {};
     mockResponse = {};
   });
 
   test("Login successfully", async () => {
+    mockRequest = {
+      body: { email: "kelvin@wilox.xom", password: "kelvin@wilox.xom" },
+    };
+    mockResponse = {};
     const expectedResult = {
       _id: new ObjectId("647a31b7f87f8a063aee663d"),
       name: "New User",
@@ -89,6 +85,21 @@ describe("Login", () => {
     );
 
     expect(resultado.status).toBe(200);
+    expect(resultado.body).toMatchObject(expectedResult);
+  });
+
+  test("Invalid password", async () => {
+    mockRequest = {
+      body: { email: "kelvin@wilox.xom", password: "kelvins@wilox.xom" },
+    };
+    const expectedResult = { message: "Invalid password" };
+
+    const resultado = await login(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(203);
     expect(resultado.body).toMatchObject(expectedResult);
   });
 });
