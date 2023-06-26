@@ -51,7 +51,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
             languageName: course.languageName,
             courseCode: course.code
         }
-        console.info("payload 51", payload)
+        console.info("payload 54", payload)
         // Create Content
         const contentCycle = async (sectionCounter: number) => {
             const lessonCycle = async (lessonCounter: number) => {
@@ -87,7 +87,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             }
                         }
                         currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
-                        console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                        console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                         currentParagrah["audioUrl"] = currentAudio.url
                     }
                     await createAudioFn(0)
@@ -112,11 +112,11 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     }
                     await extractTitleFn(0)
 
-                    console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
+                    console.info(`Title for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} Extracted `)
                     currentParagrah["titleAI"] = extractedTitle.title
 
                     const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
-                    console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                    console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData
 
                     const createKeyPhrasesFn = async (tries: number) => {
@@ -130,7 +130,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             }
                         }
                         currentParagrah["keyPhrases"] = keyPhrases
-                        console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
+                        console.info(`KeyPhrases for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     }
                     await createKeyPhrasesFn(0)
 
@@ -145,7 +145,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     totalParagraphCounter++
 
                     if (paragraphCounter == currentParagraphs.content.length) {
-                        if ((sectionCounter + 1) == syllabus.length) {
+                        if (!(lessonCounter < course.sections[sectionCounter].elements.length - 1)  && (sectionCounter + 1) == syllabus.length) {
 
                             await saveLog(`Finish content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
