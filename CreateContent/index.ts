@@ -241,11 +241,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (parsed) {
 
                 currentCourse = addWordSections(currentCourse)
+
+                console.info(currentCourse)
+
                 //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
 
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+
+                console.info(currentCourse)
 
                 createContentCycle(currentCourse, 0, 0)
 
@@ -280,7 +285,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
                     const elements = currentCourse.sections[sectionIndex].elements
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
-                        if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs == 0) {
+                        if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) {
                             createContentCycle(currentCourse, sectionIndex, elementIndex)
                             context.res = {
                                 "status": 201,
