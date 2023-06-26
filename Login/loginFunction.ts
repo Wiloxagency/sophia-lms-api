@@ -49,13 +49,6 @@ export const login: AzureFunction = async function (
       };
     }
   } catch (error) {
-    await saveLog(
-      `Authentication error for user`,
-      "Error",
-      "AzureFunction()",
-      "Login"
-    );
-
     return {
       status: 500,
 
@@ -69,5 +62,3 @@ export const login: AzureFunction = async function (
     };
   }
 };
-
-export default login;

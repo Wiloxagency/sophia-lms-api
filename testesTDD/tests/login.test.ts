@@ -102,4 +102,33 @@ describe("Login", () => {
     expect(resultado.status).toBe(203);
     expect(resultado.body).toMatchObject(expectedResult);
   });
+
+  test("Invalid email", async () => {
+    mockRequest = {
+      body: { email: "kewdn@wilox.xom", password: "kelvins@wilox.xom" },
+    };
+
+    const resultado = await login(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(204);
+  });
+
+  test("Authentication error", async () => {
+    mockRequest = {
+      body: {},
+    };
+
+    const resultado = await login(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(500);
+    expect(resultado.body).toEqual({
+      message: "Authentication error",
+    });
+  });
 });
