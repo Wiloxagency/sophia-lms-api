@@ -1,14 +1,9 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { getRoles } from "../../Role/roleFunction";
+import { httpTrigger } from "../../Role/roleFunction";
 
 describe("Get all roles", () => {
   let mockRequest: Partial<HttpRequest>;
   let mockResponse: Partial<Context>;
-
-  beforeEach(() => {
-    mockRequest = {};
-    mockResponse = {};
-  });
 
   afterEach(() => {
     mockRequest = {};
@@ -16,6 +11,12 @@ describe("Get all roles", () => {
   });
 
   test("200 - roles", async () => {
+    mockRequest = {
+      method: "GET",
+      params: {},
+      url: "/Role",
+    };
+    mockResponse = {};
     const expectedResult = [
       {
         _id: "63e6feb863a544cc6e0c678c",
@@ -31,7 +32,7 @@ describe("Get all roles", () => {
       },
     ];
 
-    const resultado = await getRoles(
+    const resultado = await httpTrigger(
       mockResponse as Context,
       mockRequest as HttpRequest
     );
