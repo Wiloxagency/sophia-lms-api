@@ -36,12 +36,6 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error creating role`,
-        "Error",
-        "createRole()",
-        "Role/{roleCode?}"
-      );
       return {
         status: 500,
         headers: {
@@ -241,8 +235,5 @@ export const httpTrigger: AzureFunction = async function (
       }
     case "DELETE":
       await deleteRole();
-      break;
-    default:
-      break;
   }
 };

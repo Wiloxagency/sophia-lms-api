@@ -1,13 +1,36 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { httpTrigger } from "../../Role/roleFunction";
 
-describe("Get all roles", () => {
+describe("Role", () => {
   let mockRequest: Partial<HttpRequest>;
   let mockResponse: Partial<Context>;
 
   afterEach(() => {
     mockRequest = {};
     mockResponse = {};
+  });
+
+  test("201 - Create role", async () => {
+    mockRequest = {
+      method: "POST",
+      params: {},
+      url: "/Role",
+      body: {
+        code: "333333bd-b735-453d-b1cb-cf4fc6a6ee32",
+        name: "Instructor",
+        permissions: [],
+      },
+    };
+    mockResponse = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(201);
+    expect(resultado.body.acknowledged).toBe(true);
+    expect(resultado.body.insertedId).toBeDefined();
   });
 
   test("200 - roles", async () => {
@@ -48,5 +71,40 @@ describe("Get all roles", () => {
         expect.objectContaining(expectedObj)
       );
     });
+  });
+
+  test("204 - no roles", async () => {
+    mockRequest = {
+      method: "GET",
+      params: {},
+      url: "/Role",
+    };
+    mockResponse = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(204);
+    expect(resultado.body).toBeUndefined();
+    expect(resultado.headers["Content-Length"]).toBe("0");
+  });
+
+  test("500 - Error creating role", async () => {
+    mockRequest = {
+      method: "POST",
+      params: {},
+      url: "/Role",
+    };
+    mockResponse = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest
+    );
+
+    expect(resultado.status).toBe(500);
+    expect(resultado.body.lenght).toBe(undefined);
   });
 });
