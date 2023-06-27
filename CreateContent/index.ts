@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { createContentTable } from "./createContentTable";
-
+import { v4 as uuidv4 } from "uuid"
 import { Db } from "mongodb";
 import { createContentCycle } from "./cycle";
 import { saveLog } from "../shared/saveLog";
@@ -71,6 +71,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         {
                             "type": "Lección Engine",
                             "title": "Presentation",
+                            "elementCode": uuidv4(),
                             "elementLesson": {
                                 "lessonTheme": lessonTheme,
                                 "paragraphs": []
@@ -98,6 +99,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     {
                         "type": "Lección Engine",
                         "title": "Presentation",
+                        "elementCode": uuidv4(),
                         "elementLesson": {
                             "lessonTheme": lessonTheme,
                             "paragraphs": paragraphs
@@ -127,13 +129,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             section.lessons.forEach((lesson: any) => {
                 let paragraphs = []
                 lesson.paragraphs.forEach((paragraph: any, paragraphIndex: number) => {
-                    const content = paragraphIndex == 0 ?  lesson.lessonTitle + ": " + paragraph.content : paragraph.content 
+                    const content = paragraphIndex == 0 ? lesson.lessonTitle + ": " + paragraph.content : paragraph.content
                     paragraphs.push(content)
                 });
                 lessons.push(
                     {
                         "type": "Lección Engine",
                         "title": "Presentation",
+                        "elementCode": uuidv4(),
                         "elementLesson": {
                             "lessonTheme": lessonTheme,
                             "paragraphs": paragraphs
@@ -204,11 +207,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 currentCourse = addSections(contentTable, currentCourse)
                 //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-               
+
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
-               
+
                 createContentCycle(currentCourse, 0, 0)
 
                 context.res = {

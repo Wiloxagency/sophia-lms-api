@@ -7,6 +7,8 @@ import { extractTitle } from "../CreateContent/titleExtraction";
 import { paragraphCreation } from "../interfaces/paragraph";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { v4 as uuidv4 } from "uuid"
+
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -30,6 +32,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const lesson = {
         type: "Lección Engine",
         title: "Presentation",
+        elementCode: uuidv4(),
         elementLesson: {
             lessonTheme: "1",
             paragraphs: []
