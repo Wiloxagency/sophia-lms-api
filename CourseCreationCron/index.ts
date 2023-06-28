@@ -24,17 +24,24 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
             // console.log("IT'S BEEN MORE THANT 2 MINUTES SINCE LAST UPDATE")
             const Courses = db.collection('course')
             const currentCourse = await Courses.findOne({ "code": courseUnderConstruction.courseCode })
-            saveLog(`Reinitializing course creation: ${courseUnderConstruction.courseCode}`, "Warning", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
 
             try {
-                // let found = false
+
+                if (currentCourse==null) {
+                    saveLog(`Unabled to reinitializing course creation because doesn't exist: ${courseUnderConstruction.courseCode}`, "Error", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+                    await CoursesUnderConstructionCollection.findOneAndDelete({ "courseCode": courseUnderConstruction.courseCode })
+                    throw new Error(`Course ${courseUnderConstruction.courseCode} does not exist`)
+                }
+                saveLog(`Reinitializing course creation: ${courseUnderConstruction.courseCode}`, "Warning", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+
+
                 for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
                     const elements = currentCourse.sections[sectionIndex].elements
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
-                        if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) {
+                        if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) || 
+                            (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
                             await createContentCycle(currentCourse, sectionIndex, elementIndex)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
-                            // found = true
                             break
                         }
                     }
