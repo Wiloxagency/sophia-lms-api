@@ -1,16 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-
-const database = createConnection();
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoClient, MongoClientOptions } from "mongodb";
 
 export const httpTrigger: AzureFunction = async function (
   context: Context,
-  req: HttpRequest
+  req: HttpRequest,
+  client: MongoClient
 ) {
   const createRole = async () => {
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
       const resp = Roles.insertOne(req.body);
 
@@ -48,10 +49,8 @@ export const httpTrigger: AzureFunction = async function (
 
   const deleteRole = async () => {
     try {
-      const db = await database;
-
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.deleteOne({ code: req.params.roleCode });
       const body = await resp;
 
@@ -79,9 +78,8 @@ export const httpTrigger: AzureFunction = async function (
     delete req.body._id;
 
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.findOneAndUpdate(
         { code: roleCode },
         { $set: req.body }
@@ -128,9 +126,8 @@ export const httpTrigger: AzureFunction = async function (
 
   const getRole = async (roleCode: string) => {
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.aggregate([
         {
           $match: {
@@ -181,12 +178,9 @@ export const httpTrigger: AzureFunction = async function (
 
   const getRoles = async () => {
     try {
-      const db = await database;
-
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.find({});
-
       const body = await resp.toArray();
 
       if (body && body.length > 0) {
