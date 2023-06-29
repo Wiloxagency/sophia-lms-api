@@ -6,7 +6,8 @@ export async function saveLog(message: string, logType: string, functionName: st
     let date = new Date()
     const logPayload = {
         message: message,
-        timestamp: date.toLocaleString("pt-BR"),
+        // timestamp: date.toLocaleString("pt-BR"),
+        timestamp: date,
         endpoint: endpoint,
         functionName: functionName,
         logType: logType
