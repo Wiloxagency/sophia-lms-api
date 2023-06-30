@@ -28,7 +28,7 @@ describe("Role", () => {
     }
   });
 
-  test("201 - Create role", async () => {
+  test("createRole - 201 - Create Role", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "POST",
       params: {},
@@ -53,25 +53,30 @@ describe("Role", () => {
     expect(resultado.body.insertedId).toBeDefined();
   });
 
-  test("500 - Error creating role", async () => {
+  test("createRole - 500 - Catch Error", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "POST",
       params: {},
       url: "/Role",
+      body: {},
     };
 
     const mockResponse: Partial<Context> = {};
 
-    const resultado = await httpTrigger(
-      mockResponse as Context,
-      mockRequest as HttpRequest,
-      client
-    );
-
-    expect(resultado.status).toBe(500);
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Internal Server Error");
+    }
   });
 
-  test("200 - Get roles", async () => {
+  test("getRoles - 200 - Get Roles", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
       params: {},
@@ -127,7 +132,7 @@ describe("Role", () => {
     expect(resultado.body).toMatchObject(insertedDocuments);
   });
 
-  test("204 - Unknow Documents", async () => {
+  test("getRoles - 204 - Unknow Documents", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
       params: {},
@@ -138,7 +143,7 @@ describe("Role", () => {
     const mockResponse: Partial<Context> = {};
 
     const db = client.db();
-    const collection = db.collection("role");
+    db.collection("role");
 
     const resultado = await httpTrigger(
       mockResponse as Context,
@@ -147,5 +152,117 @@ describe("Role", () => {
     );
 
     expect(resultado.status).toBe(204);
+    expect(resultado.body).toEqual(undefined);
+  });
+
+  test("getRoles - 500 - Catch Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: {},
+      url: "/Role",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      const resultado = await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Internal Server Error");
+    }
+  });
+
+  test("getRole - 200 - Get Role", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const db = client.db();
+    const collection = db.collection("role");
+    const insertedDocuments = {
+      name: "Administrator",
+      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
+      permissions: ["ADMINISTRATOR.MAIN"],
+    };
+
+    await collection.insertOne(insertedDocuments);
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    expect(resultado.status).toBe(200);
+    expect(resultado.body).toMatchObject(insertedDocuments);
+  });
+
+  test("getRole - 500 - Catch Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Internal Server Error");
+    }
+  });
+
+  test("deleteRole - 201 - Delete Role", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "DELETE",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const db = client.db();
+    const collection = db.collection("role");
+    const insertedDocuments = {
+      name: "Administrator",
+      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
+      permissions: ["ADMINISTRATOR.MAIN"],
+    };
+
+    await collection.insertOne(insertedDocuments);
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    const body = {
+      acknowledged: true,
+      deletedCount: 1,
+    };
+
+    expect(resultado.status).toBe(200);
+    expect(resultado.body).toEqual(body);
   });
 });

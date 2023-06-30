@@ -11,7 +11,7 @@ describe("Login", () => {
     mockResponse = {};
   });
 
-  test("200 - Login successfully", async () => {
+  test("login - 200 - Login successfully", async () => {
     const expectedResult = {
       _id: new ObjectId("647a31b7f87f8a063aee663d"),
       name: "New User",
@@ -89,7 +89,7 @@ describe("Login", () => {
     );
   });
 
-  test("203 - Invalid password", async () => {
+  test("login - 203 - Invalid password", async () => {
     mockRequest = {
       body: { email: "kelvin@wilox.xom", password: "kelvins@wilox.xom" },
     };
@@ -104,7 +104,7 @@ describe("Login", () => {
     expect(resultado.body).toEqual(expectedResult);
   });
 
-  test("204 - Invalid email", async () => {
+  test("login - 204 - Invalid email", async () => {
     mockRequest = {
       body: { email: "kewdn@wilox.xom", password: "kelvins@wilox.xom" },
     };
@@ -117,7 +117,7 @@ describe("Login", () => {
     expect(resultado.status).toBe(204);
   });
 
-  test("500 - Authentication error", async () => {
+  test("login - 500 - Authentication error", async () => {
     mockRequest = {
       body: {},
     };

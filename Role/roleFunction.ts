@@ -42,7 +42,9 @@ export const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: "Error",
+        body: {
+          message: "Error",
+        },
       };
     }
   };
@@ -65,12 +67,15 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error deleting role by code:`,
-        "Error",
-        "deleteRole()",
-        "Role/{roleCode?}"
-      );
+      return {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error",
+        },
+      };
     }
   };
 
@@ -106,12 +111,6 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error updating role by code:`,
-        "Error",
-        "updateRole()",
-        "Role/{roleCode?}"
-      );
       return {
         status: 500,
         headers: {
@@ -158,19 +157,13 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting role by code: `,
-        "Error",
-        "getRole()",
-        "Role/{roleCode?}"
-      );
       return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error getting role by code",
+          message: "Error",
         },
       };
     }
@@ -200,12 +193,6 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting roles, error`,
-        "Error",
-        "getRoles()",
-        "Role/{roleCode?}"
-      );
       return {
         status: 500,
         headers: {
