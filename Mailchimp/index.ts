@@ -8,7 +8,7 @@ const mailchimp = require('@mailchimp/mailchimp_marketing');
 mailchimp.setConfig({
     apiKey: "6e02af28f86bb15f870ef955a8fad4e5-us8",
     server: "us8",
-});
+})
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     const listId = "5db638bb59"
@@ -122,6 +122,45 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    async function createCampaign() {
+        try {
+            const response = await mailchimp.campaigns.create({
+                type: "plaintext",
+                recipients: {
+                    segment_opts: {
+                        saved_segment_id: 5168445
+                    },
+                    list_id: listId
+                },
+                settings: {
+                    subject_line: 'subject_line',
+                    // preview_text: 'previewText',
+                    title: "title" + uuidv(),
+                    // template_id: tempalteId,
+                    from_name: 'fromName',
+                    // reply_to: 'replyTo',
+                    // to_name: "*|FNAME|*",
+                    // auto_footer: true,
+                    // inline_css: true,
+                }
+            })
+            // console.log(response)
+        } catch (error) {
+            console.log(error)
+            await saveLog(`Error creating campaign. ` + error.message, "Error", "createCampaign()", "Mailchimp/")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": error.toString()
+                }
+            }
+        }
+
+    }
+
     async function sendCampaign() {
         console.log('THIS RUNS')
         try {
@@ -139,6 +178,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         }
+    }
+
+    async function getSegments() {
+        const response = await mailchimp.lists.listSegments(listId)
+        console.log(response)
     }
 
     async function createStaticSegment() {
@@ -188,8 +232,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         case 'sendCampaign':
             sendCampaign()
             break
+        case 'getSegments':
+            getSegments()
+            break
         case 'createStaticSegment':
             createStaticSegment()
+            break
+        case 'createCampaign':
+            createCampaign()
             break
     }
 
