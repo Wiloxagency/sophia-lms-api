@@ -348,7 +348,7 @@ describe("Role", () => {
     } catch (error: any) {
       expect(error).toBeDefined();
       expect(error.status).toBe(500);
-      throw new Error("Error Updating Role By Code");
+      throw new Error("Error Updating Role By code");
     }
   });
 });
