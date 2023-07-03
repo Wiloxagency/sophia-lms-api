@@ -72,7 +72,7 @@ describe("Role", () => {
     } catch (error: any) {
       expect(error).toBeDefined();
       expect(error.status).toBe(500);
-      throw new Error("Internal Server Error");
+      throw new Error("Error creating role");
     }
   });
 
@@ -155,7 +155,7 @@ describe("Role", () => {
     expect(resultado.body).toEqual(undefined);
   });
 
-  test("getRoles - 500 - Catch Error", async () => {
+  test("getRoles - 500 - Error", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
       params: {},
@@ -174,7 +174,7 @@ describe("Role", () => {
     } catch (error: any) {
       expect(error).toBeDefined();
       expect(error.status).toBe(500);
-      throw new Error("Internal Server Error");
+      throw new Error("Can't get roles");
     }
   });
 
@@ -208,7 +208,7 @@ describe("Role", () => {
     expect(resultado.body).toMatchObject(insertedDocuments);
   });
 
-  test("getRole - 500 - Catch Error", async () => {
+  test("getRole - 500 - Error", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
       params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
@@ -227,11 +227,11 @@ describe("Role", () => {
     } catch (error: any) {
       expect(error).toBeDefined();
       expect(error.status).toBe(500);
-      throw new Error("Internal Server Error");
+      throw new Error("Error");
     }
   });
 
-  test("deleteRole - 201 - Delete Role", async () => {
+  test("deleteRole - 200 - Delete Role", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "DELETE",
       params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
@@ -257,12 +257,98 @@ describe("Role", () => {
       client
     );
 
-    const body = {
-      acknowledged: true,
-      deletedCount: 1,
+    expect(resultado.status).toBe(200);
+    expect(resultado.body.deletedCount).toBe(1);
+    expect(resultado.body.acknowledged).toEqual(true);
+  });
+
+  test("deleteRole - 500 - Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "DELETE",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: {},
     };
 
-    expect(resultado.status).toBe(200);
-    expect(resultado.body).toEqual(body);
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Error");
+    }
+  });
+
+  test("updateRole - 201 - Updated Role", async () => {
+    const body = {
+      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
+      name: "Instructor Update",
+      permissions: ["ADMINISTRATOR.MAIN"],
+    };
+
+    const db = client.db();
+    const collection = db.collection("role");
+    const insertedDocuments = {
+      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
+      name: "Instructor",
+      permissions: ["ADMINISTRATOR.MAIN"],
+    };
+
+    await collection.insertOne(insertedDocuments);
+
+    const mockRequest: Partial<HttpRequest> = {
+      method: "PUT",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: body,
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    expect(resultado.status).toBe(201);
+    expect(resultado.body).toMatchObject({
+      lastErrorObject: { n: 1, updatedExisting: true },
+      value: {
+        code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
+        name: "Instructor",
+        permissions: ["ADMINISTRATOR.MAIN"],
+      },
+      ok: 1,
+    });
+  });
+
+  test("updateRole - 500 - Error Updating Role By Code", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "DELETE",
+      params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      url: "/Role",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Error Updating Role By Code");
+    }
   });
 });

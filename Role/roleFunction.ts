@@ -1,8 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createConnection } from "../shared/mongo";
-import { saveLog } from "../shared/saveLog";
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { MongoClient, MongoClientOptions } from "mongodb";
+import { MongoClient } from "mongodb";
 
 export const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -49,11 +46,12 @@ export const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const deleteRole = async () => {
+  const deleteRole = async (roleCode: string) => {
     try {
       const db = client.db();
       const Roles = db.collection("role");
-      const resp = Roles.deleteOne({ code: req.params.roleCode });
+
+      const resp = Roles.deleteOne({ code: roleCode });
       const body = await resp;
 
       if (body) {
@@ -67,15 +65,7 @@ export const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      return {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          message: "Error",
-        },
-      };
+      ("Error cathc");
     }
   };
 
@@ -215,6 +205,6 @@ export const httpTrigger: AzureFunction = async function (
         return await getRoles();
       }
     case "DELETE":
-      await deleteRole();
+      return await deleteRole(req.params.roleCode);
   }
 };
