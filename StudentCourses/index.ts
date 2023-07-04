@@ -36,13 +36,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         '$unwind': {
                             'path': '$courses'
                         }
-                    }, {
+                    }, 
+                    {
                         '$project': {
                             'course': '$courses',
                             'groupCode': '$code',
-                            'quizScores': '$users.quizScores'
+                            'quizScores': '$users.quizScores',
+                            'group': '$users'
                         }
-                    }, {
+                    },
+                     {
                         '$match': {
                             'course.approvalStatus': 'Approved'
                         }

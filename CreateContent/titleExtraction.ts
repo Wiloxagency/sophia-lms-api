@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai'
 import { titleExtraction } from "./gpt3.prompt"
 import { saveLog } from '../shared/saveLog'
-import { searchImages} from "./prompts"
+import { searchImages, searchImagesGpt3} from "./prompts"
 
 // OpenAI Credentials
 const configuration = new Configuration({
@@ -11,6 +11,7 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration)
 
 const gptSearchImages = searchImages
+const gpt3SearchImages = searchImagesGpt3
 
 export async function extractTitle(
     paragraphContent: string,
@@ -19,7 +20,7 @@ export async function extractTitle(
     courseTitle: string,
     courseCode: string): Promise<{ title: string }> {
 
-    const prompt = gptSearchImages.
+    const prompt = gpt3SearchImages.
         replace(/v{languageName}/g, languageName.trim()).
         replace(/v{courseName}/g, courseTitle.trim()).
         replace(/v{sectionTitle}/g, sectionTitle.trim()).
@@ -34,35 +35,38 @@ export async function extractTitle(
 
     try {
 
-        const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: "Software developer"
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ]
+        // const response = await openai.createChatCompletion({
+        //     model: "gpt-3.5-turbo",
+        //     messages: [
+        //         {
+        //             role: "system",
+        //             content: "Software developer"
+        //         },
+        //         {
+        //             role: "user",
+        //             content: prompt
+        //         }
+        //     ]
 
-        })
-        let data = response.data.choices[0].message.content
-        console.info("gptSearchImages response -->",data)
-        const obj = JSON.parse(data)
-
-        // titleAIObj = await openai.createCompletion({
-        //     model: "text-davinci-003",
-        //     prompt: prompt,
-        //     temperature: 0.2,
-        //     max_tokens: 500,
-        //     top_p: 1,
-        //     frequency_penalty: 0.5,
-        //     presence_penalty: 0,
         // })
-        // mainPhrase = titleAIObj.data.choices[0].text.replace(/[\r\n]/gm, '').trim()
-        return { title: obj.resp }
+        // let data = response.data.choices[0].message.content
+        // console.info("gptSearchImages response -->",data)
+        // const obj = JSON.parse(data)
+
+        const titleAIObj = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: prompt,
+            temperature: 0.2,
+            max_tokens: 500,
+            top_p: 1,
+            frequency_penalty: 0.5,
+            presence_penalty: 0,
+        })
+        const mainPhrase =  titleAIObj.data.choices[0].text.replace(/[\r\n]/gm, '').trim()
+
+        const title = mainPhrase && mainPhrase.length>0 ? mainPhrase : courseTitle.trim() + " " + sectionTitle.trim()
+
+        return { title: title }
 
     } catch (error) {
 

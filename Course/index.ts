@@ -6,7 +6,6 @@ const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-
     const createCourse = async () => {
 
         const createdCourses = parseInt(req.body.createdCourses)
@@ -57,8 +56,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
-
     const updateCourse = async (courseCode: string) => {
 
         delete req.body._id
@@ -103,6 +100,60 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 "body": {
                     "message": "Error updating course by code"
+                }
+            }
+
+        }
+    }
+
+    const addCourseElement = async (courseCode: string) => {
+        try {
+
+            const db = await database
+            const Courses = db.collection('course')
+
+            let elementPath = `sections.${req.query.indexSection}.elements`
+
+            // console.log(req.body)
+            // return
+
+            const resp = Courses.updateOne(
+                { "code": courseCode },
+                { $push: req.body })
+            const body = await resp
+
+            if (body) {
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": body
+                }
+            } else {
+                await saveLog(`Error adding element. Course code: ${courseCode}`, "Error", "addCourseElement()", "Courses/{courseCode?}")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error adding element"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+            await saveLog(`Error adding element. Course code: ${courseCode}`, "Error", "addCourseElement()", "Courses/{courseCode?}")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error adding element"
                 }
             }
 
@@ -223,7 +274,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             const body = await collection.find(Object.assign(queryStatus, queryData, querySearch
                 // , queryCategories
-                )).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
+            )).sort({ '_id': -1 }).skip(skipNum).limit(limitNum).toArray();
 
             if (body) {
 
@@ -262,7 +313,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
     const deleteCourse = async () => {
         try {
             const db = await database
@@ -296,7 +346,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     switch (req.method) {
         case "POST":
-            await createCourse()
+            if (req.query.postElement == 'true') {
+                await addCourseElement(req.params.courseCode)
+            } else {
+                await createCourse()
+            }
             break;
 
         case "PUT":

@@ -5,7 +5,7 @@ import { saveLog } from "../shared/saveLog";
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     try {
-        const contentTable = await createContentTable(req.body.text, req.body.maxSections, req.body.language, "N/A")
+        const contentTable = await createContentTable(req.body.text, req.body.maxSections, req.body.language, "N/A", req.body.courseDescription)
         context.res = {
             "status": 201,
             "headers": {
