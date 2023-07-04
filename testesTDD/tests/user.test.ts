@@ -147,6 +147,7 @@ describe("Role", () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
       params: { code: "11111111-1111-1111-8985-002703e762aa" },
+      query: { email: "edededede@teste.com" },
       url: "/Users",
       body: {},
     };
@@ -160,5 +161,64 @@ describe("Role", () => {
     );
 
     expect(resultado.status).toBe(200);
+    expect(resultado.body).toMatchObject([
+      {
+        name: "teste user dw",
+        last_access: "",
+        status: "Activo",
+        code: "11111111-1111-1111-8985-002703e762aa",
+        email: "edededede@teste.com",
+        role: "Estudiante",
+        phone: "48999855214",
+        company: "Wilox",
+        position: "Usuario",
+        password: "2211c2e8-1111-1111-8985-002703e762aa",
+        organizationCode: "4de726c3-0e04-436b-ae50-f8752a2734aa",
+      },
+    ]);
+  });
+
+  test("getUser - 204 - User Not Found", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: { code: "11111111-1111-1111-8985-002703e762aa" },
+      query: { email: "edededede@teste.com" },
+      url: "/Users",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    expect(resultado.status).toBe(204);
+  });
+
+  test("getUser - 500 - Catch Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: {},
+      query: {},
+      url: "/Users",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("Error");
+    }
   });
 });

@@ -63,7 +63,7 @@ export const httpTrigger: AzureFunction = async function (
       ? { code: UserReq.params.userCode }
       : {};
     const byUserEmail = UserReq.query.userEmail
-      ? { email: UserReq.params.userEmail }
+      ? { email: UserReq.query.userEmail }
       : {};
 
     // console.info(byUserCode, byUserEmail)
