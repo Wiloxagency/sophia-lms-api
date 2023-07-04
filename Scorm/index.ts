@@ -75,6 +75,9 @@ const httpTrigger: AzureFunction = async function (
       return null;
     }
 
+    const audioHrefList = [];
+    const imageHrefList = [];
+
     paragraphs.forEach((paragraph: any) => {
       const audioUrl = paragraph.audioUrl;
       const imageData = paragraph.imageData.finalImage.url;
@@ -92,6 +95,9 @@ const httpTrigger: AzureFunction = async function (
       };
       const imageFileCount = Object.keys(resources.resource.file).length;
       resources.resource.file[`file_${imageFileCount}`] = newImageFile;
+
+      audioHrefList.push(audioHref);
+      imageHrefList.push(imageHref);
     });
 
     const newJsFile = {
@@ -101,7 +107,17 @@ const httpTrigger: AzureFunction = async function (
     resources.resource.file[`file_${jsFileCount}`] = newJsFile;
 
     const newJsonFile = {
-      paragraphs,
+      paragraphs: paragraphs.map((paragraph: any, index: number) => ({
+        ...paragraph,
+        audioUrl: audioHrefList[index],
+        imageData: {
+          ...paragraph.imageData,
+          finalImage: {
+            ...paragraph.imageData.finalImage,
+            url: imageHrefList[index],
+          },
+        },
+      })),
     };
 
     const jsCount = Object.keys(resources.resource.file).length;
