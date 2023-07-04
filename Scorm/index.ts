@@ -1,7 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import * as admZip from "adm-zip";
-import { v4 as uuidv4 } from "uuid";
 import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
 const fetch = require("node-fetch");
@@ -75,6 +74,7 @@ const httpTrigger: AzureFunction = async function (
     if (paragraphs.length === 0) {
       return null;
     }
+
     paragraphs.forEach((paragraph: any) => {
       const audioUrl = paragraph.audioUrl;
       const imageData = paragraph.imageData.finalImage.url;
@@ -99,6 +99,16 @@ const httpTrigger: AzureFunction = async function (
     };
     const jsFileCount = Object.keys(resources.resource.file).length;
     resources.resource.file[`file_${jsFileCount}`] = newJsFile;
+
+    const newJsonFile = {
+      paragraphs,
+    };
+
+    const jsCount = Object.keys(resources.resource.file).length;
+    const jsonContent = JSON.stringify(newJsonFile);
+
+    resources.resource.file[`file_${jsCount}`] = newJsonFile;
+    const jsonFilePath = `lesson.json`;
 
     const xmlString = `
 <resources>
@@ -139,6 +149,7 @@ const httpTrigger: AzureFunction = async function (
 
       zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
       zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
+      zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
     }
 
     const jsFolderPath = path.join("js");
