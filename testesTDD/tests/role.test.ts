@@ -331,7 +331,7 @@ describe("Role", () => {
 
   test("updateRole - 500 - Error Updating Role By Code", async () => {
     const mockRequest: Partial<HttpRequest> = {
-      method: "DELETE",
+      method: "PUT",
       params: { roleCode: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
       url: "/Role",
       body: {},

@@ -228,12 +228,12 @@ export const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const deleteUser = async () => {
+  const deleteUser = async (userCode: string) => {
     try {
       const db = client.db();
       const Users = db.collection("user");
 
-      const resp = Users.deleteOne({ code: req.params.userCode });
+      const resp = Users.deleteOne({ code: userCode });
       const body = await resp;
       if (body) {
         return {
@@ -353,7 +353,7 @@ export const httpTrigger: AzureFunction = async function (
       }
 
     case "DELETE":
-      return await deleteUser();
+      return await deleteUser(req.params.userCode);
 
     default:
       break;
