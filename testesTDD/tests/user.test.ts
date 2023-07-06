@@ -2,9 +2,8 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient } from "mongodb";
 import { Context, HttpRequest } from "@azure/functions";
 import { httpTrigger } from "../../User/userFunction";
-import { ObjectId } from "bson";
 
-describe("Role", () => {
+describe("User", () => {
   let mongod: MongoMemoryServer;
   let client: MongoClient;
 
@@ -225,7 +224,7 @@ describe("Role", () => {
   test("getUsers - 200 - Get Users", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "GET",
-      params: { organizationCode: "11116c99-1111-1111-aa05-a548e6956e0c" },
+      params: {},
       query: {},
       url: "/Users",
       body: {},
@@ -441,5 +440,37 @@ describe("Role", () => {
       expect(error.status).toBe(500);
       throw new Error("Error");
     }
+  });
+
+  test("createUsersFromExcel - 500 - Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "POST",
+      params: {},
+      query: { company: "Larragaña", excel: "true" },
+      url: "/Users",
+      body: {
+        name: "teste user",
+        last_access: "",
+        status: "Activo",
+        code: "11111111-bace-4897-8985-002703e762aa",
+        email: "testeuser@teste.com",
+        role: "Estudiante",
+        phone: "48995552145",
+        company: "Larragaña",
+        position: "Usuario",
+        password: "1111c2e8-1111-1111-8985-002703e762aa",
+        organizationCode: "11116c99-1111-1111-aa05-a548e6956e0c",
+      },
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    expect(resultado.status).toBe(500);
   });
 });
