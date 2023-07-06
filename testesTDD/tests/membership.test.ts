@@ -227,24 +227,28 @@ describe("Membership", () => {
 
   test("updateMembership - 201 - Updated Membership", async () => {
     const body = {
-      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
-      name: "Instructor Update",
-      permissions: ["ADMINISTRATOR.MAIN"],
+      code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d",
+      name: "Ilimitado Plus update",
+      restrictions: {
+        courses: 500,
+      },
     };
 
     const db = client.db();
     const collection = db.collection("membership");
     const insertedDocuments = {
-      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
-      name: "Instructor",
-      permissions: ["ADMINISTRATOR.MAIN"],
+      code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d",
+      name: "Ilimitado Plus",
+      restrictions: {
+        courses: 500,
+      },
     };
 
     await collection.insertOne(insertedDocuments);
 
     const mockRequest: Partial<HttpRequest> = {
       method: "PUT",
-      params: { code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      params: { code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d" },
       url: "/Membership",
       body: body,
     };
@@ -261,9 +265,11 @@ describe("Membership", () => {
     expect(resultado.body).toMatchObject({
       lastErrorObject: { n: 1, updatedExisting: true },
       value: {
-        code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
-        name: "Instructor",
-        permissions: ["ADMINISTRATOR.MAIN"],
+        code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d",
+        name: "Ilimitado Plus",
+        restrictions: {
+          courses: 500,
+        },
       },
       ok: 1,
     });
@@ -295,7 +301,7 @@ describe("Membership", () => {
   test("deleteMembership - 200 - Delete Membership", async () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "DELETE",
-      params: { code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b" },
+      params: { code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d" },
       url: "/Membership",
       body: {},
     };
@@ -305,9 +311,11 @@ describe("Membership", () => {
     const db = client.db();
     const collection = db.collection("membership");
     const insertedDocuments = {
-      name: "Administrator",
-      code: "7c55ca4a-6fa0-4f05-8cca-49331f681d1b",
-      permissions: ["ADMINISTRATOR.MAIN"],
+      code: "2d4b2316-84f6-4e1d-9be2-10c77de9631d",
+      name: "Ilimitado Plus",
+      restrictions: {
+        courses: 500,
+      },
     };
 
     await collection.insertOne(insertedDocuments);
