@@ -16,26 +16,22 @@ const httpTrigger: AzureFunction = async function (
       const db = await createConnection();
       const collection = db.collection("log");
 
-      const regexSearch = new RegExp(search, "i");
-
-      const timestamp = new Date(data);
-
+      const regexSearch = new RegExp(search, "i"); // "i" indica que a busca é case-insensitive
       const querySearch = {
         $or: [
           { message: { $regex: regexSearch } },
           { endpoint: { $regex: regexSearch } },
           { functionName: { $regex: regexSearch } },
-          { timestamp: { $regex: regexSearch } },
         ],
       };
 
+      const timestamp = new Date(data);
       const queryData = { timestamp: { $gte: timestamp } };
 
       const regexType = new RegExp(type, "i");
       const queryType = { logType: { $regex: regexType } };
 
       const skipNum = parseInt(skip);
-
       const limitNum = parseInt(items_by_page);
 
       const body = await collection
