@@ -1,6 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import parseMultipartFormData from "@anzp/azure-function-multipart"
+import { BlobServiceClient } from "@azure/storage-blob";
+import sharp = require("sharp")
+
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 
 const database = createConnection()
 
@@ -344,6 +349,47 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const uploadCourseCover = async (req: HttpRequest) => {
+        try {
+            const db = await database
+            const Courses = db.collection('course')
+            console.log('THIS RUNS')
+            const { fields, files } = await parseMultipartFormData(req)
+            console.log('THIS RUNS 2')
+            const responseMessage = {
+                fields,
+                files,
+            }
+            const courseCode = responseMessage.fields[0].value
+            const output = responseMessage.files[0].bufferFile as Buffer
+            const compressedOutput = await sharp(output)
+                .resize(1200, 675)
+                .jpeg()
+                .toBuffer()
+            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+            const containerClient = blobServiceClient.getContainerClient("images");
+            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename);
+            await blockBlobClient.upload(compressedOutput, compressedOutput.length);
+            let key = "details.cover"
+            await Courses.updateOne({ code: courseCode }, {
+                $set: {
+                    [key]: blockBlobClient.url
+                }
+            })
+        } catch (error) {
+            await saveLog(`Error uploading course cover. ` + error.message, "Error", "uploadCourseCover()", "Courses")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading course cover"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
             if (req.query.postElement == 'true') {
@@ -354,8 +400,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "PUT":
-            await updateCourse(req.params.courseCode)
-            break;
+
+            if (req.query.uploadCourseCover == 'true') {
+                await uploadCourseCover(req)
+            } else {
+                await updateCourse(req.params.courseCode)
+                break;
+            }
 
         case "DELETE":
             await deleteCourse()
