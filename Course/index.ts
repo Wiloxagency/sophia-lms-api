@@ -350,31 +350,44 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const uploadCourseCover = async (req: HttpRequest) => {
-        const db = await database
-        const Courses = db.collection('course')
-        console.log('THIS RUNS')
-        const { fields, files } = await parseMultipartFormData(req)
-        console.log('THIS RUNS 2')
-        const responseMessage = {
-            fields,
-            files,
-        }
-        const courseCode = responseMessage.fields[0].value
-        const output = responseMessage.files[0].bufferFile as Buffer
-        const compressedOutput = await sharp(output)
-            .resize(1200, 675)
-            .jpeg()
-            .toBuffer()
-        const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-        const containerClient = blobServiceClient.getContainerClient("images");
-        const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename);
-        await blockBlobClient.upload(compressedOutput, compressedOutput.length);
-        let key = "details.cover"
-        await Courses.updateOne({ code: courseCode }, {
-            $set: {
-                [key]: blockBlobClient.url
+        try {
+            const db = await database
+            const Courses = db.collection('course')
+            console.log('THIS RUNS')
+            const { fields, files } = await parseMultipartFormData(req)
+            console.log('THIS RUNS 2')
+            const responseMessage = {
+                fields,
+                files,
             }
-        })
+            const courseCode = responseMessage.fields[0].value
+            const output = responseMessage.files[0].bufferFile as Buffer
+            const compressedOutput = await sharp(output)
+                .resize(1200, 675)
+                .jpeg()
+                .toBuffer()
+            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+            const containerClient = blobServiceClient.getContainerClient("images");
+            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename);
+            await blockBlobClient.upload(compressedOutput, compressedOutput.length);
+            let key = "details.cover"
+            await Courses.updateOne({ code: courseCode }, {
+                $set: {
+                    [key]: blockBlobClient.url
+                }
+            })
+        } catch (error) {
+            await saveLog(`Error uploading course cover. ` + error.message, "Error", "uploadCourseCover()", "Courses")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading course cover"
+                }
+            }
+        }
     }
 
     switch (req.method) {
