@@ -26,18 +26,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         sendingRate: 14
     })
 
-    const testUsers = [
-        {
-            "name": "Leo Leto",
-            "email": "LeoLeto@proton.me"
-        }, {
-            "name": "Leonardo José",
-            "email": "Leonardojbarreto@gmail.com"
-        }, {
-            "name": "Leonardo Daniel",
-            "email": "Lexp2008@gmail.com"
-        }
-    ]
+    // const testUsers = [
+    //     {
+    //         "name": "Leo Leto",
+    //         "email": "LeoLeto@proton.me"
+    //     }, {
+    //         "name": "Leonardo José",
+    //         "email": "Leonardojbarreto@gmail.com"
+    //     }, {
+    //         "name": "Leonardo Daniel",
+    //         "email": "Lexp2008@gmail.com"
+    //     }
+    // ]
 
     async function sendEmail() {
         let htmlToSend
@@ -45,8 +45,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         if (req.query.emailTemplate == 'welcome') {
             const source = fs.readFileSync('nodemailer/welcome.html', 'utf-8').toString()
             const template = handlebars.compile(source)
-            for (const [indexUser, user] of testUsers.entries()) {
-            // for (const [indexUser, user] of req.body.entries()) {
+            for (const [indexUser, user] of req.body.entries()) {
+                // for (const [indexUser, user] of req.body.entries()) {
                 const replacements = {
                     username: user.name
                 }
