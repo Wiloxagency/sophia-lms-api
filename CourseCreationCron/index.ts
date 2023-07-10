@@ -27,8 +27,8 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
 
             try {
 
-                if (currentCourse==null) {
-                    saveLog(`Unabled to reinitializing course creation because doesn't exist: ${courseUnderConstruction.courseCode}`, "Error", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+                if (currentCourse == null) {
+                    saveLog(`Unable to reinitialize course creation because course doesn't exist: ${courseUnderConstruction.courseCode}`, "Error", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
                     await CoursesUnderConstructionCollection.findOneAndDelete({ "courseCode": courseUnderConstruction.courseCode })
                     throw new Error(`Course ${courseUnderConstruction.courseCode} does not exist`)
                 }
@@ -38,7 +38,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                 for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
                     const elements = currentCourse.sections[sectionIndex].elements
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
-                        if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) || 
+                        if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) ||
                             (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
                             await createContentCycle(currentCourse, sectionIndex, elementIndex)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
