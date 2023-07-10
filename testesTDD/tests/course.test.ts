@@ -32,7 +32,7 @@ describe("Course", () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "POST",
       params: {},
-      url: "/Course",
+      url: "/Courses",
       body: {
         course: {
           code: "111111a1-0307-4dc5-814a-9189c41d83e4",
@@ -71,7 +71,7 @@ describe("Course", () => {
     const mockRequest: Partial<HttpRequest> = {
       method: "POST",
       params: {},
-      url: "/Course",
+      url: "/Courses",
       body: {},
     };
 
@@ -95,7 +95,7 @@ describe("Course", () => {
       method: "GET",
       params: {},
       query: {},
-      url: "/Course",
+      url: "/Courses",
       body: {},
     };
 
@@ -152,5 +152,92 @@ describe("Course", () => {
     );
 
     expect(resultado.status).toBe(200);
+  });
+
+  test("getCourses - 500 - Catch Error", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: {},
+      url: "/Courses",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    try {
+      await httpTrigger(
+        mockResponse as Context,
+        mockRequest as HttpRequest,
+        client
+      );
+    } catch (error: any) {
+      expect(error).toBeDefined();
+      expect(error.status).toBe(500);
+      throw new Error("message: Error getting courses");
+    }
+  });
+
+  test("getCourse - 200 - Get Course", async () => {
+    const mockRequest: Partial<HttpRequest> = {
+      method: "GET",
+      params: { courseCode: "111111a1-0307-4dc5-814a-9189c41d83e4" },
+      url: "/Courses",
+      body: {},
+    };
+
+    const mockResponse: Partial<Context> = {};
+
+    const db = client.db();
+    const collection = db.collection("course");
+    const collectionUser = db.collection("user");
+    const insertedUser = {
+      name: "Usuario pruebas",
+      last_access: "",
+      status: "Activo",
+      code: "12180a1-0307-4dc5-814a-9189c41306578",
+      email: "123",
+      role: "Superadmin",
+      phone: "09090909",
+      company: "Edutecno",
+      position: "Desarrollador",
+      password: "$2a$10$RBwL6/Fs2Cgjg8.wRL8LxOQXVyMi1GF8lGeqA2CetWfmh7Pl30fpG",
+      organizationCode: "c3fe12b5-2ff3-4634-9347-3bcd4c1e5601",
+      language: "es-MX",
+      last_course_accessed: "Gestión empresarial",
+      last_course_accessed_code: "681bb0cc-8bde-4230-983f-d23d5c44e621",
+    };
+
+    await collectionUser.insertOne(insertedUser);
+
+    const insertedCourse = {
+      course: {
+        code: "111111a1-0307-4dc5-814a-9189c41d83e4",
+        organizationCode: "11180a1-3307-4dc5-814a-9189c41d8904",
+        author_code: "12180a1-0307-4dc5-814a-9189c41306578",
+        approvalStatus: "",
+        buildingStatus: "",
+        language: "es",
+        lessonTheme: "1",
+        details: {
+          title: "Gobiernos",
+          summary: "Cdel siglo XXI",
+          categories: [],
+          cover:
+            "https://tse3.mm.bing.net/th?id=OIP.s13627vz09yx8-PiF2viuAHaEM&pid=Api",
+        },
+        sections: [],
+      },
+    };
+
+    await collection.insertOne(insertedCourse);
+
+    const resultado = await httpTrigger(
+      mockResponse as Context,
+      mockRequest as HttpRequest,
+      client
+    );
+
+    expect(resultado.status).toBe(200);
+    expect(resultado.body).toMatchObject(insertedCourse);
   });
 });
