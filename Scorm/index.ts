@@ -101,7 +101,7 @@ const httpTrigger: AzureFunction = async function (
     });
 
     const newJsFile = {
-      "@href": "js/engine.sophia.1.0.js",
+      "@href": "js/engine.js",
     };
     const jsFileCount = Object.keys(resources.resource.file).length;
     resources.resource.file[`file_${jsFileCount}`] = newJsFile;
@@ -124,7 +124,7 @@ const httpTrigger: AzureFunction = async function (
     const jsonContent = JSON.stringify(newJsonFile);
 
     resources.resource.file[`file_${jsCount}`] = newJsonFile;
-    const jsonFilePath = `lesson.json`;
+    const jsonFilePath = `assets/lesson.json`;
 
     const xmlString = `
 <resources>
@@ -145,6 +145,76 @@ const httpTrigger: AzureFunction = async function (
     const zipLesson = new admZip();
 
     zipLesson.addFile("imsmanifest.xml", Buffer.from(newManifest));
+
+    const assetsFolder = "assets";
+    const assetsFolderPath = path.join("Scorm/files", assetsFolder);
+    zipLesson.addLocalFolder(assetsFolderPath, assetsFolder);
+
+    const jsFolder = "js";
+    const jsFolderPaths = path.join("Scorm/files", jsFolder);
+    zipLesson.addLocalFolder(jsFolderPaths, jsFolder);
+
+    const scriptsFolder = "scripts";
+    const scriptsFolderPaths = path.join("Scorm/files", scriptsFolder);
+    zipLesson.addLocalFolder(scriptsFolderPaths, scriptsFolder);
+
+    const contentIndex = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Lesson 1</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" type="text/css" href="/assets/style.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/fonts.css" />
+    <link rel="icon" href="/assets/fav.png">
+</head>
+
+<body>
+
+
+    <div id="main-text-container">
+
+        <div id="slideBg"> </div>
+
+        <div id="textBackground"  style="z-index:100;"></div>
+
+        <div style="position:absolute;z-index: 101;">
+
+            <div id="kinetic-3">
+
+                <div id = "textContainer" >
+
+                    <div class="line1">
+                        <div id="container30" #container30></div>
+                    </div>
+                    <div class="line2">
+                        <div id="container31" #container31></div>
+                    </div>
+                    <div class="line3">
+                        <div id="container32" #container32></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <img style="z-index: 102" id="logo" src="/assets/logo-edutecno-2.png" alt="Logo">
+        <img id="play-buttom" src="/assets/play.png" alt="Play">
+    </div>
+
+
+
+    <script src="./scripts/gsap.min.js"></script>
+    <script src="./scripts/SplitText.min.js"></script>
+    <script src="./js/engine.js" type="module"></script>
+
+</body>
+
+</html>`;
+    zipLesson.addFile("index.html", Buffer.from(contentIndex));
 
     // faz o loop nos parágrafos e adiciona os arquivos nas pastas
     for (let i = 0; i < paragraphs.length; i++) {
@@ -167,11 +237,6 @@ const httpTrigger: AzureFunction = async function (
       zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
       zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
     }
-
-    const jsFolderPath = path.join("js");
-    const jsFilePath = path.join(jsFolderPath, "engine.sophia.1.0.js");
-    const newJsContent = `"use strict";(self.webpackChunkmy_project=self.webpackChunkmy_project||[]).push([[95],{7095:(s,a,_)=>{_.r(a),_.d(a,{AdminModule:()=>D,httpTranslateLoader:()=>E});var r=_(6895),l=_(4796),d=_(4763),o=_(4463),M=_(529),u=_(9832),m=_(4006),t=_(4650);let D=(()=>{class n{}return n.\u0275fac=function(P){return new(P||n)},n.\u0275mod=t.oAB({type:n}),n.\u0275inj=t.cJS({imports:[r.ez,l.c,d.Bz,m.u5,o.aw.forChild({loader:{provide:o.Zw,useFactory:E,deps:[M.eN]}})]}),n})();function E(n){return new u.w(n)}}}]);`;
-    zipLesson.addFile(jsFilePath, Buffer.from(newJsContent));
 
     const zipBufferCourse = zipLesson.toBuffer();
 
