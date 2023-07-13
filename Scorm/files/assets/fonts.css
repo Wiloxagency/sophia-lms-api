@@ -1,0 +1,66 @@
+/* AZO SANS FONT */
+
+@font-face {
+    font-family: "Azo Sans";
+    src:  url("./fonts/azoSans/AzoSans-Bold.ttf") format("truetype");
+    font-weight: 800;
+  }
+  @font-face {
+      font-family: "Azo Sans";
+      src: url("./fonts/azoSans/AzoSans-Regular.ttf") format("truetype");
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "Azo Sans";
+      src: url("./fonts/azoSans/AzoSans-Thin.ttf") format("truetype");
+      font-weight: lighter;
+    }
+  
+    /* SEGOE UI FONT */
+  
+  @font-face {
+    font-family: "Segoe UI";
+    src: local('Segoe UI Regular') url("./fonts/segoeUI/SegoeUI.ttf") format("truetype");
+    font-weight: 500;
+  }
+  @font-face {
+      font-family: "Segoe UI";
+      src: local('Segoe UI') url("./fonts/segoeUI/SegoeUI-ExtraBold.ttf") format("truetype");
+      font-weight: 800;
+    }
+  
+    @font-face {
+      font-family: "Segoe UI";
+      src: local('Segoe UI') url("./fonts/segoeUI/SegoeUI-Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+  
+  .azoSansBold {
+    font-family: "Azo Sans";
+    font-weight: 800;
+  }
+  
+  .azoSansRegular {
+    font-family: "Azo Sans";
+    font-weight: 500;
+  }
+  
+  .azoSansThin{
+      font-family: 'Azo Sans';
+      font-weight:lighter;
+    }
+  
+  .segoeUIRegular {
+    font-family: "Segoe UI Regular";
+    font-weight: 500;
+  }
+  
+  .segoeUIExtraBold {
+      font-family: "Segoe UI";
+      font-weight: 800;
+    }
+    .segoeUIBold {
+      font-family: "Segoe UI";
+      font-weight:bold;
+    }
+  
