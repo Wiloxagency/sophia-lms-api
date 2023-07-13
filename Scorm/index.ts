@@ -81,6 +81,11 @@ const httpTrigger: AzureFunction = async function (
     paragraphs.forEach((paragraph: any) => {
       const audioUrl = paragraph.audioUrl;
       const imageData = paragraph.imageData.finalImage.url;
+
+      if (audioUrl === "" || imageData === "") {
+        return;
+      }
+
       const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
       const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
 
@@ -220,6 +225,11 @@ const httpTrigger: AzureFunction = async function (
     for (let i = 0; i < paragraphs.length; i++) {
       const audioFile = paragraphs[i].audioUrl;
       const imageFile = paragraphs[i].imageData.finalImage.url;
+
+      if (audioFile === "" || imageFile === "") {
+        continue;
+      }
+
       const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
       const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
 
