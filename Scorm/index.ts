@@ -7,6 +7,7 @@ const fetch = require("node-fetch");
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
 import * as path from "path";
+import { sendScormDownloadEmail } from "../nodemailer/scormDownloadEmail";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -131,8 +132,8 @@ const httpTrigger: AzureFunction = async function (
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
 
     ${Object.keys(resources.resource.file)
-      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
-      .join("\n  ")}
+        .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+        .join("\n  ")}
 
   </resource>
 </resources>
@@ -323,9 +324,8 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const LessonFileName = `S${
-                  sectionIndex + 1
-                }-${courseCode}/${fileName}`;
+                const LessonFileName = `S${sectionIndex + 1
+                  }-${courseCode}/${fileName}`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(LessonFileName);
                 await blockBlobClient.upload(fileContent, fileContent.length);
@@ -349,20 +349,17 @@ const httpTrigger: AzureFunction = async function (
 
                   const containerClient =
                     blobServiceClient.getContainerClient("scorms");
-                  const HtmlFileName = `S${
-                    sectionIndex + 1
-                  }-${courseCode}/Text-S${
-                    sectionIndex + 1
-                  }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${sectionIndex + 1
+                    }-${courseCode}/Text-S${sectionIndex + 1
+                    }-T${htmlFileCount}.docx`;
 
                   const blockBlobClient =
                     containerClient.getBlockBlobClient(HtmlFileName);
                   await blockBlobClient.upload(fileHtml, fileHtml.length);
                   htmlFileCount++;
                 } else {
-                  const HtmlFileName = `S${
-                    sectionIndex + 1
-                  }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${sectionIndex + 1
+                    }-T${htmlFileCount}.docx`;
                   console.log(
                     `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
                   );
@@ -391,11 +388,9 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const QuizzFileName = `S${
-                  sectionIndex + 1
-                }-${courseCode}/Quiz-S${
-                  sectionIndex + 1
-                }-Q${quizFileCount}.docx`;
+                const QuizzFileName = `S${sectionIndex + 1
+                  }-${courseCode}/Quiz-S${sectionIndex + 1
+                  }-Q${quizFileCount}.docx`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(QuizzFileName);
                 await blockBlobClient.upload(fileQuiz, fileQuiz.length);
@@ -448,6 +443,11 @@ const httpTrigger: AzureFunction = async function (
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
         );
+
+        console.log(req.params)
+        sendScormDownloadEmail("Lexp2008@gmail.com", zipFileName)
+        // sendScormDownloadEmail(req.params.userEmail, zipFileName)
+      
       }
 
       async function streamToBuffer(
