@@ -120,11 +120,11 @@ const httpTrigger: AzureFunction = async function (
       })),
     };
 
-    const jsCount = Object.keys(resources.resource.file).length;
     const jsonContent = JSON.stringify(newJsonFile);
-
-    resources.resource.file[`file_${jsCount}`] = newJsonFile;
     const jsonFilePath = `assets/lesson.json`;
+    const addLessonManifest = { "@href": jsonFilePath };
+    const jsJsonCountLesson = Object.keys(resources.resource.file).length;
+    resources.resource.file[`file_${jsJsonCountLesson}`] = addLessonManifest;
 
     const xmlString = `
 <resources>
