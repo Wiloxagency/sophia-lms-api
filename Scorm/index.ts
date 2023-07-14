@@ -137,8 +137,8 @@ const httpTrigger: AzureFunction = async function (
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
 
     ${Object.keys(resources.resource.file)
-      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
-      .join("\n  ")}
+        .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+        .join("\n  ")}
 
   </resource>
 </resources>
@@ -231,21 +231,30 @@ const httpTrigger: AzureFunction = async function (
       if (imageFile === "" && videoFile === "") {
         return;
       }
+
+      // Audio process
       const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
-      const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
-
       const responseAudio = await fetch(audioFile);
-      const responseImage = await fetch(imageFile);
+      if (!responseAudio.ok) {
+        throw new Error("Failed to fetch audio");
+      }
+      const fileContentAudio = await responseAudio.buffer();
+      zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
 
-      if (!responseAudio.ok || !responseImage.ok) {
-        throw new Error("Failed to fetch audio or image file.");
+
+      // Images process
+      if (imageFile != "") {
+        const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
+        const responseImage = await fetch(imageFile);
+        if (!responseImage.ok) {
+          throw new Error("Failed to fetch audio or image file.");
+        }
+
+        const fileContentImage = await responseImage.buffer();
+        zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
+
       }
 
-      const fileContentAudio = await responseAudio.buffer();
-      const fileContentImage = await responseImage.buffer();
-
-      zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
-      zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
       zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
     }
 
@@ -399,9 +408,8 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const LessonFileName = `S${
-                  sectionIndex + 1
-                }-${courseCode}/${fileName}`;
+                const LessonFileName = `S${sectionIndex + 1
+                  }-${courseCode}/${fileName}`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(LessonFileName);
                 await blockBlobClient.upload(fileContent, fileContent.length);
@@ -425,20 +433,17 @@ const httpTrigger: AzureFunction = async function (
 
                   const containerClient =
                     blobServiceClient.getContainerClient("scorms");
-                  const HtmlFileName = `S${
-                    sectionIndex + 1
-                  }-${courseCode}/Text-S${
-                    sectionIndex + 1
-                  }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${sectionIndex + 1
+                    }-${courseCode}/Text-S${sectionIndex + 1
+                    }-T${htmlFileCount}.docx`;
 
                   const blockBlobClient =
                     containerClient.getBlockBlobClient(HtmlFileName);
                   await blockBlobClient.upload(fileHtml, fileHtml.length);
                   htmlFileCount++;
                 } else {
-                  const HtmlFileName = `S${
-                    sectionIndex + 1
-                  }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${sectionIndex + 1
+                    }-T${htmlFileCount}.docx`;
                   console.log(
                     `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
                   );
@@ -467,11 +472,9 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const QuizzFileName = `S${
-                  sectionIndex + 1
-                }-${courseCode}/Quiz-S${
-                  sectionIndex + 1
-                }-Q${quizFileCount}.docx`;
+                const QuizzFileName = `S${sectionIndex + 1
+                  }-${courseCode}/Quiz-S${sectionIndex + 1
+                  }-Q${quizFileCount}.docx`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(QuizzFileName);
                 await blockBlobClient.upload(fileQuiz, fileQuiz.length);
