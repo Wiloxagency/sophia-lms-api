@@ -87,23 +87,25 @@ const httpTrigger: AzureFunction = async function (
         return;
       }
 
+      // Audio process
       const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
-      const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
-
       const newAudioFile = {
         "@href": audioHref,
       };
       const audioFileCount = Object.keys(resources.resource.file).length;
       resources.resource.file[`file_${audioFileCount}`] = newAudioFile;
-
-      const newImageFile = {
-        "@href": imageHref,
-      };
-      const imageFileCount = Object.keys(resources.resource.file).length;
-      resources.resource.file[`file_${imageFileCount}`] = newImageFile;
-
       audioHrefList.push(audioHref);
-      imageHrefList.push(imageHref);
+
+      // Images process
+      if (imageData !== "") {
+        const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
+        const newImageFile = {
+          "@href": imageHref,
+        };
+        const imageFileCount = Object.keys(resources.resource.file).length;
+        resources.resource.file[`file_${imageFileCount}`] = newImageFile;
+        imageHrefList.push(imageHref);
+      }
     });
 
     const newJsFile = {
@@ -137,8 +139,8 @@ const httpTrigger: AzureFunction = async function (
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
 
     ${Object.keys(resources.resource.file)
-        .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
-        .join("\n  ")}
+      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+      .join("\n  ")}
 
   </resource>
 </resources>
@@ -229,9 +231,12 @@ const httpTrigger: AzureFunction = async function (
       const videoFile = paragraphs[i].videoData.finalVideo.url;
 
       if (imageFile === "" && videoFile === "") {
-        return;
+        continue;
       }
 
+      if (audioFile === "") {
+        continue;
+      }
       // Audio process
       const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
       const responseAudio = await fetch(audioFile);
@@ -241,9 +246,8 @@ const httpTrigger: AzureFunction = async function (
       const fileContentAudio = await responseAudio.buffer();
       zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
 
-
       // Images process
-      if (imageFile != "") {
+      if (imageFile !== "") {
         const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
         const responseImage = await fetch(imageFile);
         if (!responseImage.ok) {
@@ -252,7 +256,6 @@ const httpTrigger: AzureFunction = async function (
 
         const fileContentImage = await responseImage.buffer();
         zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
-
       }
 
       zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
@@ -408,8 +411,9 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const LessonFileName = `S${sectionIndex + 1
-                  }-${courseCode}/${fileName}`;
+                const LessonFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/${fileName}`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(LessonFileName);
                 await blockBlobClient.upload(fileContent, fileContent.length);
@@ -433,17 +437,20 @@ const httpTrigger: AzureFunction = async function (
 
                   const containerClient =
                     blobServiceClient.getContainerClient("scorms");
-                  const HtmlFileName = `S${sectionIndex + 1
-                    }-${courseCode}/Text-S${sectionIndex + 1
-                    }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-${courseCode}/Text-S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
 
                   const blockBlobClient =
                     containerClient.getBlockBlobClient(HtmlFileName);
                   await blockBlobClient.upload(fileHtml, fileHtml.length);
                   htmlFileCount++;
                 } else {
-                  const HtmlFileName = `S${sectionIndex + 1
-                    }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
                   console.log(
                     `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
                   );
@@ -472,9 +479,11 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const QuizzFileName = `S${sectionIndex + 1
-                  }-${courseCode}/Quiz-S${sectionIndex + 1
-                  }-Q${quizFileCount}.docx`;
+                const QuizzFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/Quiz-S${
+                  sectionIndex + 1
+                }-Q${quizFileCount}.docx`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(QuizzFileName);
                 await blockBlobClient.upload(fileQuiz, fileQuiz.length);
