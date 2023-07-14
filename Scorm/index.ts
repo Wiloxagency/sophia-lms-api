@@ -86,6 +86,11 @@ const httpTrigger: AzureFunction = async function (
       if (imageData === "" && videoUrl === "") {
         return;
       }
+      
+
+      if (audioUrl === "") {
+        return;
+      }
 
       // Audio process
       const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
