@@ -82,23 +82,36 @@ const httpTrigger: AzureFunction = async function (
     paragraphs.forEach((paragraph: any) => {
       const audioUrl = paragraph.audioUrl;
       const imageData = paragraph.imageData.finalImage.url;
-      const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
-      const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
+      const videoUrl = paragraph.videoData.finalVideo.url;
 
+      if (imageData === "" && videoUrl === "") {
+        return;
+      }
+
+
+      if (audioUrl === "") {
+        return;
+      }
+
+      // Audio process
+      const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
       const newAudioFile = {
         "@href": audioHref,
       };
       const audioFileCount = Object.keys(resources.resource.file).length;
       resources.resource.file[`file_${audioFileCount}`] = newAudioFile;
 
-      const newImageFile = {
-        "@href": imageHref,
-      };
-      const imageFileCount = Object.keys(resources.resource.file).length;
-      resources.resource.file[`file_${imageFileCount}`] = newImageFile;
-      errorLine = 99
-      audioHrefList.push(audioHref);
-      imageHrefList.push(imageHref);
+
+      // Images process
+      if (imageData !== "") {
+        const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
+        const newImageFile = {
+          "@href": imageHref,
+        };
+        const imageFileCount = Object.keys(resources.resource.file).length;
+        resources.resource.file[`file_${imageFileCount}`] = newImageFile;
+        imageHrefList.push(imageHref);
+      }
     });
 
     const newJsFile = {
@@ -121,12 +134,13 @@ const httpTrigger: AzureFunction = async function (
       })),
     };
 
-    const jsCount = Object.keys(resources.resource.file).length;
     const jsonContent = JSON.stringify(newJsonFile);
-
-    resources.resource.file[`file_${jsCount}`] = newJsonFile;
     const jsonFilePath = `assets/lesson.json`;
     errorLine = 129
+    const addLessonManifest = { "@href": jsonFilePath };
+    const jsJsonCountLesson = Object.keys(resources.resource.file).length;
+    resources.resource.file[`file_${jsJsonCountLesson}`] = addLessonManifest;
+
     const xmlString = `
 <resources>
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
@@ -221,21 +235,38 @@ const httpTrigger: AzureFunction = async function (
     for (let i = 0; i < paragraphs.length; i++) {
       const audioFile = paragraphs[i].audioUrl;
       const imageFile = paragraphs[i].imageData.finalImage.url;
-      const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
-      const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
       errorLine = 226
-      const responseAudio = await fetch(audioFile);
-      const responseImage = await fetch(imageFile);
-      errorLine = 229
-      if (!responseAudio.ok || !responseImage.ok) {
-        throw new Error("Failed to fetch audio or image file.");
+
+      const videoFile = paragraphs[i].videoData.finalVideo.url;
+
+      if (imageFile === "" && videoFile === "") {
+        continue;
       }
-      errorLine = 233
+
+      if (audioFile === "") {
+        continue;
+      }
+      // Audio process
+      const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
+      const responseAudio = await fetch(audioFile);
+      if (!responseAudio.ok) {
+        throw new Error("Failed to fetch audio");
+      }
       const fileContentAudio = await responseAudio.buffer();
-      const fileContentImage = await responseImage.buffer();
-      errorLine = 236
       zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
-      zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
+
+      // Images process
+      if (imageFile !== "") {
+        const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
+        const responseImage = await fetch(imageFile);
+        if (!responseImage.ok) {
+          throw new Error("Failed to fetch audio or image file.");
+        }
+
+        const fileContentImage = await responseImage.buffer();
+        zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
+      }
+
       zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
     }
     errorLine = 241
