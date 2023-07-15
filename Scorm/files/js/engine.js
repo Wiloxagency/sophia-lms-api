@@ -18,10 +18,13 @@ var soundTrack = new Audio()
 var elementLesson = undefined
 var selectedKinetic = 0
 var kineticArray = []
+var kineticTimeOut
 
 function nextVideo() {
 
   console.info(currentVideoIndex)
+  console.info(slideMedia)
+
   var videoElement = document.getElementsByClassName('videoElement')
 
   const currentTimeline = gsap.timeline({ defaults: { duration: 0.5 } }),
@@ -34,12 +37,12 @@ function nextVideo() {
   currentTimeline.to(currentVideo, { scale: 3, opacity: 0, ease: "expo.in" })
   nextTimeline.to(nextVideo, { scale: 1, ease: "expo.in" })
 
-  // if (slideMedia[currentVideoIndex].type == "video") {
-  //   videoElements.get(currentVideoIndex)?.nativeElement.pause()
-  //   if (slideMedia[currentVideoIndex + 1].type == "video") {
-  //     videoElements.get(currentVideoIndex + 1)?.nativeElement.play()
-  //   }
-  // }
+  if (slideMedia[currentVideoIndex].type == "video") {
+    videoElement[currentVideoIndex].pause()
+    if (slideMedia[currentVideoIndex + 1].type == "video") {
+      videoElement[currentVideoIndex + 1].play()
+    }
+  }
 
 
   currentVideoIndex++
@@ -269,18 +272,20 @@ function showKinetic(phrase) {
   const mainWidth = mainContainer.offsetWidth - 6
   const mainHeight = mainContainer.offsetHeight - 6
 
-  console.info("mainWidth --> ", mainWidth)
-  console.info("mainHeight --> ", mainHeight)
+  // console.info("mainWidth --> ", mainWidth)
+  // console.info("mainHeight --> ", mainHeight)
 
 
   const sizeCycle = (fontSize1, fontSize2, fontSize3) => {
+
+    clearTimeout(kineticTimeOut)
 
     container30.style.fontSize = `${fontSize1}px`
     container31.style.fontSize = `${fontSize2}px`
     container32.style.fontSize = `${fontSize3}px`
 
-    console.info("container30 --> ", container30.style.fontSize)
-    console.info("offsetHeights --> ", container30.offsetHeight, container31.offsetHeight, container32.offsetHeight)
+    // console.info("container30 --> ", container30.style.fontSize)
+    // console.info("offsetHeights --> ", container30.offsetHeight, container31.offsetHeight, container32.offsetHeight)
 
     if ((container30.offsetHeight +
       container31.offsetHeight +
@@ -304,8 +309,8 @@ function showKinetic(phrase) {
       (container32.offsetHeight >= mainHeight / 2.50 && kineticArray[2].length < 6)) {
       inc3 = 0
     }
-    console.info(inc1, inc2, inc3, fontSize1, fontSize2, fontSize3)
-    console.info("container30.offsetHeight -->", container30.offsetHeight)
+    // console.info(inc1, inc2, inc3, fontSize1, fontSize2, fontSize3)
+    // console.info("container30.offsetHeight -->", container30.offsetHeight)
     if ((inc1 + inc2 + inc3) > 0) {
       sizeCycle(fontSize1 + inc1, fontSize2 + inc2, fontSize3 + inc3)
     }
@@ -360,6 +365,10 @@ function showKinetic(phrase) {
       textBackgroundTL = textBackground;
     tlBck.to(textBackgroundTL, { width: textContainerWidth + 20, height: textContainerHeight + 25, x: textContainerLeft - 10, y: textContainerTop - 15, ease: "expo.in", duration: 0.5 })
 
+    kineticTimeOut = setTimeout(() => {
+      hideKinetic() 
+    }, 6000)
+
     //console.info("Size -->", textContainerWidth, textContainerHeight, textContainerTop, textContainerLeft)
   }, 200);
 
@@ -382,6 +391,8 @@ function startPresentation() {
   }
   if (slideMedia[currentVideoIndex].type == "video") {
     //videoElements.get(currentVideoIndex)?.nativeElement.play()
+    var videoElement = document.getElementsByClassName('videoElement')
+    videoElement[currentVideoIndex].play()
   }
 
   isPlaying = true
@@ -404,9 +415,9 @@ function startPresentation() {
         phrasePosition = -1
       }
 
-      console.info("text-->", text.toLowerCase())
-      console.info("keyPhrase-->", keyPhrase.toLowerCase())
-      console.info("Position of --> ", keyPhrase, phrasePosition)
+      // console.info("text-->", text.toLowerCase())
+      // console.info("keyPhrase-->", keyPhrase.toLowerCase())
+      // console.info("Position of --> ", keyPhrase, phrasePosition)
       if (phrasePosition >= 0) {
         setTimeout(() => {
           nextKinetic(keyIndex)
@@ -475,13 +486,25 @@ fetch('/assets/lesson.json')
           url: paragraph.videoData.finalVideo.url,
           type: "video"
         })
+        var newDiv = document.createElement('div')
+        newDiv.innerHTML =
+          `<div>
+            <video class="videoElement" loop width="800" height="450"
+            style="z-index:${lessonData.paragraphs.length - paragraphIndex}" >
+              <source src=${paragraph.videoData.finalVideo.url} type="video/mp4">
+            </video>
+          </div>`
+
+        slideBg.appendChild(newDiv)
       } else if (paragraphIndex >= slideIndex) {
         slideMedia.push({
           url: paragraph.imageData.finalImage.url,
           type: "image"
         })
         var newDiv = document.createElement('div')
-        newDiv.innerHTML =
+        
+
+          newDiv.innerHTML =
           `<div>
               <img class="videoElement" src=${paragraph.imageData.finalImage.url}  width="800" height="450" style="z-index:${lessonData.paragraphs.length - paragraphIndex}" >
           </div>`
