@@ -383,7 +383,7 @@ function nextKinetic(phraseIndex) {
 function startPresentation() {
   playButtom.style.display = "none"
   if (!isPlaying) {
-    soundTrack.src = "/assets/soundtracks/soundtrack1.mp3"
+    soundTrack.src = "./assets/soundtracks/soundtrack1.mp3"
     soundTrack.onloadeddata = () => {
       soundTrack.volume = 0.1
       soundTrack.play()
@@ -475,7 +475,7 @@ gsap.from(chars, {
   duration: 1
 })
 
-fetch('/assets/lesson.json')
+fetch('./assets/lesson.json')
   .then(response => response.json())
   .then(lessonData => {
     console.log(lessonData)

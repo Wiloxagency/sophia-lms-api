@@ -37,10 +37,10 @@ body {
 .line1,
 .line2,
 .line3 {
-    display       : flex;
-    flex-direction: column;
-    align-items   : center;
-
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    margin-bottom   : 1%;
 }
 
 .line1 {

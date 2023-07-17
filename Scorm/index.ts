@@ -3,7 +3,7 @@ import { saveLog } from "../shared/saveLog";
 import * as admZip from "adm-zip";
 import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
-const fetch = require("node-fetch");
+import fetch from 'node-fetch';
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
 import * as path from "path";
@@ -23,6 +23,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   errorLine = 25
+
   async function createScorm(scormPayload: {
     courseTitle: string;
     lesson: any;
@@ -65,7 +66,7 @@ const httpTrigger: AzureFunction = async function (
         "@identifier": "resource_1",
         "@type": "webcontent",
         "@scormtype": "sco",
-        "@href": "shared/launchpage.html",
+        "@href": "index.html",
         file: {},
       },
     };
@@ -96,26 +97,26 @@ const httpTrigger: AzureFunction = async function (
       // Audio process
       const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
       const newAudioFile = {
-        "@href": audioHref,
+        "@href": "./" + audioHref,
       };
       const audioFileCount = Object.keys(resources.resource.file).length;
       resources.resource.file[`file_${audioFileCount}`] = newAudioFile;
-
+      audioHrefList.push("./" + audioHref);
 
       // Images process
-      if (imageData !== "") {
+      //if (imageData !== "") {
         const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
         const newImageFile = {
-          "@href": imageHref,
+          "@href": "./" + imageHref,
         };
         const imageFileCount = Object.keys(resources.resource.file).length;
         resources.resource.file[`file_${imageFileCount}`] = newImageFile;
-        imageHrefList.push(imageHref);
-      }
+        imageHrefList.push("./" + imageHref);
+      //}
     });
 
     const newJsFile = {
-      "@href": "js/engine.js",
+      "@href": "./js/engine.js",
     };
     const jsFileCount = Object.keys(resources.resource.file).length;
     resources.resource.file[`file_${jsFileCount}`] = newJsFile;
@@ -135,7 +136,7 @@ const httpTrigger: AzureFunction = async function (
     };
 
     const jsonContent = JSON.stringify(newJsonFile);
-    const jsonFilePath = `assets/lesson.json`;
+    const jsonFilePath = `./assets/lesson.json`;
     errorLine = 129
     const addLessonManifest = { "@href": jsonFilePath };
     const jsJsonCountLesson = Object.keys(resources.resource.file).length;
@@ -143,7 +144,7 @@ const httpTrigger: AzureFunction = async function (
 
     const xmlString = `
 <resources>
-  <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
+  <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="index.html">
 
     ${Object.keys(resources.resource.file)
         .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
@@ -181,9 +182,9 @@ const httpTrigger: AzureFunction = async function (
     <title>Lesson 1</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="" />
-    <link rel="stylesheet" type="text/css" href="/assets/style.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/fonts.css" />
-    <link rel="icon" href="/assets/fav.png">
+    <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
+    <link rel="icon" href="./assets/fav.png">
 </head>
 
 <body>
@@ -216,8 +217,8 @@ const httpTrigger: AzureFunction = async function (
             </div>
         </div>
 
-        <img style="z-index: 102" id="logo" src="/assets/logo-edutecno-2.png" alt="Logo">
-        <img id="play-buttom" src="/assets/play.png" alt="Play">
+        <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
+        <img id="play-buttom" src="./assets/play.png" alt="Play">
     </div>
 
 
@@ -326,7 +327,7 @@ const httpTrigger: AzureFunction = async function (
     };
     const options = { upsert: true };
     await Scorms.updateOne(query, update, options);
-    console.info("scorm criado ou atualizado com sucesso.");
+    console.info("scorm criado ou atualizado com sucesso, inicio do processo de compressão");
     await createInstructionsDoc(scormData);
   }
   errorLine = 301
