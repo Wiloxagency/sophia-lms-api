@@ -357,17 +357,48 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-
-      const resp = Courses.deleteOne({ code: req.params.courseCode });
-      const body = await resp;
-      if (body) {
+      const findUsers = await Courses.aggregate([
+        {
+          $match: {
+            code: req.params.courseCode,
+          },
+        },
+        {
+          $lookup: {
+            from: "group",
+            localField: "code",
+            foreignField: "courseCode",
+            as: "result",
+          },
+        },
+      ]).toArray();
+      if (
+        findUsers.length > 0 &&
+        findUsers[0].result.length > 0 &&
+        findUsers[0].result.some((group: any) => group.users.length > 0)
+      ) {
         context.res = {
-          status: 200,
+          status: 400,
           headers: {
             "Content-Type": "application/json",
           },
-          body: body,
+          body: {
+            message:
+              "The course cannot be removed because it has a user in a group.",
+          },
         };
+      } else {
+        const resp = Courses.deleteOne({ code: req.params.courseCode });
+        const body = await resp;
+        if (body) {
+          context.res = {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body,
+          };
+        }
       }
     } catch (error) {
       await saveLog(
