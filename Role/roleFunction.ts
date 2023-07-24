@@ -1,23 +1,21 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createConnection } from "../shared/mongo";
-import { saveLog } from "../shared/saveLog";
+import { MongoClient } from "mongodb";
 
-const database = createConnection();
-
-const httpTrigger: AzureFunction = async function (
+export const httpTrigger: AzureFunction = async function (
   context: Context,
-  req: HttpRequest
-): Promise<void> {
+  req: HttpRequest,
+  client: MongoClient
+) {
   const createRole = async () => {
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
       const resp = Roles.insertOne(req.body);
 
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 201,
           headers: {
             "Content-Type": "application/json",
@@ -25,7 +23,7 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
@@ -36,35 +34,28 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error creating role: ${req.body}` + error.message,
-        "Error",
-        "createRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: error.toString(),
+          message: "Error",
         },
       };
     }
   };
 
-  const deleteRole = async () => {
+  const deleteRole = async (roleCode: string) => {
     try {
-      const db = await database;
-
+      const db = client.db();
       const Roles = db.collection("role");
 
-      const resp = Roles.deleteOne({ code: req.params.roleCode });
+      const resp = Roles.deleteOne({ code: roleCode });
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -74,12 +65,7 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error deleting role by code: ${req.body.role.code}` + error.message,
-        "Error",
-        "deleteRole()",
-        "Role/{roleCode?}"
-      );
+      ("Error cathc");
     }
   };
 
@@ -87,9 +73,8 @@ const httpTrigger: AzureFunction = async function (
     delete req.body._id;
 
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.findOneAndUpdate(
         { code: roleCode },
         { $set: req.body }
@@ -97,7 +82,7 @@ const httpTrigger: AzureFunction = async function (
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 201,
           headers: {
             "Content-Type": "application/json",
@@ -105,7 +90,7 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
@@ -116,13 +101,7 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error updating role by code: ${req.body.role.code}` + error.message,
-        "Error",
-        "updateRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
@@ -136,9 +115,8 @@ const httpTrigger: AzureFunction = async function (
 
   const getRole = async (roleCode: string) => {
     try {
-      const db = await database;
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.aggregate([
         {
           $match: {
@@ -150,7 +128,7 @@ const httpTrigger: AzureFunction = async function (
       const body = await resp.toArray();
 
       if (body && body[0]) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -158,7 +136,7 @@ const httpTrigger: AzureFunction = async function (
           body: body[0],
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
@@ -169,19 +147,13 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting role by code: ${req.body.role.code} ` + error.message,
-        "Error",
-        "getRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error getting role by code",
+          message: "Error",
         },
       };
     }
@@ -189,16 +161,13 @@ const httpTrigger: AzureFunction = async function (
 
   const getRoles = async () => {
     try {
-      const db = await database;
-
+      const db = client.db();
       const Roles = db.collection("role");
-
       const resp = Roles.find({});
-
       const body = await resp.toArray();
 
       if (body && body.length > 0) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -206,7 +175,7 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 204,
           headers: {
             "Content-Type": "application/json",
@@ -214,13 +183,7 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting roles, error ${error.message}`,
-        "Error",
-        "getRoles()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
@@ -232,25 +195,16 @@ const httpTrigger: AzureFunction = async function (
 
   switch (req.method) {
     case "POST":
-      await createRole();
-      break;
+      return await createRole();
     case "PUT":
-      await updateRole(req.params.roleCode);
-      break;
+      return await updateRole(req.params.roleCode);
     case "GET":
       if (req.params.roleCode) {
-        await getRole(req.params.roleCode);
+        return await getRole(req.params.roleCode);
       } else {
-        await getRoles();
+        return await getRoles();
       }
-
-      break;
     case "DELETE":
-      await deleteRole();
-      break;
-    default:
-      break;
+      return await deleteRole(req.params.roleCode);
   }
 };
-
-export default httpTrigger;

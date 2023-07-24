@@ -1,23 +1,22 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { MongoClient } from "mongodb";
 
-const database = createConnection();
-
-const httpTrigger: AzureFunction = async function (
+export const httpTrigger: AzureFunction = async function (
   context: Context,
-  req: HttpRequest
-): Promise<void> {
-  const createRole = async () => {
+  req: HttpRequest,
+  client: MongoClient
+) {
+  const createMembership = async () => {
     try {
-      const db = await database;
-      const Roles = db.collection("role");
-      const resp = Roles.insertOne(req.body);
+      const db = client.db();
+      const Memberships = db.collection("membership");
+      const resp = Memberships.insertOne(req.body);
 
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 201,
           headers: {
             "Content-Type": "application/json",
@@ -25,46 +24,40 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
           },
           body: {
-            message: "Error creating role",
+            message: "Error creating membership",
           },
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error creating role: ${req.body}` + error.message,
-        "Error",
-        "createRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: error.toString(),
+          message: "Error",
         },
       };
     }
   };
 
-  const deleteRole = async () => {
+  const deleteMembership = async () => {
     try {
-      const db = await database;
+      const db = client.db();
 
-      const Roles = db.collection("role");
+      const Memberships = db.collection("membership");
 
-      const resp = Roles.deleteOne({ code: req.params.roleCode });
+      const resp = Memberships.deleteOne({ code: req.params.code });
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -74,30 +67,33 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error deleting role by code: ${req.body.role.code}` + error.message,
-        "Error",
-        "deleteRole()",
-        "Role/{roleCode?}"
-      );
+      return {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error deleting membership by code",
+        },
+      };
     }
   };
 
-  const updateRole = async (roleCode: string) => {
+  const updateMembership = async (code: string) => {
     delete req.body._id;
 
     try {
-      const db = await database;
-      const Roles = db.collection("role");
+      const db = client.db();
+      const Memberships = db.collection("membership");
 
-      const resp = Roles.findOneAndUpdate(
-        { code: roleCode },
+      const resp = Memberships.findOneAndUpdate(
+        { code: code },
         { $set: req.body }
       );
       const body = await resp;
 
       if (body) {
-        context.res = {
+        return {
           status: 201,
           headers: {
             "Content-Type": "application/json",
@@ -105,44 +101,38 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
           },
           body: {
-            message: "Error updating role by code",
+            message: "Error updating membership by code",
           },
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error updating role by code: ${req.body.role.code}` + error.message,
-        "Error",
-        "updateRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error updating role by code",
+          message: "Error updating membership by code",
         },
       };
     }
   };
 
-  const getRole = async (roleCode: string) => {
+  const getMembership = async (code: string) => {
     try {
-      const db = await database;
-      const Roles = db.collection("role");
+      const db = client.db();
+      const Memberships = db.collection("membership");
 
-      const resp = Roles.aggregate([
+      const resp = Memberships.aggregate([
         {
           $match: {
-            code: roleCode,
+            code: code,
           },
         },
       ]);
@@ -150,7 +140,7 @@ const httpTrigger: AzureFunction = async function (
       const body = await resp.toArray();
 
       if (body && body[0]) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -158,47 +148,41 @@ const httpTrigger: AzureFunction = async function (
           body: body[0],
         };
       } else {
-        context.res = {
+        return {
           status: 500,
           headers: {
             "Content-Type": "application/json",
           },
           body: {
-            message: "Error getting role by code",
+            message: "Error getting membership by code",
           },
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting role by code: ${req.body.role.code} ` + error.message,
-        "Error",
-        "getRole()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error getting role by code",
+          message: "Error getting membership by code",
         },
       };
     }
   };
 
-  const getRoles = async () => {
+  const getMemberships = async () => {
     try {
-      const db = await database;
+      const db = client.db();
 
-      const Roles = db.collection("role");
+      const Memberships = db.collection("membership");
 
-      const resp = Roles.find({});
+      const resp = Memberships.find({});
 
       const body = await resp.toArray();
 
       if (body && body.length > 0) {
-        context.res = {
+        return {
           status: 200,
           headers: {
             "Content-Type": "application/json",
@@ -206,7 +190,7 @@ const httpTrigger: AzureFunction = async function (
           body: body,
         };
       } else {
-        context.res = {
+        return {
           status: 204,
           headers: {
             "Content-Type": "application/json",
@@ -214,40 +198,34 @@ const httpTrigger: AzureFunction = async function (
         };
       }
     } catch (error) {
-      await saveLog(
-        `Error getting roles, error ${error.message}`,
-        "Error",
-        "getRoles()",
-        "Role/{roleCode?}"
-      );
-      context.res = {
+      return {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
-        statusText: "Can't get roles",
+        body: {
+          message: "Can't get memberships",
+        },
       };
     }
   };
 
   switch (req.method) {
     case "POST":
-      await createRole();
-      break;
-    case "PUT":
-      await updateRole(req.params.roleCode);
-      break;
-    case "GET":
-      if (req.params.roleCode) {
-        await getRole(req.params.roleCode);
-      } else {
-        await getRoles();
-      }
+      return await createMembership();
 
-      break;
+    case "PUT":
+      return await updateMembership(req.params.code);
+
+    case "GET":
+      if (req.params.code) {
+        return await getMembership(req.params.code);
+      } else {
+        return await getMemberships();
+      }
     case "DELETE":
-      await deleteRole();
-      break;
+      return await deleteMembership();
+
     default:
       break;
   }

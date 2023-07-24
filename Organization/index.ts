@@ -56,26 +56,49 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const deleteOrganization = async () => {
+  const deleteOrganization = async (organizationCode: string) => {
     try {
       const db = await database;
+      const usersInOrganization = db.collection("user");
+      const coursesInOrganization = db.collection("course");
 
-      const Organizations = db.collection("organization");
-
-      const resp = Organizations.deleteOne({
-        organizationCode: req.params.organizationCode,
+      const usersCount = await usersInOrganization.countDocuments({
+        organizationCode: organizationCode,
       });
-      const body = await resp;
+      const coursesCount = await coursesInOrganization.countDocuments({
+        organizationCode: organizationCode,
+      });
 
-      if (body) {
+      if (usersCount || coursesCount) {
         context.res = {
-          status: 200,
+          status: 400,
           headers: {
             "Content-Type": "application/json",
           },
 
-          body: body,
+          body: {
+            message:
+              "This organization cannot be deleted as it has a user or course.",
+          },
         };
+      } else {
+        const Organizations = db.collection("organization");
+
+        const resp = Organizations.deleteOne({
+          organizationCode: organizationCode,
+        });
+        const body = await resp;
+
+        if (body) {
+          context.res = {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: body,
+          };
+        }
       }
     } catch (error) {
       await saveLog(
@@ -266,7 +289,7 @@ const httpTrigger: AzureFunction = async function (
       }
       break;
     case "DELETE":
-      await deleteOrganization();
+      await deleteOrganization(req.params.organizationCode);
       break;
 
     default:
