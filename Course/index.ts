@@ -14,6 +14,8 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  console.log(new Date())
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -405,6 +407,100 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
+  const getStudentCourses = async (studentCode: string) => {
+    console.log(new Date())
+
+    try {
+      const db = await database
+      const Groups = db.collection('group')
+      console.log(new Date())
+
+      const resp = Groups.aggregate(
+        [
+          {
+            '$match': {
+              'users.code': studentCode,
+              'status': 'Activo'
+            }
+          }, {
+            '$unwind': {
+              'path': '$users'
+            }
+          }, {
+            '$match': {
+              'users.code': studentCode,
+              'status': 'Activo'
+            }
+          },
+          {
+            '$lookup': {
+              'from': 'course',
+              'localField': 'courseCode',
+              'foreignField': 'code',
+              'as': 'courses'
+            }
+          },
+          // {
+          //   '$unwind': {
+          //     'path': '$courses'
+          //   }
+          // },
+          // {
+          //   '$project': {
+          //     'course': '$courses',
+          //     'groupCode': '$code',
+          //     'quizScores': '$users.quizScores',
+          //     'group': '$users'
+          //   }
+          // },
+          // {
+          //   '$match': {
+          //     'course.approvalStatus': 'Approved'
+          //   }
+          // }
+        ]
+      )
+      console.log(new Date())
+
+      const body = await resp.toArray()
+      console.log('Last one', new Date())
+
+      if (body && body[0]) {
+        context.res = {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": body
+        }
+      } else {
+        await saveLog(`Error getting courses by user code for user: ${studentCode}`, "Error", "getStudentCourses()", "Course/")
+
+        context.res = {
+          "status": 500,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "message": "Error getting courses by user code"
+          }
+        }
+      }
+    } catch (error) {
+      await saveLog(`Error getting courses by user code for user: ${studentCode}, error ${error.message}`, "Error", "getStudentCourses()", "Course/")
+
+      context.res = {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "message": "Error getting courses by user code"
+        }
+      }
+    }
+  }
+
   const deleteCourse = async () => {
     try {
       const db = await database;
@@ -548,9 +644,13 @@ const httpTrigger: AzureFunction = async function (
 
     case "GET":
       if (req.params.courseCode) {
-        await getCourse(req.params.courseCode);
+        await getCourse(req.params.courseCode)
       } else {
-        await getCourses(req.query);
+        if (req.query.studentCode) {
+          await getStudentCourses(req.query.studentCode)
+        } else {
+          await getCourses(req.query)
+        }
       }
       break;
 
@@ -559,4 +659,4 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-export default httpTrigger;
+export default httpTrigger
