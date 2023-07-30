@@ -273,7 +273,7 @@ const httpTrigger: AzureFunction = async function (
         ? { author_code: query.authorCode }
         : {};
 
-      const regexSearch = new RegExp(query.search, "i"); // "i" indica que a busca é case-insensitive
+      const regexSearch = new RegExp(query.search, "i");
       const querySearch = {
         $and: [
           queryOrganizationCode,
@@ -298,22 +298,74 @@ const httpTrigger: AzureFunction = async function (
       // const regexCategories = new RegExp(query.categories, "i")
       // const queryCategories = { 'details.categories': { $regex: regexCategories } }
 
-      const skipNum = parseInt(query.skip);
-      const limitNum = parseInt(query.items_by_page);
+      const skipNum = parseInt(query.skip) ? parseInt(query.skip) : 0;
+      const limitNum = parseInt(query.items_by_page)
+        ? parseInt(query.items_by_page)
+        : 1000;
+
+      // const count = await collection
+      //   .aggregate([
+      //     {
+      //       $facet: {
+      //         organizationCount: [
+      //           {
+      //             $match: queryOrganizationCode,
+      //           },
+      //           {
+      //             $count: "organizationCount",
+      //           },
+      //         ],
+      //         authorCount: [
+      //           {
+      //             $match: queryAuthorCode,
+      //           },
+      //           {
+      //             $count: "matchingCoursesCount",
+      //           },
+      //         ],
+      //       },
+      //     },
+      //   ])
+      //   .toArray();
 
       const body = await collection
-        .find(
-          Object.assign(
-            queryStatus,
-            queryData,
-            querySearch
-            // , queryCategories
-          )
+        .aggregate([
+          { $match: Object.assign(queryStatus, queryData, querySearch) },
+          {
+            $facet: {
+              "Courses":
+                [
+                  { $sort: { _id: -1 } },
+                  { $skip: skipNum },
+                  { $limit: limitNum },
+                ],
+              "Count":
+                [
+                  {
+                    $group: {
+                      _id: null,
+                      "Total": { $sum: 1 }
+                    }
+                  }
+                ]
+            }
+          },
+          {
+            $addFields: {
+              Count: "$Count.Total"
+            }
+          },
+          {
+            $unwind: "$Count"
+          }
+        ]
         )
-        .sort({ _id: -1 })
-        .skip(skipNum)
-        .limit(limitNum)
         .toArray();
+
+      // const result = {
+      //   // matchingCoursesCount: count[0]?.authorCount[0]?.matchingCoursesCount || 0,
+      //   body,
+      // };
 
       if (body) {
         context.res = {
@@ -321,7 +373,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: body,
+          body: body[0],
         };
       } else {
         context.res = {
@@ -403,7 +455,7 @@ const httpTrigger: AzureFunction = async function (
     } catch (error) {
       await saveLog(
         `Error deleting course by code: ${req.body.course.code}` +
-          error.message,
+        error.message,
         "Error",
         "deleteCourse()",
         "Courses/{courseCode?}"
