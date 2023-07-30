@@ -6,6 +6,7 @@ import { paragraphCreation } from "../interfaces/paragraph"
 import { deleteCourseCreationLog, saveCourseCreationLog, saveLog } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
+import { createSrt } from "./createSrt";
 
 const database = createConnection()
 
@@ -89,9 +90,15 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                         currentParagrah = course.sections[currentAudio.sectionIndex].elements[lessonCounter].elementLesson.paragraphs[currentAudio.paragraphIndex]
                         console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                         currentParagrah["audioUrl"] = currentAudio.url
+                        // srt creation 
+                        const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
+                        console.info(currentSrt)
+                        currentParagrah["srt"] = currentSrt
                     }
                     await createAudioFn(0)
                     saveCourseCreationLog(course.code, course.details.title)
+
+                    
                     // Start stract english title for images context searching
                     var extractedTitle = {
                         title: ""

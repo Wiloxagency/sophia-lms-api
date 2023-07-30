@@ -1,0 +1,78 @@
+html,
+body {
+    background-color: black;
+    color           : white;
+    font-family     : "Roboto", sans-serif;
+
+}
+
+#main-text-container {
+    position: relative;
+    width   : 800px;
+    height  : 450px;
+    overflow: hidden;
+}
+
+#textBackground {
+    background-color: #7294d46b;
+    position        : absolute;
+    border          : 1px solid white;
+}
+
+#kinetic-3 {
+
+    display           : flex;
+    flex-direction    : column;
+    justify-content   : center;
+    width             : 400px;
+    height            : 170px;
+    margin-top        : 260px;
+    margin-left       : 30px;
+    white-space       : nowrap;
+    font-family       : 'Azo Sans';
+    font-weight       : 500;
+    line-height       : 1;
+}
+
+.line1,
+.line2,
+.line3 {
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    margin-bottom   : 1%;
+}
+
+.line1 {
+    justify-content: end;
+}
+
+.line2 {
+    justify-content: center;
+}
+
+.line3 {
+    justify-content: start;
+}
+
+
+#logo {
+    position : absolute;
+    max-width: 12%;
+    right    : 6px;
+}
+
+#play-buttom {
+    z-index : 103;
+    position: absolute;
+    width   : 100px;
+    top     : calc(50% - 50px);
+    left    : calc(50% - 50px);
+    opacity : 0.7;
+}
+
+.videoElement {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
