@@ -1,8 +1,8 @@
 import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const config = {
-  url: "mongodb+srv://sophiaAdmin:KnglZ12F9sJbO5ep@cluster0.e8lnn.mongodb.net/?retryWrites=true&w=majority",
-  dbName: "sophia_qa",
+  url: process.env.MONGODB_ATLAS_URI,
+  dbName: process.env.MONGODB_ATLAS_DATABASE
 };
 
 const options = {
