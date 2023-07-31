@@ -26,58 +26,114 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         sendingRate: 14
     })
 
+    let htmlToSend
+
     // const testUsers = [
     //     {
     //         "name": "Leo Leto",
     //         "email": "LeoLeto@proton.me"
-    //     }, {
-    //         "name": "Leonardo José",
-    //         "email": "Leonardojbarreto@gmail.com"
-    //     }, {
+    //     },
+    //     // {
+    //     //     "name": "Leonardo José",
+    //     //     "email": "Leonardojbarreto@gmail.com"
+    //     // },
+    //     {
     //         "name": "Leonardo Daniel",
     //         "email": "Lexp2008@gmail.com"
     //     }
     // ]
 
-    async function sendEmail() {
-        let htmlToSend
+    // const testGenericEmailPayload = {
+    //     "subject": "Course starting soon 🚀",
+    //     "message": "The course you enrolled in is about to begin.",
+    //     "recipients": [
+    //         {
+    //             "name": "Leo Leto",
+    //             "email": "LeoLeto@proton.me"
+    //         }, {
+    //             "name": "Leonardo Daniel",
+    //             "email": "Lexp2008@gmail.com"
+    //         }
+    //     ]
+    // }
 
-        if (req.query.emailTemplate == 'welcome') {
-            const source = fs.readFileSync('nodemailer/welcome.html', 'utf-8').toString()
-            const template = handlebars.compile(source)
-            for (const [indexUser, user] of req.body.entries()) {
-                // for (const [indexUser, user] of req.body.entries()) {
-                const replacements = {
-                    username: user.name
-                }
-                htmlToSend = template(replacements)
-
-                try {
-                    const info = await transporter.sendMail({
-                        from: '"Sophia" <hola@iasophia.com>',
-                        to: user.email,
-                        // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
-                        subject: "Hello from Sophia 🎓",
-                        // text: "Hello world", 
-                        // html: await readFile('nodemailer/welcome.html', 'utf8'), 
-                        html: htmlToSend
-                    })
-                    if (info) {
-                        context.res = {
-                            // status: 200, /* Defaults to 200 */
-                            body: info
-                        }
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
+    async function sendWelcomeEmail() {
+        const source = fs.readFileSync('nodemailer/welcome.html', 'utf-8').toString()
+        const template = handlebars.compile(source)
+        for (const [indexUser, user] of req.body.entries()) {
+            // for (const [indexUser, user] of req.body.entries()) {
+            const replacements = {
+                username: user.name
             }
+            htmlToSend = template(replacements)
 
+            try {
+                const info = await transporter.sendMail({
+                    from: '"Sophia" <hola@iasophia.com>',
+                    to: user.email,
+                    // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
+                    subject: "Hello from Sophia 🎓",
+                    // text: "Hello world", 
+                    // html: await readFile('nodemailer/welcome.html', 'utf8'), 
+                    html: htmlToSend
+                })
+                if (info) {
+                    context.res = {
+                        // status: 200, /* Defaults to 200 */
+                        body: info
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
         }
 
     }
 
-    sendEmail()
+    async function sendGenericEmail() {
+        const source = fs.readFileSync('nodemailer/generic.html', 'utf-8').toString()
+        const template = handlebars.compile(source)
+        for (const [indexUser, user] of req.body.recipients.entries()) {
+            // for (const [indexUser, user] of req.body.entries()) {
+            const replacements = {
+                username: user.name,
+                message: req.body.message
+            }
+            htmlToSend = template(replacements)
+
+            try {
+                const info = await transporter.sendMail({
+                    from: '"Sophia" <hola@iasophia.com>',
+                    to: user.email,
+                    // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
+                    subject: req.body.subject,
+                    // text: "Hello world", 
+                    // html: await readFile('nodemailer/welcome.html', 'utf8'), 
+                    html: htmlToSend
+                })
+                if (info) {
+                    context.res = {
+                        // status: 200, /* Defaults to 200 */
+                        body: info
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+
+    }
+
+    switch (req.query.emailTemplate) {
+        case 'welcome':
+            sendWelcomeEmail()
+            break
+
+        case 'generic':
+            sendGenericEmail()
+            break
+    }
 
 }
 

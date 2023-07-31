@@ -7,6 +7,7 @@ import fetch from 'node-fetch';
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
 import * as path from "path";
+import { sendFailedSCORMCreationEmail, sendScormDownloadEmail } from "../nodemailer/scormDownloadEmail";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -545,7 +546,8 @@ const httpTrigger: AzureFunction = async function (
         await blockBlobClient.uploadData(zipBuffer);
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
-        );
+        )
+        sendScormDownloadEmail(req.query.recipientEmail, zipFileName)      
       }
 
       errorLine = 525
@@ -614,6 +616,8 @@ const httpTrigger: AzureFunction = async function (
         });
       await updateScormStatus(courseCode);
     } catch (error) {
+      // TODO: IMPLEMENT THIS 👇🏼
+      sendFailedSCORMCreationEmail(req.query.recipientEmail)
       await saveLog(
         `Error creating scorm in line: ${errorLine}, body: ${JSON.stringify(req.body)}` + error.message,
         "Error",
