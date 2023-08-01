@@ -440,24 +440,24 @@ const httpTrigger: AzureFunction = async function (
               'as': 'courses'
             }
           },
-          // {
-          //   '$unwind': {
-          //     'path': '$courses'
-          //   }
-          // },
-          // {
-          //   '$project': {
-          //     'course': '$courses',
-          //     'groupCode': '$code',
-          //     'quizScores': '$users.quizScores',
-          //     'group': '$users'
-          //   }
-          // },
-          // {
-          //   '$match': {
-          //     'course.approvalStatus': 'Approved'
-          //   }
-          // }
+          {
+            '$unwind': {
+              'path': '$courses'
+            }
+          },
+          {
+            '$project': {
+              'course': '$courses',
+              'groupCode': '$code',
+              'quizScores': '$users.quizScores',
+              'group': '$users'
+            }
+          },
+          {
+            '$match': {
+              'course.approvalStatus': 'Approved'
+            }
+          }
         ]
       )
       console.log(new Date())
