@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
-import * as admZip from "adm-zip";
+import admZip from "adm-zip";
 import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
 import fetch from 'node-fetch';
