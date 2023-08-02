@@ -106,13 +106,13 @@ const httpTrigger: AzureFunction = async function (
 
       // Images process
       //if (imageData !== "") {
-        const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
-        const newImageFile = {
-          "@href": "./" + imageHref,
-        };
-        const imageFileCount = Object.keys(resources.resource.file).length;
-        resources.resource.file[`file_${imageFileCount}`] = newImageFile;
-        imageHrefList.push("./" + imageHref);
+      const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
+      const newImageFile = {
+        "@href": "./" + imageHref,
+      };
+      const imageFileCount = Object.keys(resources.resource.file).length;
+      resources.resource.file[`file_${imageFileCount}`] = newImageFile;
+      imageHrefList.push("./" + imageHref);
       //}
     });
 
@@ -547,7 +547,6 @@ const httpTrigger: AzureFunction = async function (
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
         )
-        sendScormDownloadEmail(req.query.recipientEmail, zipFileName)      
       }
 
       errorLine = 525
@@ -601,8 +600,10 @@ const httpTrigger: AzureFunction = async function (
             }
 
             console.log(`Pasta '${folderName}' excluída com sucesso.`);
+
           }
         }
+        sendScormDownloadEmail(req.query.recipientEmail, blobs[0])
       }
 
       errorLine = 579

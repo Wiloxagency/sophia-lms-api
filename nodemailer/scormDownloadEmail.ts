@@ -28,7 +28,8 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileName: string): Promise<any> {
-            // TODO: TURN THIS INTO AN ENVIRONMENT VARIABLE 👇🏼
+    console.log(SCORMFileName)
+    // TODO: TURN THIS INTO AN ENVIRONMENT VARIABLE 👇🏼
     const SCORMUrl = 'https://sophieassets.blob.core.windows.net/scorms/' + SCORMFileName
 
     const source = fs.readFileSync('nodemailer/generic.html', 'utf-8').toString()

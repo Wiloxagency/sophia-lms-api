@@ -58,12 +58,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // }
 
     async function sendWelcomeEmail() {
-        const source = fs.readFileSync('nodemailer/welcome.html', 'utf-8').toString()
+        const source = fs.readFileSync('nodemailer/templates/index-welcome-v3.html', 'utf-8').toString()
         const template = handlebars.compile(source)
-        for (const [indexUser, user] of req.body.entries()) {
+        for (const [indexUser, user] of req.body.recipients.entries()) {
             // for (const [indexUser, user] of req.body.entries()) {
             const replacements = {
-                username: user.name
+                username: user.name,
+                courseName: req.body.data.courseName,
+                startDate: req.body.data.startDate,
+                endDate: req.body.data.endDate,
             }
             htmlToSend = template(replacements)
 
@@ -91,7 +94,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     async function sendGenericEmail() {
-        const source = fs.readFileSync('nodemailer/generic.html', 'utf-8').toString()
+        const source = fs.readFileSync('nodemailer/templates/generic.html', 'utf-8').toString()
         const template = handlebars.compile(source)
         for (const [indexUser, user] of req.body.recipients.entries()) {
             // for (const [indexUser, user] of req.body.entries()) {

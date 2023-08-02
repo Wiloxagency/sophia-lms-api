@@ -159,9 +159,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         delete req.body._id
 
         try {
-            console.log(req.body)
-            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-            console.log(groupCode)
+            // console.log(req.body)
+            // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+            // console.log(groupCode)
             const db = await database
             const CourseGroups = db.collection('group')
 
