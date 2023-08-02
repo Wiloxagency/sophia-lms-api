@@ -27,17 +27,17 @@ const transporter = nodemailer.createTransport({
     sendingRate: 14
 })
 
-export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileName: string): Promise<any> {
+export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileName: string, recipientName: string, courseName: string): Promise<any> {
     console.log(SCORMFileName)
     // TODO: TURN THIS INTO AN ENVIRONMENT VARIABLE 👇🏼
     const SCORMUrl = 'https://sophieassets.blob.core.windows.net/scorms/' + SCORMFileName
 
-    const source = fs.readFileSync('nodemailer/generic.html', 'utf-8').toString()
+    const source = fs.readFileSync('nodemailer/templates/index-creating-scorm-v3.html', 'utf-8').toString()
     const template = handlebars.compile(source)
     // for (const [indexUser, user] of req.body.entries()) {
     const replacements = {
-        // username: user.name,
-        message: "El enlace de descarga de tu SCORM es:" + SCORMUrl
+        username: recipientName,
+        courseName: courseName,
     }
     htmlToSend = template(replacements)
 
@@ -46,7 +46,7 @@ export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileNa
             from: '"Sophia" <hola@iasophia.com>',
             to: recipientEmail,
             // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
-            subject: "Enlace de descarga de SCORM",
+            subject: "Tu SCORM está siendo creado ⚙️",
             // text: "Hello world", 
             // html: await readFile('nodemailer/welcome.html', 'utf8'), 
             html: htmlToSend
@@ -58,7 +58,8 @@ export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileNa
 }
 
 export async function sendFailedSCORMCreationEmail(recipientEmail: string): Promise<any> {
-    const source = fs.readFileSync('nodemailer/generic.html', 'utf-8').toString()
+    // console.log('ERROR CREATING SCORM. EMAIL WILL BE SEND TO: ' + recipientEmail)
+    const source = fs.readFileSync('nodemailer/templates/generic.html', 'utf-8').toString()
     const template = handlebars.compile(source)
     // for (const [indexUser, user] of req.body.entries()) {
     const replacements = {

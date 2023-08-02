@@ -603,7 +603,7 @@ const httpTrigger: AzureFunction = async function (
 
           }
         }
-        sendScormDownloadEmail(req.query.recipientEmail, blobs[0])
+        sendScormDownloadEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, blobs[0])
       }
 
       errorLine = 579

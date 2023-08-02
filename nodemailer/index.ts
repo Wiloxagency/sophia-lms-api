@@ -75,7 +75,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     from: '"Sophia" <hola@iasophia.com>',
                     to: user.email,
                     // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
-                    subject: "Hello from Sophia 🎓",
+                    subject: "¡Tu curso está por comenzar! 🎓",
                     // text: "Hello world", 
                     // html: await readFile('nodemailer/welcome.html', 'utf8'), 
                     html: htmlToSend
