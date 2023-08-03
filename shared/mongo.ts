@@ -12,10 +12,11 @@ const options = {
   serverApi: ServerApiVersion.v1,
 };
 
+const client = new MongoClient(config.url, options);
+
 async function createConnection() {
-  const connection = await MongoClient.connect(config.url, options);
-  const db = connection.db(config.dbName);
+  const db = client.db(config.dbName);
   return db;
 }
 
-export { createConnection };
+export { createConnection, client };
