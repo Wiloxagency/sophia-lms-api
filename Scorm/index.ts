@@ -7,7 +7,7 @@ import fetch from 'node-fetch';
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
 import * as path from "path";
-import { sendFailedSCORMCreationEmail, sendScormDownloadEmail } from "../nodemailer/scormDownloadEmail";
+import { sendFailedSCORMCreationEmail, sendSCORMDownloadLinkEmail, sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -18,6 +18,8 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 
 const database = createConnection();
 var errorLine = 19
+
+var SCORMFileName = "PLACEHOLDER"
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -33,6 +35,7 @@ const httpTrigger: AzureFunction = async function (
     lessonCounter: number;
     courseCode: string;
   }): Promise<string | null> {
+    sendScormUnderConstructionEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName)
     const title = scormPayload.courseTitle;
     errorLine = 35
     const organization_default =
@@ -535,6 +538,8 @@ const httpTrigger: AzureFunction = async function (
 
             zipCourse.addFile(blob.name, buffer);
             zipCourse.addFile("instructions.docx", Buffer.from(arquivo));
+          } else {
+            SCORMFileName = blob.name
           }
         }
 
@@ -603,7 +608,6 @@ const httpTrigger: AzureFunction = async function (
 
           }
         }
-        sendScormDownloadEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, blobs[0])
       }
 
       errorLine = 579
@@ -616,8 +620,8 @@ const httpTrigger: AzureFunction = async function (
           console.error("Erro ao excluir as pastas:", error);
         });
       await updateScormStatus(courseCode);
+      sendSCORMDownloadLinkEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, SCORMFileName)
     } catch (error) {
-      // TODO: IMPLEMENT THIS 👇🏼
       sendFailedSCORMCreationEmail(req.query.recipientEmail)
       await saveLog(
         `Error creating scorm in line: ${errorLine}, body: ${JSON.stringify(req.body)}` + error.message,

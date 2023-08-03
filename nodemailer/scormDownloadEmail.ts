@@ -27,10 +27,9 @@ const transporter = nodemailer.createTransport({
     sendingRate: 14
 })
 
-export async function sendScormDownloadEmail(recipientEmail: string, SCORMFileName: string, recipientName: string, courseName: string): Promise<any> {
-    console.log(SCORMFileName)
+export async function sendScormUnderConstructionEmail(recipientEmail: string, recipientName: string, courseName: string): Promise<any> {
     // TODO: TURN THIS INTO AN ENVIRONMENT VARIABLE 👇🏼
-    const SCORMUrl = 'https://sophieassets.blob.core.windows.net/scorms/' + SCORMFileName
+    // const SCORMUrl = 'https://sophieassets.blob.core.windows.net/scorms/' + SCORMFileName
 
     const source = fs.readFileSync('nodemailer/templates/index-creating-scorm-v3.html', 'utf-8').toString()
     const template = handlebars.compile(source)
@@ -81,5 +80,33 @@ export async function sendFailedSCORMCreationEmail(recipientEmail: string): Prom
     } catch (error) {
         console.log(error)
     }
+
+}
+
+export async function sendSCORMDownloadLinkEmail(recipientEmail: string, recipientName: string, courseName: string, SCORMFileName: string) {
+    const source = fs.readFileSync('nodemailer/templates/generic.html', 'utf-8').toString()
+    const template = handlebars.compile(source)
+    const replacements = {
+        username: recipientName,
+        message: 'El enlace de descarga de tu SCORM para el curso ' + courseName + ' es: '
+            + 'https://sophieassets.blob.core.windows.net/scorms/' + SCORMFileName
+    }
+    htmlToSend = template(replacements)
+
+    try {
+        const info = await transporter.sendMail({
+            from: '"Sophia" <hola@iasophia.com>',
+            to: recipientEmail,
+            // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
+            subject: "Tu SCORM está listo 💡",
+            // text: "Hello world", 
+            // html: await readFile('nodemailer/welcome.html', 'utf8'), 
+            html: htmlToSend
+        })
+    } catch (error) {
+        console.log(error)
+    }
+
+
 
 }
