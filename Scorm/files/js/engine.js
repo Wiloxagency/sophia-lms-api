@@ -3,7 +3,7 @@ var slideMedia = []
 var slideIndex = 0
 var currentVideoIndex = 0
 
-var playButtom = document.getElementById("play-buttom")
+var playButtom = document.getElementById("playButton")
 var slideBg = document.getElementById("slideBg")
 var mainContainer = document.getElementById("kinetic-3")
 var container30 = document.getElementById("container30")
@@ -11,8 +11,12 @@ var container31 = document.getElementById("container31")
 var container32 = document.getElementById("container32")
 var textBackground = document.getElementById("textBackground")
 var textContainer = document.getElementById("textContainer")
+var container = document.getElementById("main-text-container")
+var subtitles = document.getElementById("subtitles")
 
 var isPlaying = false
+var isStarted = false
+var isMuted = false
 var voiceTrack = new Audio()
 var soundTrack = new Audio()
 var elementLesson = undefined
@@ -20,8 +24,14 @@ var selectedKinetic = 0
 var kineticArray = []
 var kineticTimeOut
 
-function nextVideo() {
+var show1Slide = false
+var currentSubtitles = ''
+var areSubtitlesVisible = false
 
+function nextVideo() {
+  if (!isPlaying) {
+    return
+  }
   console.info(currentVideoIndex)
   console.info(slideMedia)
 
@@ -49,6 +59,9 @@ function nextVideo() {
 }
 
 function hideKinetic() {
+  if (!isPlaying) {
+    return
+  }
   const hideElements = (element) => {
     const timeLine = gsap.timeline({ defaults: { duration: 1 } })
     timeLine.to(element, { opacity: 0, ease: "expo.in" })
@@ -114,7 +127,7 @@ function splitPhrase(phrase) {
 
 function showKinetic(phrase) {
 
-  if (!phrase) {
+  if (!phrase || !isPlaying) {
     return
   }
 
@@ -358,37 +371,77 @@ function showKinetic(phrase) {
 
     const textContainerWidth = textContainer.offsetWidth
     const textContainerHeight = textContainer.offsetHeight
-    const textContainerTop = textContainer.offsetTop
+    const textContainerTop = container.offsetHeight - 30 - 170 + (170 - textContainerHeight) / 2 - 17
     const textContainerLeft = textContainer.offsetLeft
 
     var tlBck = gsap.timeline({ defaults: { duration: 0 } }),
       textBackgroundTL = textBackground;
-    tlBck.to(textBackgroundTL, { width: textContainerWidth + 20, height: textContainerHeight + 25, x: textContainerLeft - 10, y: textContainerTop - 15, ease: "expo.in", duration: 0.5 })
+    tlBck.to(textBackgroundTL, { width: textContainerWidth + 20, height: textContainerHeight + 25, x: textContainerLeft - 10, y: textContainerTop, ease: "expo.in", duration: 0.5 })
 
     kineticTimeOut = setTimeout(() => {
-      hideKinetic() 
+      hideKinetic()
     }, 6000)
 
-    //console.info("Size -->", textContainerWidth, textContainerHeight, textContainerTop, textContainerLeft)
+    console.info("Size -->", textContainerWidth, textContainerHeight, textContainerTop, textContainerLeft)
   }, 200);
+
+
 
 }
 
 function nextKinetic(phraseIndex) {
+
+  if (!isPlaying) {
+    return
+  }
   const phrase = elementLesson.paragraphs[slideIndex].keyPhrases[phraseIndex].toUpperCase()
   console.info(phrase)
   showKinetic(phrase)
 }
 
+function onClickPlay() {
+  
+  // if (!isStarted) {
+  //   startPresentation()
+  // } else  if (isPlaying){
+  //   soundTrack.pause()
+  //   voiceTrack.pause()
+  //   isPlaying = false
+  // } else {
+  //   slideIndex = 0
+  //   startPresentation()
+  // }
+
+  if (!isStarted) {
+    startPresentation()
+  } else  {
+    window.location.reload();
+  }
+
+}
+
+function onClickSound() {
+  isMuted = !isMuted
+  if (isMuted) {
+    soundTrack.volume = 0
+    voiceTrack.volume = 0
+  } else {
+    soundTrack.volume = 0.1
+    voiceTrack.volume = 1
+  }
+}
+
 function startPresentation() {
-  playButtom.style.display = "none"
+  // playButtom.style.display = "none"
+  isStarted = true
   if (!isPlaying) {
     soundTrack.src = "./assets/soundtracks/soundtrack1.mp3"
     soundTrack.onloadeddata = () => {
       soundTrack.volume = 0.1
       soundTrack.play()
     }
-  }
+  } 
+  
   if (slideMedia[currentVideoIndex].type == "video") {
     //videoElements.get(currentVideoIndex)?.nativeElement.play()
     var videoElement = document.getElementsByClassName('videoElement')
@@ -410,6 +463,8 @@ function startPresentation() {
     const wordDuration = voiceTrackDuration / totalPhraseWords
 
     elementLesson.paragraphs[slideIndex].keyPhrases.forEach((keyPhrase, keyIndex) => {
+
+
       let phrasePosition = text.toLowerCase().indexOf(keyPhrase.toLowerCase())
       if (phrasePosition === undefined) {
         phrasePosition = -1
@@ -424,14 +479,18 @@ function startPresentation() {
         }, phrasePosition * wordDuration);
       }
 
+
+
     })
 
     voiceTrack.play()
-
+    getSubtitles()
 
   }
   voiceTrack.onended = () => {
-
+    if (!isPlaying) {
+      return
+    }
     if (elementLesson && slideIndex < elementLesson?.paragraphs.length - 1) {
       hideKinetic()
       setTimeout(() => {
@@ -449,7 +508,7 @@ function startPresentation() {
         setTimeout(() => {
           slideIndex = 0
           currentVideoIndex = 0
-          playButtom.style.display = "block"
+          // playButtom.style.display = "block"
           soundTrack.pause()
         }, 3000);
 
@@ -461,7 +520,50 @@ function startPresentation() {
 
 }
 
+function getSubtitles() {
+  let splitContent = elementLesson.paragraphs[slideIndex].content.split(' ')
+  let contentChunks = sliceIntoChunks(splitContent, 23)
+  let subtitleSegments = []
+  for (const segment of contentChunks) {
+    subtitleSegments.push(segment.join(' '))
+  }
+  if (voiceTrack.duration) {
+    // let segmentTime = Math.round(this.voiceTrack.duration / subtitleSegments.length)
+    let indexSegment = 0
+    // console.log(segmentTime)
+    if (indexSegment == 0) {
+      currentSubtitles = subtitleSegments[indexSegment]
+      subtitles.innerHTML = currentSubtitles
+      // console.log(indexSegment) 
+      let timeoutDuration = 0
+      for (let indexIteration = 0; indexIteration < subtitleSegments.length - 1; indexIteration++) {
+        indexSegment++
+        let currentSegmentDuration = subtitleSegments[indexIteration].length * 0.061
+        timeoutDuration = timeoutDuration + currentSegmentDuration * 1000
+        // console.log('Segment ' + indexIteration + ' : ' + subtitleSegments[indexIteration])
+        // console.log('Segment ' + indexIteration + ' lasts: ' + currentSegmentDuration)
+        // console.log(timeoutDuration)
+        setTimeout(() => {
+          // console.log('Currently showing segment ' + (indexIteration + 1))
+          currentSubtitles = subtitleSegments[indexIteration + 1]
+          console.log(currentSubtitles)
+          console.log('TEST')
+          subtitles.innerHTML = currentSubtitles
+        }, timeoutDuration)
+      }
+    }
+  }
+}
 
+function sliceIntoChunks(splitContent, chunkSize) {
+  const noEmptyStrsArr = splitContent.filter(word => word.length > 0)
+  const res = [];
+  for (let i = 0; i < noEmptyStrsArr.length; i += chunkSize) {
+    const chunk = noEmptyStrsArr.slice(i, i + chunkSize);
+    res.push(chunk);
+  }
+  return res;
+}
 
 // gsap.registerPlugin(SplitText)
 
@@ -474,6 +576,19 @@ gsap.from(chars, {
   ease: "back.out",
   duration: 1
 })
+
+
+function onClickShowSubtitles() {
+  if (areSubtitlesVisible) {
+    subtitles.style.opacity = 0
+    subtitlesButton.style.filter = "grayscale(1)"
+  } else {
+    subtitles.style.opacity = 1
+    subtitlesButton.style.filter = "grayscale(0)"
+  }
+  areSubtitlesVisible = !areSubtitlesVisible
+}
+
 
 fetch('./assets/lesson.json')
   .then(response => response.json())
@@ -502,11 +617,11 @@ fetch('./assets/lesson.json')
           type: "image"
         })
         var newDiv = document.createElement('div')
-        
 
-          newDiv.innerHTML =
+
+        newDiv.innerHTML =
           `<div>
-              <img class="videoElement" src=${paragraph.imageData.finalImage.url}  width="800" height="450" style="z-index:${lessonData.paragraphs.length - paragraphIndex}" >
+              <img class="videoElement" src=${paragraph.imageData.finalImage.url}   style="z-index:${lessonData.paragraphs.length - paragraphIndex}; width:100%; height:100%" >
           </div>`
 
         slideBg.appendChild(newDiv)
@@ -518,6 +633,11 @@ fetch('./assets/lesson.json')
     console.error('Error:', error)
   })
 window.addEventListener("load", function () {
-  document.getElementById("play-buttom").addEventListener("click", startPresentation);
+  document.getElementById("playButton").addEventListener("click", onClickPlay)
+  document.getElementById("reloadButton").addEventListener("click", onClickPlay)
+  document.getElementById("soundButton").addEventListener("click", onClickSound)
+  
   console.info("mainContainer.offsetWidth, offsetHeight --> ", mainContainer.offsetWidth, mainContainer.offsetHeight)
 })
+
+document.getElementById("subtitlesButton").addEventListener("click", onClickShowSubtitles, false);

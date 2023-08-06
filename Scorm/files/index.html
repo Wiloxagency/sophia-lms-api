@@ -6,9 +6,9 @@
     <title>Lesson 1</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="" />
-    <link rel="stylesheet" type="text/css" href="/assets/style.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/fonts.css" />
-    <link rel="icon" href="/assets/fav.png">
+    <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
+    <link rel="icon" href="./assets/fav.png">
 </head>
 
 <body>
@@ -18,13 +18,13 @@
 
         <div id="slideBg"> </div>
 
-        <div id="textBackground"  style="z-index:100;"></div>
+        <div id="textBackground" style="position:absolute;z-index: 100"></div>
 
-        <div style="position:absolute;z-index: 101;">
+        <div style="position:absolute;z-index: 101;bottom: 30px;">
 
             <div id="kinetic-3">
 
-                <div id = "textContainer" >
+                <div id="textContainer">
 
                     <div class="line1">
                         <div id="container30" #container30></div>
@@ -41,8 +41,19 @@
             </div>
         </div>
 
-        <img style="z-index: 102" id="logo" src="/assets/logo-edutecno-2.png" alt="Logo">
-        <img id="play-buttom" src="/assets/play.png" alt="Play">
+        <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
+        <!-- <img id="play-buttom" src="./assets/play.png" alt="Play"> -->
+
+        <div class="slidePreviewControls unselectable">
+            <span id="playButton" style="cursor: pointer;" >⏯️</span>
+            <span id="reloadButton" style="cursor: pointer;">🔄️</span>
+            <!-- <span>🔊</span> -->
+            <span id="soundButton" style="cursor: pointer;">🔈</span>
+            <span id="subtitlesButton" style="filter: grayscale(1); cursor: pointer;">🔤
+            </span>
+        </div>
+
+        <div id="subtitles"></div>
     </div>
 
 
