@@ -179,61 +179,72 @@ const httpTrigger: AzureFunction = async function (
     zipLesson.addLocalFolder(scriptsFolderPaths, scriptsFolder);
 
     const contentIndex = `<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <title>Lesson 1</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" type="text/css" href="./assets/style.css" />
-    <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
-    <link rel="icon" href="./assets/fav.png">
-</head>
-
-<body>
-
-
-    <div id="main-text-container">
-
-        <div id="slideBg"> </div>
-
-        <div id="textBackground"  style="z-index:100;"></div>
-
-        <div style="position:absolute;z-index: 101;">
-
-            <div id="kinetic-3">
-
-                <div id = "textContainer" >
-
-                    <div class="line1">
-                        <div id="container30" #container30></div>
+    <html lang="en">
+    
+    <head>
+        <meta charset="UTF-8" />
+        <title>Lesson 1</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="description" content="" />
+        <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+        <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
+        <link rel="icon" href="./assets/fav.png">
+    </head>
+    
+    <body>
+    
+    
+        <div id="main-text-container">
+    
+            <div id="slideBg"> </div>
+    
+            <div id="textBackground" style="position:absolute;z-index: 100"></div>
+    
+            <div style="position:absolute;z-index: 101;bottom: 30px;">
+    
+                <div id="kinetic-3">
+    
+                    <div id="textContainer">
+    
+                        <div class="line1">
+                            <div id="container30" #container30></div>
+                        </div>
+                        <div class="line2">
+                            <div id="container31" #container31></div>
+                        </div>
+                        <div class="line3">
+                            <div id="container32" #container32></div>
+                        </div>
+    
                     </div>
-                    <div class="line2">
-                        <div id="container31" #container31></div>
-                    </div>
-                    <div class="line3">
-                        <div id="container32" #container32></div>
-                    </div>
-
+    
                 </div>
-
             </div>
+    
+            <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
+            <!-- <img id="play-buttom" src="./assets/play.png" alt="Play"> -->
+    
+            <div class="slidePreviewControls unselectable">
+                <span id="playButton" style="cursor: pointer;" >⏯️</span>
+                <span id="reloadButton" style="cursor: pointer;">🔄️</span>
+                <!-- <span>🔊</span> -->
+                <span id="soundButton" style="cursor: pointer;">🔈</span>
+                <span id="subtitlesButton" style="filter: grayscale(1); cursor: pointer;">🔤
+                </span>
+            </div>
+    
+            <div id="subtitles"></div>
         </div>
-
-        <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
-        <img id="play-buttom" src="./assets/play.png" alt="Play">
-    </div>
-
-
-
-    <script src="./scripts/gsap.min.js"></script>
-    <script src="./scripts/SplitText.min.js"></script>
-    <script src="./js/engine.js" type="module"></script>
-
-</body>
-
-</html>`;
+    
+    
+    
+        <script src="./scripts/gsap.min.js"></script>
+        <script src="./scripts/SplitText.min.js"></script>
+        <script src="./js/engine.js" type="module"></script>
+    
+    </body>
+    
+    </html>`;
     zipLesson.addFile("index.html", Buffer.from(contentIndex));
     errorLine = 219
     // faz o loop nos parágrafos e adiciona os arquivos nas pastas
