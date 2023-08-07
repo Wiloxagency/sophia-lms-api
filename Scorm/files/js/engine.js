@@ -604,8 +604,8 @@ fetch('./assets/lesson.json')
         var newDiv = document.createElement('div')
         newDiv.innerHTML =
           `<div>
-            <video class="videoElement" loop width="800" height="450"
-            style="z-index:${lessonData.paragraphs.length - paragraphIndex}" >
+            <video class="videoElement" loop 
+            style="z-index:${lessonData.paragraphs.length - paragraphIndex};  width:100%; height:100%;object-fit: cover;" >
               <source src=${paragraph.videoData.finalVideo.url} type="video/mp4">
             </video>
           </div>`
