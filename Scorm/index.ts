@@ -19,13 +19,15 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 const database = createConnection();
 var errorLine = 19
 
-var SCORMFileName = "PLACEHOLDER"
+var SCORMFileName = ""
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
   errorLine = 25
+  // console.log(req.query)
+  sendScormUnderConstructionEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName)
 
   async function createScorm(scormPayload: {
     courseTitle: string;
@@ -35,7 +37,6 @@ const httpTrigger: AzureFunction = async function (
     lessonCounter: number;
     courseCode: string;
   }): Promise<string | null> {
-    sendScormUnderConstructionEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName)
     const title = scormPayload.courseTitle;
     errorLine = 35
     const organization_default =
