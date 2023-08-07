@@ -15,7 +15,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
-  console.log(new Date())
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -408,7 +407,6 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const getStudentCourses = async (studentCode: string) => {
-    console.log(new Date())
 
     try {
       const db = await database
@@ -416,51 +414,81 @@ const httpTrigger: AzureFunction = async function (
       console.log(new Date())
 
       const resp = Groups.aggregate(
+        // [
+        //   {
+        //     '$match': {
+        //       'users.code': studentCode,
+        //       'status': 'Activo'
+        //     }
+        //   }, {
+        //     '$unwind': {
+        //       'path': '$users'
+        //     }
+        //   }, {
+        //     '$match': {
+        //       'users.code': studentCode,
+        //       'status': 'Activo'
+        //     }
+        //   },
+        //   {
+        //     '$lookup': {
+        //       'from': 'course',
+        //       'localField': 'courseCode',
+        //       'foreignField': 'code',
+        //       'as': 'courses'
+        //     }
+        //   },
+        //   {
+        //     '$unwind': {
+        //       'path': '$courses'
+        //     }
+        //   },
+        //   {
+        //     '$project': {
+        //       'course': '$courses',
+        //       'groupCode': '$code',
+        //       'quizScores': '$users.quizScores',
+        //       'group': '$users'
+        //     }
+        //   },
+        //   {
+        //     '$match': {
+        //       'course.approvalStatus': 'Approved'
+        //     }
+        //   }
+        // ]
         [
           {
             '$match': {
-              'users.code': studentCode,
-              'status': 'Activo'
+              'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16'
             }
           }, {
-            '$unwind': {
-              'path': '$users'
-            }
-          }, {
-            '$match': {
-              'users.code': studentCode,
-              'status': 'Activo'
-            }
-          },
-          {
             '$lookup': {
               'from': 'course',
               'localField': 'courseCode',
               'foreignField': 'code',
-              'as': 'courses'
+              'as': 'course'
             }
-          },
-          {
-            '$unwind': {
-              'path': '$courses'
-            }
-          },
-          {
-            '$project': {
-              'course': '$courses',
-              'groupCode': '$code',
-              'quizScores': '$users.quizScores',
-              'group': '$users'
-            }
-          },
-          {
+          }, {
             '$match': {
               'course.approvalStatus': 'Approved'
+            }
+          }, {
+            '$unwind': {
+              'path': '$course'
+            }
+          }, {
+            '$project': {
+              '_id': 0,
+              'course': 1,
+              'group.name': '$name',
+              'group.startDate': '$startDate',
+              'group.endDate': '$endDate',
+              'group.code': '$code'
             }
           }
         ]
       )
-      console.log(new Date())
 
       const body = await resp.toArray()
       console.log('Last one', new Date())
