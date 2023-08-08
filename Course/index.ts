@@ -4,7 +4,7 @@ import { saveLog } from "../shared/saveLog";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
-import { getCourseDuration } from "../shared/calculateCourseDuration";
+import { getCourseDuration } from "../shared/updateCourseDuration";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
