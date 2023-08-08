@@ -262,7 +262,7 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const getCourses = async (query: any) => {
+  const getCoursesBySearch = async (query: any) => {
     try {
       console.log(new Date())
       const db = await database;
@@ -851,12 +851,16 @@ const httpTrigger: AzureFunction = async function (
       if (req.params.courseCode) {
         await getCourse(req.params.courseCode)
       } else {
-        if (req.query.studentCode) {
-          await getStudentCourses(req.query.studentCode)
-        } else if (req.query.authorCode) {
-          await getAuthorCourses()
-        } else if (req.query.organizationCode) {
-          await getOrganizationCourses()
+        if (req.query.search) {
+          await getCoursesBySearch(req.query)
+        } else {
+          if (req.query.studentCode) {
+            await getStudentCourses(req.query.studentCode)
+          } else if (req.query.authorCode) {
+            await getAuthorCourses()
+          } else if (req.query.organizationCode) {
+            await getOrganizationCourses()
+          }
         }
       }
       break;
