@@ -427,7 +427,7 @@ const httpTrigger: AzureFunction = async function (
         }
       }
       console.log('Before query: ', new Date())
-      const findResponse = await courses.find(query, project)
+      const findResponse = await courses.find(query, project).sort({"dateCreated": -1})
       // .explain()
       .toArray()
       console.log('After query: ', new Date())
