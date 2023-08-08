@@ -4,6 +4,7 @@ import { saveLog } from "../shared/saveLog";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
+import { getCourseDuration } from "../shared/calculateCourseDuration";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -77,7 +78,6 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-
       const resp = Courses.findOneAndUpdate(
         { code: courseCode },
         { $set: req.body }
@@ -127,6 +127,13 @@ const httpTrigger: AzureFunction = async function (
       };
     }
   };
+
+  const updateCourseDuration = async () => {
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+    let courseDuration = await getCourseDuration(req.body)
+    console.log(courseDuration)
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  }
 
   const addCourseElement = async (courseCode: string) => {
     try {
@@ -838,6 +845,8 @@ const httpTrigger: AzureFunction = async function (
     case "PUT":
       if (req.query.uploadCourseCover == "true") {
         await uploadCourseCover(req);
+      } else if (req.query.updateCourseDuration) {
+        await updateCourseDuration()
       } else {
         await updateCourse(req.params.courseCode);
         break;
