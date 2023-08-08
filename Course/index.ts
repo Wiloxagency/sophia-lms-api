@@ -15,7 +15,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
-  console.log(new Date())
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -265,6 +264,7 @@ const httpTrigger: AzureFunction = async function (
 
   const getCourses = async (query: any) => {
     try {
+      console.log(new Date())
       const db = await database;
       const collection = db.collection("course");
 
@@ -370,6 +370,8 @@ const httpTrigger: AzureFunction = async function (
       // };
 
       if (body) {
+        console.log(new Date())
+
         context.res = {
           status: 200,
           headers: {
@@ -405,62 +407,216 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  };
+  }
+
+  const getAuthorCourses = async () => {
+    try {
+      const db = await database;
+      const courses = db.collection("course")
+      const query = { author_code: req.query.authorCode }
+      const project = {
+        projection: {
+          _id: 0,
+          "details.title": 1,
+          "details.summary": 1,
+          "details.cover": 1,
+          "dateCreated": 1,
+          "createdBy": 1,
+          "approvalStatus": 1
+        }
+      }
+
+      console.log('Before query: ', new Date())
+
+      const findResponse = await courses.find(query, project).toArray()
+      // .toArray()
+      console.log('After query: ', new Date())
+
+      // console.log(coursesFindResponse.length)
+      // console.log(new Date())
+      if (findResponse) {
+        context.res = {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: findResponse,
+        };
+      } else {
+        context.res = {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "No course found",
+          },
+        };
+      }
+    } catch (error) {
+      await saveLog(
+        `Error getting courses, error ${error.message}`,
+        "Error",
+        "getAuthorCourses()",
+        "Courses/{courseCode?}"
+      );
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error getting author courses",
+        },
+      };
+    }
+  }
+
+  const getOrganizationCourses = async () => {
+    try {
+      const db = await database;
+      const courses = db.collection("course")
+      const query = { organizationCode: req.query.organizationCode }
+      const project = {
+        projection: {
+          _id: 0,
+          "details.title": 1,
+          "details.summary": 1,
+          "details.cover": 1,
+          "dateCreated": 1,
+          "createdBy": 1,
+          "approvalStatus": 1
+        }
+      }
+
+      console.log('Before query: ', new Date())
+
+      const findResponse = await courses.find(query, project).toArray()
+      // .toArray()
+      console.log('After query: ', new Date())
+
+      // console.log(coursesFindResponse.length)
+      // console.log(new Date())
+      if (findResponse) {
+        context.res = {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: findResponse,
+        };
+      } else {
+        context.res = {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "No course found",
+          },
+        };
+      }
+    } catch (error) {
+      await saveLog(
+        `Error getting courses, error ${error.message}`,
+        "Error",
+        "getOrganizationCourses()",
+        "Courses/{courseCode?}"
+      );
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error getting author courses",
+        },
+      };
+    }
+  }
 
   const getStudentCourses = async (studentCode: string) => {
-    console.log(new Date())
-
     try {
       const db = await database
       const Groups = db.collection('group')
       console.log(new Date())
 
       const resp = Groups.aggregate(
+        // [
+        //   {
+        //     '$match': {
+        //       'users.code': studentCode,
+        //       'status': 'Activo'
+        //     }
+        //   }, {
+        //     '$unwind': {
+        //       'path': '$users'
+        //     }
+        //   }, {
+        //     '$match': {
+        //       'users.code': studentCode,
+        //       'status': 'Activo'
+        //     }
+        //   },
+        //   {
+        //     '$lookup': {
+        //       'from': 'course',
+        //       'localField': 'courseCode',
+        //       'foreignField': 'code',
+        //       'as': 'courses'
+        //     }
+        //   },
+        //   {
+        //     '$unwind': {
+        //       'path': '$courses'
+        //     }
+        //   },
+        //   {
+        //     '$project': {
+        //       'course': '$courses',
+        //       'groupCode': '$code',
+        //       'quizScores': '$users.quizScores',
+        //       'group': '$users'
+        //     }
+        //   },
+        //   {
+        //     '$match': {
+        //       'course.approvalStatus': 'Approved'
+        //     }
+        //   }
+        // ]
         [
           {
             '$match': {
-              'users.code': studentCode,
-              'status': 'Activo'
+              'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16'
             }
           }, {
-            '$unwind': {
-              'path': '$users'
-            }
-          }, {
-            '$match': {
-              'users.code': studentCode,
-              'status': 'Activo'
-            }
-          },
-          {
             '$lookup': {
               'from': 'course',
               'localField': 'courseCode',
               'foreignField': 'code',
-              'as': 'courses'
+              'as': 'course'
             }
-          },
-          {
-            '$unwind': {
-              'path': '$courses'
-            }
-          },
-          {
-            '$project': {
-              'course': '$courses',
-              'groupCode': '$code',
-              'quizScores': '$users.quizScores',
-              'group': '$users'
-            }
-          },
-          {
+          }, {
             '$match': {
               'course.approvalStatus': 'Approved'
+            }
+          }, {
+            '$unwind': {
+              'path': '$course'
+            }
+          }, {
+            '$project': {
+              '_id': 0,
+              'course': 1,
+              'group.name': '$name',
+              'group.startDate': '$startDate',
+              'group.endDate': '$endDate',
+              'group.code': '$code'
             }
           }
         ]
       )
-      console.log(new Date())
 
       const body = await resp.toArray()
       console.log('Last one', new Date())
@@ -648,8 +804,10 @@ const httpTrigger: AzureFunction = async function (
       } else {
         if (req.query.studentCode) {
           await getStudentCourses(req.query.studentCode)
-        } else {
-          await getCourses(req.query)
+        } else if (req.query.authorCode) {
+          await getAuthorCourses()
+        } else if (req.query.organizationCode) {
+          await getOrganizationCourses()
         }
       }
       break;
