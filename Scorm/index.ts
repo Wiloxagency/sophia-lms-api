@@ -551,7 +551,10 @@ const httpTrigger: AzureFunction = async function (
             zipCourse.addFile(blob.name, buffer);
             zipCourse.addFile("instructions.docx", Buffer.from(arquivo));
           } else {
-            SCORMFileName = blob.name
+            if (blob.name.includes(req.body.courseCode)) {
+              SCORMFileName = blob.name
+            }
+            
           }
         }
 
