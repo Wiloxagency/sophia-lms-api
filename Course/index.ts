@@ -417,6 +417,7 @@ const httpTrigger: AzureFunction = async function (
       const project = {
         projection: {
           _id: 0,
+          "code": 1,
           "details.title": 1,
           "details.summary": 1,
           "details.cover": 1,
@@ -425,15 +426,11 @@ const httpTrigger: AzureFunction = async function (
           "approvalStatus": 1
         }
       }
-
       console.log('Before query: ', new Date())
-
-      const findResponse = await courses.find(query, project).toArray()
-      // .toArray()
+      const findResponse = await courses.find(query, project)
+      // .explain()
+      .toArray()
       console.log('After query: ', new Date())
-
-      // console.log(coursesFindResponse.length)
-      // console.log(new Date())
       if (findResponse) {
         context.res = {
           status: 200,
@@ -476,10 +473,11 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const courses = db.collection("course")
-      const query = { organizationCode: req.query.organizationCode }
+      const query = { organizationCode: req.query.organizationCode, approvalStatus: req.query.approvalStatus }
       const project = {
         projection: {
           _id: 0,
+          "code": 1,
           "details.title": 1,
           "details.summary": 1,
           "details.cover": 1,
@@ -488,15 +486,11 @@ const httpTrigger: AzureFunction = async function (
           "approvalStatus": 1
         }
       }
-
       console.log('Before query: ', new Date())
-
-      const findResponse = await courses.find(query, project).toArray()
-      // .toArray()
+      const findResponse = await courses.find(query, project).sort({"dateCreated": -1})
+      // .explain()
+      .toArray()
       console.log('After query: ', new Date())
-
-      // console.log(coursesFindResponse.length)
-      // console.log(new Date())
       if (findResponse) {
         context.res = {
           status: 200,
@@ -541,7 +535,7 @@ const httpTrigger: AzureFunction = async function (
       const Groups = db.collection('group')
       console.log(new Date())
 
-      const resp = Groups.aggregate(
+      const body = await Groups.aggregate(
         // [
         //   {
         //     '$match': {
@@ -616,12 +610,11 @@ const httpTrigger: AzureFunction = async function (
             }
           }
         ]
-      )
+      ).toArray()
 
-      const body = await resp.toArray()
       console.log('Last one', new Date())
 
-      if (body && body[0]) {
+      if (body) {
         context.res = {
           "status": 200,
           "headers": {
@@ -722,7 +715,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  };
+  }
 
   const uploadCourseCover = async (req: HttpRequest) => {
     try {
@@ -775,7 +768,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  };
+  }
 
   switch (req.method) {
     case "POST":
