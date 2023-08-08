@@ -262,7 +262,7 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const getCourses = async (query: any) => {
+  const getCoursesBySearch = async (query: any) => {
     try {
       console.log(new Date())
       const db = await database;
@@ -427,9 +427,9 @@ const httpTrigger: AzureFunction = async function (
         }
       }
       console.log('Before query: ', new Date())
-      const findResponse = await courses.find(query, project)
-      // .explain()
-      .toArray()
+      const findResponse = await courses.find(query, project).sort({ "dateCreated": -1 })
+        // .explain()
+        .toArray()
       console.log('After query: ', new Date())
       if (findResponse) {
         context.res = {
@@ -473,31 +473,87 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const courses = db.collection("course")
-      const query = { organizationCode: req.query.organizationCode, approvalStatus: req.query.approvalStatus }
-      const project = {
-        projection: {
-          _id: 0,
-          "code": 1,
-          "details.title": 1,
-          "details.summary": 1,
-          "details.cover": 1,
-          "dateCreated": 1,
-          "createdBy": 1,
-          "approvalStatus": 1
+      // const query = { organizationCode: req.query.organizationCode, approvalStatus: req.query.approvalStatus }
+      // const project = {
+      //   projection: {
+      //     _id: 0,
+      //     "code": 1,
+      //     "details.title": 1,
+      //     "details.summary": 1,
+      //     "details.cover": 1,
+      //     "dateCreated": 1,
+      //     "createdBy": 1,
+      //     "approvalStatus": 1
+      //   }
+      // }
+      // console.log('Before query: ', new Date())
+      // const findResponse = await courses.find(query, project).sort({ "dateCreated": -1 })
+      //   // .explain()
+      //   .toArray()
+      // console.log('After query: ', new Date())
+
+      console.log('Before aggregation: ', new Date())
+      const aggregationResponse = await courses.aggregate([
+        {
+          $match: {
+            organizationCode: req.query.organizationCode,
+            approvalStatus: req.query.approvalStatus
+          }
+        },
+        {
+          $project: {
+            "_id": 0,
+            "code": 1,
+            "details.title": 1,
+            "details.summary": 1,
+            "details.cover": 1,
+            "dateCreated": 1,
+            "createdBy": 1,
+            "approvalStatus": 1
+          }
+        },
+        {
+          $sort: {
+            dateCreated: -1
+          }
+        },
+        {
+          $facet: {
+            "Courses":
+              [
+                { $skip: parseInt(req.query.skip) },
+                { $limit: 20 },
+              ],
+            "Count":
+              [
+                {
+                  $group: {
+                    _id: null,
+                    "Total": { $sum: 1 }
+                  }
+                }
+              ]
+          }
+        },
+        {
+          $addFields: {
+            Count: "$Count.Total"
+          }
+        },
+        {
+          $unwind: "$Count"
         }
-      }
-      console.log('Before query: ', new Date())
-      const findResponse = await courses.find(query, project).sort({"dateCreated": -1})
-      // .explain()
-      .toArray()
-      console.log('After query: ', new Date())
-      if (findResponse) {
+      ])
+        .toArray()
+      console.log('After aggregation: ', new Date())
+
+      if (aggregationResponse) {
         context.res = {
           status: 200,
           headers: {
             "Content-Type": "application/json",
           },
-          body: findResponse,
+          body: aggregationResponse[0],
         };
       } else {
         context.res = {
@@ -795,12 +851,16 @@ const httpTrigger: AzureFunction = async function (
       if (req.params.courseCode) {
         await getCourse(req.params.courseCode)
       } else {
-        if (req.query.studentCode) {
-          await getStudentCourses(req.query.studentCode)
-        } else if (req.query.authorCode) {
-          await getAuthorCourses()
-        } else if (req.query.organizationCode) {
-          await getOrganizationCourses()
+        if (req.query.search) {
+          await getCoursesBySearch(req.query)
+        } else {
+          if (req.query.studentCode) {
+            await getStudentCourses(req.query.studentCode)
+          } else if (req.query.authorCode) {
+            await getAuthorCourses()
+          } else if (req.query.organizationCode) {
+            await getOrganizationCourses()
+          }
         }
       }
       break;
