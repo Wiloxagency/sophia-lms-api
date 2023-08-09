@@ -647,29 +647,44 @@ const httpTrigger: AzureFunction = async function (
             '$match': {
               'users.code': req.query.studentCode
             }
-          }, {
+          },
+          {
             '$lookup': {
               'from': 'course',
               'localField': 'courseCode',
               'foreignField': 'code',
               'as': 'course'
             }
-          }, {
+          },
+          {
+            '$unwind': {
+              path: '$course'
+            }
+          },
+          {
             '$match': {
               'course.approvalStatus': 'Approved'
             }
-          }, {
-            '$unwind': {
-              'path': '$course'
-            }
-          }, {
+          },
+          {
             '$project': {
-              '_id': 0,
               'course': 1,
               'group.name': '$name',
               'group.startDate': '$startDate',
               'group.endDate': '$endDate',
-              'group.code': '$code'
+              'group.code': '$code',
+              'group.elementTimes': '$users.elementTimes',
+              'group.quizScores': '$users.quizScores'
+            }
+          }, {
+            '$unwind': {
+              'path': '$group.elementTimes',
+              'preserveNullAndEmptyArrays': true
+            }
+          }, {
+            '$unwind': {
+              'path': '$group.quizScores',
+              'preserveNullAndEmptyArrays': true
             }
           }
         ]
