@@ -430,7 +430,8 @@ const httpTrigger: AzureFunction = async function (
           "details.cover": 1,
           "dateCreated": 1,
           "createdBy": 1,
-          "approvalStatus": 1
+          "approvalStatus": 1,
+          "duration": 1
         }
       }
       console.log('Before query: ', new Date())
@@ -516,7 +517,8 @@ const httpTrigger: AzureFunction = async function (
             "details.cover": 1,
             "dateCreated": 1,
             "createdBy": 1,
-            "approvalStatus": 1
+            "approvalStatus": 1,
+            "duration": 1
           }
         },
         {
@@ -592,7 +594,7 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-  const getStudentCourses = async (studentCode: string) => {
+  const getStudentCourses = async () => {
     try {
       const db = await database
       const Groups = db.collection('group')
@@ -645,7 +647,7 @@ const httpTrigger: AzureFunction = async function (
         [
           {
             '$match': {
-              'users.code': '9368538a-9e10-4de2-aff0-d37caf272d16'
+              'users.code': req.query.studentCode
             }
           }, {
             '$lookup': {
@@ -686,7 +688,7 @@ const httpTrigger: AzureFunction = async function (
           "body": body
         }
       } else {
-        await saveLog(`Error getting courses by user code for user: ${studentCode}`, "Error", "getStudentCourses()", "Course/")
+        await saveLog(`Error getting courses by user code for user: ${req.query.studentCode}`, "Error", "getStudentCourses()", "Course/")
 
         context.res = {
           "status": 500,
@@ -699,7 +701,7 @@ const httpTrigger: AzureFunction = async function (
         }
       }
     } catch (error) {
-      await saveLog(`Error getting courses by user code for user: ${studentCode}, error ${error.message}`, "Error", "getStudentCourses()", "Course/")
+      await saveLog(`Error getting courses by user code for user: ${req.query.studentCode}, error ${error.message}`, "Error", "getStudentCourses()", "Course/")
 
       context.res = {
         "status": 500,
@@ -864,7 +866,7 @@ const httpTrigger: AzureFunction = async function (
           await getCoursesBySearch(req.query)
         } else {
           if (req.query.studentCode) {
-            await getStudentCourses(req.query.studentCode)
+            await getStudentCourses()
           } else if (req.query.authorCode) {
             await getAuthorCourses()
           } else if (req.query.organizationCode) {
