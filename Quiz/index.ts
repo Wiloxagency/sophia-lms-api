@@ -461,7 +461,6 @@ const httpTrigger: AzureFunction = async function (
             result: response2.data.choices[0].message.content,
           });
         }
-        // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
         // console.log(GPTResponses)
       }
       context.res = {

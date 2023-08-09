@@ -1,9 +1,10 @@
 import { createConnection } from "./mongo";
 const database = createConnection();
 
-export async function getCourseDuration(course: any) {
+export async function updateCourseDuration(courseCode: any) {
     const db = await database;
     const Courses = db.collection("course")
+    let course = await Courses.findOne({ code: courseCode })
     let allTextInsideCourse: string = ''
     for (const section of course.sections) {
         for (const element of section.elements) {
@@ -20,7 +21,7 @@ export async function getCourseDuration(course: any) {
         let formatMinutesToHours = (courseTimeMinutes: any) => `${courseTimeMinutes / 60 ^ 0}:` + courseTimeMinutes % 60
         const formattedTime = formatMinutesToHours(courseTimeMinutes).toString() + ' h'
         const update = Courses.findOneAndUpdate(
-            { code: course.courseCode },
+            { code: courseCode },
             {
                 $set: {
                     "duration": formattedTime
@@ -28,11 +29,11 @@ export async function getCourseDuration(course: any) {
             }
         )
         const updateResponse = await update
-        console.log(updateResponse)
+        // console.log(updateResponse)
     } else {
         let formattedMinutes = Math.round(courseTimeMinutes).toString() + ' m'
         const update = Courses.findOneAndUpdate(
-            { code: course.courseCode },
+            { code: courseCode },
             {
                 $set: {
                     "duration": formattedMinutes
@@ -40,6 +41,6 @@ export async function getCourseDuration(course: any) {
             }
         )
         const updateResponse = await update
-        console.log(updateResponse)
+        // console.log(updateResponse)
     }
 }
