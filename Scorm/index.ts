@@ -3,11 +3,15 @@ import { saveLog } from "../shared/saveLog";
 import admZip from "adm-zip";
 import { createConnection } from "../shared/mongo";
 import { BlobServiceClient } from "@azure/storage-blob";
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 import { downloadTextElementAsDoc } from "../TextElement/download";
 import { downloadQuiz } from "../Quiz/download";
 import * as path from "path";
-import { sendFailedSCORMCreationEmail, sendSCORMDownloadLinkEmail, sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail";
+import {
+  sendFailedSCORMCreationEmail,
+  sendSCORMDownloadLinkEmail,
+  sendScormUnderConstructionEmail,
+} from "../nodemailer/scormDownloadEmail";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -17,17 +21,21 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
 );
 
 const database = createConnection();
-var errorLine = 19
+var errorLine = 19;
 
-var SCORMFileName = ""
+var SCORMFileName = "";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  errorLine = 25
+  errorLine = 25;
   // console.log(req.query)
-  sendScormUnderConstructionEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName)
+  sendScormUnderConstructionEmail(
+    req.query.recipientEmail,
+    req.query.recipientName,
+    req.query.courseName
+  );
 
   async function createScorm(scormPayload: {
     courseTitle: string;
@@ -38,7 +46,7 @@ const httpTrigger: AzureFunction = async function (
     courseCode: string;
   }): Promise<string | null> {
     const title = scormPayload.courseTitle;
-    errorLine = 35
+    errorLine = 35;
     const organization_default =
       title.toLowerCase().replace(/ /g, "_") + "e_default_org";
     const base = `<?xml version="1.0" standalone="no" ?>
@@ -77,7 +85,7 @@ const httpTrigger: AzureFunction = async function (
     };
     // faz o loop nos parágrafos e adiciona o caminho dos arquivos no manifest
     const paragraphs = scormPayload.lesson.elementLesson.paragraphs;
-    errorLine = 74
+    errorLine = 74;
     // Verificar se há parágrafos disponíveis
     if (paragraphs.length === 0) {
       return null;
@@ -93,7 +101,6 @@ const httpTrigger: AzureFunction = async function (
       if (imageData === "" && videoUrl === "") {
         return;
       }
-
 
       if (audioUrl === "") {
         return;
@@ -125,7 +132,7 @@ const httpTrigger: AzureFunction = async function (
     };
     const jsFileCount = Object.keys(resources.resource.file).length;
     resources.resource.file[`file_${jsFileCount}`] = newJsFile;
-    errorLine = 109
+    errorLine = 109;
     const newJsonFile = {
       paragraphs: paragraphs.map((paragraph: any, index: number) => ({
         ...paragraph,
@@ -142,7 +149,7 @@ const httpTrigger: AzureFunction = async function (
 
     const jsonContent = JSON.stringify(newJsonFile);
     const jsonFilePath = `./assets/lesson.json`;
-    errorLine = 129
+    errorLine = 129;
     const addLessonManifest = { "@href": jsonFilePath };
     const jsJsonCountLesson = Object.keys(resources.resource.file).length;
     resources.resource.file[`file_${jsJsonCountLesson}`] = addLessonManifest;
@@ -152,14 +159,14 @@ const httpTrigger: AzureFunction = async function (
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="index.html">
 
     ${Object.keys(resources.resource.file)
-        .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
-        .join("\n  ")}
+      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+      .join("\n  ")}
 
   </resource>
 </resources>
 </manifest>
 `;
-    errorLine = 142
+    errorLine = 142;
     const containerClient = blobServiceClient.getContainerClient("scorms");
     const newManifest = base + organizations + xmlString;
 
@@ -247,12 +254,12 @@ const httpTrigger: AzureFunction = async function (
     
     </html>`;
     zipLesson.addFile("index.html", Buffer.from(contentIndex));
-    errorLine = 219
+    errorLine = 219;
     // faz o loop nos parágrafos e adiciona os arquivos nas pastas
     for (let i = 0; i < paragraphs.length; i++) {
       const audioFile = paragraphs[i].audioUrl;
       const imageFile = paragraphs[i].imageData.finalImage.url;
-      errorLine = 226
+      errorLine = 226;
 
       const videoFile = paragraphs[i].videoData.finalVideo.url;
 
@@ -286,7 +293,7 @@ const httpTrigger: AzureFunction = async function (
 
       zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
     }
-    errorLine = 241
+    errorLine = 241;
     const zipBufferCourse = zipLesson.toBuffer();
 
     if (zipBufferCourse) {
@@ -308,7 +315,7 @@ const httpTrigger: AzureFunction = async function (
     const month = String(currentDate.getMonth() + 1).padStart(2, "0");
     const year = currentDate.getFullYear();
     const formattedDate = `${day}/${month}/${year}`;
-    errorLine = 263
+    errorLine = 263;
     const Courses = db.collection("course");
     const findCourse = await Courses.findOne({ code: courseCode });
     const authorCode = findCourse.author_code;
@@ -343,10 +350,12 @@ const httpTrigger: AzureFunction = async function (
     };
     const options = { upsert: true };
     await Scorms.updateOne(query, update, options);
-    console.info("scorm criado ou atualizado com sucesso, inicio do processo de compressão");
+    console.info(
+      "scorm criado ou atualizado com sucesso, inicio do processo de compressão"
+    );
     await createInstructionsDoc(scormData);
   }
-  errorLine = 301
+  errorLine = 301;
   let arquivo: string;
   async function createInstructionsDoc(scormData: {
     title: string;
@@ -362,7 +371,7 @@ const httpTrigger: AzureFunction = async function (
     content: ${content}`;
     arquivo = doc;
   }
-  errorLine = 317
+  errorLine = 317;
   async function updateScormStatus(courseCode: string) {
     const db = await database;
     const Scorms = db.collection("scorm");
@@ -381,7 +390,7 @@ const httpTrigger: AzureFunction = async function (
 
       const elements = req.body.elements;
       const sectionCount = resp.sections.length;
-      errorLine = 336
+      errorLine = 336;
       let sectionIndex = 0;
       let lessonCounter = 0;
       let htmlFileCount = 1;
@@ -389,7 +398,7 @@ const httpTrigger: AzureFunction = async function (
       numberLessons = 0;
       numberRecourses = 0;
 
-      errorLine = 344
+      errorLine = 344;
       while (sectionIndex <= sectionCount - 1) {
         if (resp.sections[sectionIndex]) {
           const section = resp.sections[sectionIndex];
@@ -399,7 +408,7 @@ const httpTrigger: AzureFunction = async function (
           lessonCounter = 0;
           quizFileCount = 1;
 
-          errorLine = 354
+          errorLine = 354;
           while (elementIndex <= elementCount) {
             const element = section.elements[elementIndex];
 
@@ -419,7 +428,7 @@ const httpTrigger: AzureFunction = async function (
                   courseCode: courseCode,
                 };
 
-                errorLine = 374
+                errorLine = 374;
                 await createScorm(scormPayload);
 
                 lessonCounter++;
@@ -440,8 +449,9 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const LessonFileName = `S${sectionIndex + 1
-                  }-${courseCode}/${fileName}`;
+                const LessonFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/${fileName}`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(LessonFileName);
                 await blockBlobClient.upload(fileContent, fileContent.length);
@@ -465,17 +475,20 @@ const httpTrigger: AzureFunction = async function (
 
                   const containerClient =
                     blobServiceClient.getContainerClient("scorms");
-                  const HtmlFileName = `S${sectionIndex + 1
-                    }-${courseCode}/Text-S${sectionIndex + 1
-                    }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-${courseCode}/Text-S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
 
                   const blockBlobClient =
                     containerClient.getBlockBlobClient(HtmlFileName);
                   await blockBlobClient.upload(fileHtml, fileHtml.length);
                   htmlFileCount++;
                 } else {
-                  const HtmlFileName = `S${sectionIndex + 1
-                    }-T${htmlFileCount}.docx`;
+                  const HtmlFileName = `S${
+                    sectionIndex + 1
+                  }-T${htmlFileCount}.docx`;
                   console.log(
                     `Conteúdo HTML ${HtmlFileName} vazio. Ignorando...`
                   );
@@ -504,9 +517,11 @@ const httpTrigger: AzureFunction = async function (
 
                 const containerClient =
                   blobServiceClient.getContainerClient("scorms");
-                const QuizzFileName = `S${sectionIndex + 1
-                  }-${courseCode}/Quiz-S${sectionIndex + 1
-                  }-Q${quizFileCount}.docx`;
+                const QuizzFileName = `S${
+                  sectionIndex + 1
+                }-${courseCode}/Quiz-S${
+                  sectionIndex + 1
+                }-Q${quizFileCount}.docx`;
                 const blockBlobClient =
                   containerClient.getBlockBlobClient(QuizzFileName);
                 await blockBlobClient.upload(fileQuiz, fileQuiz.length);
@@ -526,7 +541,7 @@ const httpTrigger: AzureFunction = async function (
           sectionIndex++;
         }
       }
-      errorLine = 487
+      errorLine = 487;
 
       await saveScormDb(req.body.courseCode);
       async function createZipCourse(
@@ -541,7 +556,10 @@ const httpTrigger: AzureFunction = async function (
           blobServiceClient.getContainerClient(containerName);
         const zipCourse = new admZip();
         for await (const blob of containerClient.listBlobsFlat()) {
-          if (!blob.name.startsWith("Course")) {
+          if (
+            !blob.name.startsWith("Course") &&
+            blob.name.includes(req.body.courseCode)
+          ) {
             const blobClient = containerClient.getBlobClient(blob.name);
             const downloadResponse = await blobClient.download();
             const buffer = await streamToBuffer(
@@ -550,15 +568,10 @@ const httpTrigger: AzureFunction = async function (
 
             zipCourse.addFile(blob.name, buffer);
             zipCourse.addFile("instructions.docx", Buffer.from(arquivo));
-          } else {
-            if (blob.name.includes(req.body.courseCode)) {
-              SCORMFileName = blob.name
-            }
-            
           }
         }
 
-        errorLine = 514
+        errorLine = 514;
 
         const zipBuffer = zipCourse.toBuffer();
         const zipBlobName = zipFileName;
@@ -566,12 +579,17 @@ const httpTrigger: AzureFunction = async function (
         await blockBlobClient.uploadData(zipBuffer);
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
-        )
-        SCORMFileName = zipFileName
-        sendSCORMDownloadLinkEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, SCORMFileName)
+        );
+        SCORMFileName = zipFileName;
+        sendSCORMDownloadLinkEmail(
+          req.query.recipientEmail,
+          req.query.recipientName,
+          req.query.courseName,
+          SCORMFileName
+        );
       }
 
-      errorLine = 525
+      errorLine = 525;
 
       async function streamToBuffer(
         readableStream: NodeJS.ReadableStream
@@ -609,7 +627,7 @@ const httpTrigger: AzureFunction = async function (
           folderNames.add(folderName);
         }
 
-        errorLine = 563
+        errorLine = 563;
 
         for (const folderName of folderNames) {
           // Verifique se o nome da pasta contém o courseCode
@@ -622,12 +640,11 @@ const httpTrigger: AzureFunction = async function (
             }
 
             console.log(`Pasta '${folderName}' excluída com sucesso.`);
-
           }
         }
       }
 
-      errorLine = 579
+      errorLine = 579;
 
       deleteFolders(courseCode)
         .then(() => {
@@ -637,11 +654,12 @@ const httpTrigger: AzureFunction = async function (
           console.error("Erro ao excluir as pastas:", error);
         });
       await updateScormStatus(courseCode);
-      
     } catch (error) {
-      sendFailedSCORMCreationEmail(req.query.recipientEmail)
+      sendFailedSCORMCreationEmail(req.query.recipientEmail);
       await saveLog(
-        `Error creating scorm in line: ${errorLine}, body: ${JSON.stringify(req.body)}` + error.message,
+        `Error creating scorm in line: ${errorLine}, body: ${JSON.stringify(
+          req.body
+        )}` + error.message,
         "Error",
         "createScorm()",
         "Scorm"
