@@ -567,6 +567,8 @@ const httpTrigger: AzureFunction = async function (
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
         )
+        SCORMFileName = zipFileName
+        sendSCORMDownloadLinkEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, SCORMFileName)
       }
 
       errorLine = 525
@@ -635,7 +637,7 @@ const httpTrigger: AzureFunction = async function (
           console.error("Erro ao excluir as pastas:", error);
         });
       await updateScormStatus(courseCode);
-      sendSCORMDownloadLinkEmail(req.query.recipientEmail, req.query.recipientName, req.query.courseName, SCORMFileName)
+      
     } catch (error) {
       sendFailedSCORMCreationEmail(req.query.recipientEmail)
       await saveLog(
