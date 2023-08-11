@@ -17,6 +17,7 @@ export async function updateCourseDuration(courseCode: any) {
     }
     let wordCount = allTextInsideCourse.trim().split(/\s+/).length
     let courseTimeMinutes = Math.round(wordCount / 140)
+    console.log("Course time minutes: ", courseTimeMinutes)
     if (courseTimeMinutes > 59) {
         let formatMinutesToHours = (courseTimeMinutes: any) => `${courseTimeMinutes / 60 ^ 0}:` + courseTimeMinutes % 60
         const formattedTime = formatMinutesToHours(courseTimeMinutes).toString() + ' h'

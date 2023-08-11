@@ -8,6 +8,7 @@ import { paragraphCreation } from "../interfaces/paragraph";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { v4 as uuidv4 } from "uuid"
+import { updateCourseDuration } from "../shared/updateCourseDuration";
 
 const database = createConnection()
 
@@ -116,6 +117,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         $set: { [newSectionPath]: lesson }
                     }
                 )
+                updateCourseDuration(req.body.courseCode)
             } catch (error) {
                 await saveLog(`Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`, "Error", "AzureFunction()", "Courses/{courseCode}/CreateLesson")
 
