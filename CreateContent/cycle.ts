@@ -7,6 +7,7 @@ import { deleteCourseCreationLog, saveCourseCreationLog, saveLog } from "../shar
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
 import { createSrt } from "./createSrt";
+import { updateCourseDuration } from "../shared/updateCourseDuration";
 
 const database = createConnection()
 
@@ -98,7 +99,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     await createAudioFn(0)
                     saveCourseCreationLog(course.code, course.details.title)
 
-                    
+
                     // Start stract english title for images context searching
                     var extractedTitle = {
                         title: ""
@@ -152,7 +153,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     totalParagraphCounter++
 
                     if (paragraphCounter == currentParagraphs.content.length) {
-                        if (!(lessonCounter < course.sections[sectionCounter].elements.length - 1)  && (sectionCounter + 1) == syllabus.length) {
+                        if (!(lessonCounter < course.sections[sectionCounter].elements.length - 1) && (sectionCounter + 1) == syllabus.length) {
 
                             await saveLog(`Finish content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
@@ -165,11 +166,12 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             const totalCreationTime = Math.abs(Math.round((startCreation.getTime() - endCreation.getTime()) / 1000 / 60))
                             await saveLog(`Update content for course: ${course.code}. ${course.sections.length} Sections and ${totalParagraphCounter} Slides was created in ${totalCreationTime} minutes.`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
                             deleteCourseCreationLog(course.code)
+                            updateCourseDuration(course.code)
                         } else {
                             await Courses.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
                             })
-
+                            updateCourseDuration(course.code)
                             if (lessonCounter < course.sections[sectionCounter].elements.length - 1) {
                                 await lessonCycle(lessonCounter + 1)
                             } else {
