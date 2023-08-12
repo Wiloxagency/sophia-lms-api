@@ -145,7 +145,7 @@ const httpTrigger: AzureFunction = async function (
 
       const resp = Courses.updateOne({ code: courseCode }, { $push: req.body });
       const body = await resp;
-
+      updateCourseDuration(courseCode)
       if (body) {
         context.res = {
           status: 201,
