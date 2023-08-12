@@ -16,6 +16,12 @@ function wait(seconds: number) {
     });
 }
 
+function cleanText(text: string): string {
+
+    return text.trimStart().replace(/\n\s*\n/g, '\n').replace(/  +/g, ' ')
+    .replace(/^ +/gm, '').replace(/(?<=[a-z])\s?\n/, '. ')
+}
+
 export async function createContentCycle(course: any, sectionIndex: number, lessonIndex: number) {
     let payload: paragraphCreation
     if (!(course.sections && course.sections.length > 0)) {
@@ -58,7 +64,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
             const lessonCycle = async (lessonCounter: number) => {
                 let currentParagraphs: any
                 if (course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.length == 0) {
-                    console.warn("creating paragraph")
+                    console.warn("creating paragraphs")
                     payload.text = course.sections[sectionCounter].title
                     payload.index = sectionCounter
                     currentParagraphs = await createParagraphs(payload)
@@ -68,7 +74,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                 } else {
                     currentParagraphs = { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter }
                     course.sections[currentParagraphs.sectionIndex].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
-                        return { content: text, audioScript: text }
+                        return { content: cleanText(text), audioScript: cleanText(text) }
                     })
                 }
                 // Create Audios & find images
