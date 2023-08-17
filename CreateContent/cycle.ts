@@ -7,6 +7,7 @@ import { deleteCourseCreationLog, saveCourseCreationLog, saveLog } from "../shar
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
 import { createSrt } from "./createSrt";
+import { updateCourseDuration } from "../shared/updateCourseDuration";
 
 const database = createConnection()
 
@@ -14,6 +15,12 @@ function wait(seconds: number) {
     return new Promise(resolve => {
         setTimeout(resolve, seconds * 1000);
     });
+}
+
+function cleanText(text: string): string {
+
+    return text.trimStart().replace(/\n\s*\n/g, '\n').replace(/  +/g, ' ')
+    .replace(/^ +/gm, '').replace(/(?<=[a-z])\s?\n/, '. ')
 }
 
 export async function createContentCycle(course: any, sectionIndex: number, lessonIndex: number) {
@@ -58,7 +65,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
             const lessonCycle = async (lessonCounter: number) => {
                 let currentParagraphs: any
                 if (course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.length == 0) {
-                    console.warn("creating paragraph")
+                    console.warn("creating paragraphs")
                     payload.text = course.sections[sectionCounter].title
                     payload.index = sectionCounter
                     currentParagraphs = await createParagraphs(payload)
@@ -68,7 +75,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                 } else {
                     currentParagraphs = { "content": course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs, "sectionIndex": sectionCounter }
                     course.sections[currentParagraphs.sectionIndex].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs.content.map((text: string) => {
-                        return { content: text, audioScript: text }
+                        return { content: cleanText(text), audioScript: cleanText(text) }
                     })
                 }
                 // Create Audios & find images
@@ -98,7 +105,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     await createAudioFn(0)
                     saveCourseCreationLog(course.code, course.details.title)
 
-                    
+
                     // Start stract english title for images context searching
                     var extractedTitle = {
                         title: ""
@@ -152,7 +159,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     totalParagraphCounter++
 
                     if (paragraphCounter == currentParagraphs.content.length) {
-                        if (!(lessonCounter < course.sections[sectionCounter].elements.length - 1)  && (sectionCounter + 1) == syllabus.length) {
+                        if (!(lessonCounter < course.sections[sectionCounter].elements.length - 1) && (sectionCounter + 1) == syllabus.length) {
 
                             await saveLog(`Finish content creating for course: ${course.code}`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
 
@@ -165,11 +172,12 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                             const totalCreationTime = Math.abs(Math.round((startCreation.getTime() - endCreation.getTime()) / 1000 / 60))
                             await saveLog(`Update content for course: ${course.code}. ${course.sections.length} Sections and ${totalParagraphCounter} Slides was created in ${totalCreationTime} minutes.`, "Info", "createContentCycle()", "Courses/{courseCode}/CreateContent")
                             deleteCourseCreationLog(course.code)
+                            updateCourseDuration(course.code)
                         } else {
                             await Courses.findOneAndUpdate({ code: course.code }, {
                                 $set: { sections: course.sections }
                             })
-
+                            updateCourseDuration(course.code)
                             if (lessonCounter < course.sections[sectionCounter].elements.length - 1) {
                                 await lessonCycle(lessonCounter + 1)
                             } else {
