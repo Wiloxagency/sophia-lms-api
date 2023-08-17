@@ -155,21 +155,74 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const updateGroup = async (groupCode: string) => {
-
         delete req.body._id
-
         try {
             // console.log(req.body)
             // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
             // console.log(groupCode)
             const db = await database
-            const CourseGroups = db.collection('group')
+            const Groups = db.collection('group')
+            const Users = db.collection('user')
 
-            const resp = CourseGroups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
+            const resp = Groups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
             const body = await resp
 
-            if (body) {
+            const groupPayload = {
+                courseCode: req.body.courseCode,
+                groupCode: groupCode,
+                startDate: req.body.startDate,
+                endDate: req.body.endDate,
+            }
 
+            for (let user of req.body.users) {
+                // console.log(userCode)
+                const fetchedUser = await Users.findOne({ code: user.code })
+                // console.log(fetchedUser)
+                if (fetchedUser.groups && fetchedUser.groups.length > 0) {
+                    // console.log('GROUPS ARRAY EXISTS')
+                    let isGroupAlreadyIncluded: boolean = false
+                    for (let group of fetchedUser.groups) {
+                        if (group.groupCode == groupCode) { isGroupAlreadyIncluded = true }
+                    }
+
+                    if (isGroupAlreadyIncluded) {
+                        const updateUserGroup = await Users.updateOne(
+                            {
+                                code: user.code,
+                                "groups.groupCode": groupCode
+                            },
+                            {
+                                $set: {
+                                    "groups.$": groupPayload
+                                }
+                            })
+                        // console.log('Update already included group: ', updateUserGroup)
+                    } else {
+                        const pushUserGroup = await Users.updateOne(
+                            {
+                                code: user.code
+                            },
+                            {
+                                $push: {
+                                    "groups": groupPayload
+                                }
+                            })
+                        // console.log('Push new group: ', pushUserGroup)
+                    }
+
+                } else {
+                    const updateUser = await Users.updateOne({ code: user.code }, {
+                        $set: {
+                            groups: [groupPayload]
+                        }
+                    })
+                    // console.log('Create group array: ', updateUser)
+                }
+
+            }
+            // console.log(groupPayload)
+
+            if (body) {
                 context.res = {
                     "status": 201,
                     "headers": {
