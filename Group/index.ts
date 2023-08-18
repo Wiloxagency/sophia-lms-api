@@ -274,7 +274,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const CourseGroups = db.collection('group')
             const groupPromise = CourseGroups.findOne({ 'code': req.body.groupCode })
             const group = await groupPromise
-            // console.log(group)
             let indexFilteredUser: number
             let filteredUser = group.users.filter((user: any, index: number) => {
                 if (user.code == req.body.studentCode) {
@@ -318,7 +317,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "body": body
                 }
             } else {
-                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
+                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "Group/{groupCode?}")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -330,7 +329,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         } catch (error) {
-            await saveLog("Error creating quiz score: " + error.message, "Error", "addQuizScore()", "CourseGroups/{courseCode?}/{groupCode?}")
+            await saveLog("Error creating quiz score: " + error.message, "Error", "createQuizScore()", "Group/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
