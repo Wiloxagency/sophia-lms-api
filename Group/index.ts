@@ -155,21 +155,75 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const updateGroup = async (groupCode: string) => {
-
         delete req.body._id
-
         try {
             // console.log(req.body)
             // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
             // console.log(groupCode)
             const db = await database
-            const CourseGroups = db.collection('group')
+            const Groups = db.collection('group')
+            const Users = db.collection('user')
 
-            const resp = CourseGroups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
+            const resp = Groups.findOneAndUpdate({ 'code': groupCode }, { $set: req.body })
             const body = await resp
 
-            if (body) {
+            const groupPayload = {
+                courseCode: req.body.courseCode,
+                groupCode: groupCode,
+                startDate: req.body.startDate,
+                endDate: req.body.endDate,
+            }
 
+            for (let user of req.body.users) {
+                // console.log(userCode)
+                const fetchedUser = await Users.findOne({ code: user.code })
+                // console.log(fetchedUser)
+
+                // 👇🏼 IF USER ALREADY HAS GROUPS
+                if (fetchedUser.groups && fetchedUser.groups.length > 0) {
+                    let isGroupAlreadyIncluded: boolean = false
+                    for (let group of fetchedUser.groups) {
+                        if (group.groupCode == groupCode) { isGroupAlreadyIncluded = true }
+                    }
+                    if (isGroupAlreadyIncluded) {
+                        const updateUserGroup = await Users.updateOne(
+                            {
+                                code: user.code,
+                                "groups.groupCode": groupCode
+                            },
+                            {
+                                $set: {
+                                    "groups.$.startDate": groupPayload.startDate,
+                                    "groups.$.endDate": groupPayload.endDate
+                                }
+                            })
+                        // console.log(updateUserGroup)
+                    } else {
+                        const pushUserGroup = await Users.updateOne(
+                            {
+                                code: user.code
+                            },
+                            {
+                                $push: {
+                                    "groups": groupPayload
+                                }
+                            })
+                        // console.log('Push new group: ', pushUserGroup)
+                    }
+
+                } else {
+                    const updateUser = await Users.updateOne({ code: user.code }, {
+                        $set: {
+                            groups: [groupPayload]
+                        }
+                    })
+                    // console.log('Create group array: ', updateUser)
+                }
+
+            }
+            // console.log(groupPayload)
+
+            if (body) {
                 context.res = {
                     "status": 201,
                     "headers": {
@@ -267,90 +321,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const createQuizScore = async () => {
-        delete req.body._id
-        try {
-            const db = await database
-            const CourseGroups = db.collection('group')
-            const groupPromise = CourseGroups.findOne({ 'code': req.body.groupCode })
-            const group = await groupPromise
-            let indexFilteredUser: number
-            let filteredUser = group.users.filter((user: any, index: number) => {
-                if (user.code == req.body.studentCode) {
-                    indexFilteredUser = index
-                    return user
-                }
-            })
-            let quizScores: any[] = []
-            let quizScorePayload: any = {
-                quizCode: req.body.quizCode,
-                score: req.body.score
-            }
-            // console.log(filteredUser)
-            if (filteredUser[0].quizScores == undefined) {
-                // console.log('QUIZ SCORES WAS UNDEFINED')
-                if (req.body.isQuizManuallyCorrected == false) {
-                    quizScorePayload.isQuizManuallyCorrected = false
-                }
-                quizScores = [quizScorePayload]
-            } else {
-                quizScores = filteredUser[0].quizScores
-                if (req.body.isQuizManuallyCorrected == false) {
-                    quizScorePayload.isQuizManuallyCorrected = false
-                }
-                quizScores.push(quizScorePayload)
-            }
-            let quizScoresPath = `users.${indexFilteredUser}.quizScores`
-            // console.log(quizScores)
-            const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
-                $set: {
-                    [quizScoresPath]: quizScores
-                }
-            })
-            const body = await updateGroupResponse
-            if (body) {
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-            } else {
-                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "Group/{groupCode?}")
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error updating courseGroup by code"
-                    }
-                }
-            }
-        } catch (error) {
-            await saveLog("Error creating quiz score: " + error.message, "Error", "createQuizScore()", "Group/{groupCode?}")
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error updating courseGroup by code"
-                }
-            }
-        }
-    }
-
     switch (req.method) {
         case "POST":
-            if (req.body.quizCode) {
-                await createQuizScore()
-                break;
-            } else {
-                await createGroup()
-                break;
-            }
+            await createGroup()
+            break;
 
         case "PUT":
             await updateGroup(req.params.groupCode)

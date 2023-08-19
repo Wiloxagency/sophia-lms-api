@@ -8,40 +8,33 @@ var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     delete req.body._id
-    console.log(req.body)
     try {
         const db = await database
-        const CourseGroups = db.collection('group')
-        const groupPromise = CourseGroups.findOne({ 'code': req.body.groupCode })
-        const group = await groupPromise
-        let indexFilteredUser: number
-        let filteredUser = group.users.filter((user: any, index: number) => {
-            if (user.code == req.body.studentCode) {
-                indexFilteredUser = index
-                return user
-            }
-        })
-        let elementTimePath
+        const Users = db.collection('user')
+        const fetchedUser = await Users.findOne({ code: req.body.studentCode })
+        let indexGroup = fetchedUser.groups.findIndex((group: any) => group.groupCode === req.body.groupCode)
+        const currentGroup = fetchedUser.groups[indexGroup]
+        let elementTimesArrayPath = `groups.${indexGroup}.elementTimes`
+
+        let elementTimesPayload: any =
+        {
+            elementCode: req.body.elementCode,
+            time: 15,
+            status: 'completed'
+        }
+
         // 👇🏼 IF THERE AREN'T ANY TIME REGISTRIES
-        if (filteredUser[0].elementTimes == undefined) {
-            let elementTimesPayload: any = [
-                {
-                    elementCode: req.body.elementCode,
-                    time: 15,
-                    status: 'completed'
-                }
-            ]
-            elementTimePath = `users.${indexFilteredUser}.elementTimes`
-            const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
+        if (currentGroup.elementTimes == undefined) {
+            const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
                 $set: {
-                    [elementTimePath]: elementTimesPayload
+                    [elementTimesArrayPath]: [elementTimesPayload]
                 }
             })
-            const body = await updateGroupResponse
+            // console.log(updateGroupResponse)
         }
         else {
             let indexElementTime
-            let indexElementTimeFilter = filteredUser[0].elementTimes.filter((elementTime: any, indexElement: number) => {
+            let indexElementTimeFilter = currentGroup.elementTimes.filter((elementTime: any, indexElement: number) => {
                 if (elementTime.elementCode == req.body.elementCode) {
                     indexElementTime = indexElement
                     return
@@ -49,30 +42,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             })
             // 👇🏼 IF ELEMENT HAS NO PREVIOUS ENTRY
             if (indexElementTime == undefined) {
-                elementTimePath = `users.${indexFilteredUser}.elementTimes`
-                let elementTimes = filteredUser[0].elementTimes
                 let elementTimePayload: any =
-                    {
-                        elementCode: req.body.elementCode,
-                        time: 15,
-                        status: 'completed'
-                    }
-                elementTimes.push(elementTimePayload)
-                const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
-                    $set: {
-                        [elementTimePath]: elementTimes
+                {
+                    elementCode: req.body.elementCode,
+                    time: 15,
+                    status: 'completed'
+                }
+                const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
+                    $push: {
+                        [elementTimesArrayPath]: elementTimePayload
                     }
                 })
-                const body = await updateGroupResponse
+                // console.log(updateGroupResponse)
             } else {
-                elementTimePath = `users.${indexFilteredUser}.elementTimes.${indexElementTime}.time`
-                let updatedTime = filteredUser[0].elementTimes[indexElementTime].time + 15
-                const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
-                    $set: {
-                        [elementTimePath]: updatedTime
+                let singleElementTimePath = `groups.${indexGroup}.elementTimes.${indexElementTime}.time`
+                const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
+                    $inc: {
+                        [singleElementTimePath]: 15
                     }
                 })
-                const body = await updateGroupResponse
+                // console.log(updateGroupResponse)
             }
         }
         context.res = {
@@ -84,21 +73,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "message": "Request received"
             }
         }
-
     } catch (error) {
-        // ⚠️👇🏼 ADAPT THIS
-        await saveLog(`Error deleting course by code: ${req.body.course.code}` + error.message, "Error", "deleteCourse()", "Courses/{courseCode?}")
+        await saveLog(`Error updating element viewing time: ${req.body.course.code}` + error.message, "Error", "elementViewingTime()", "elementViewingTime/}")
         context.res = {
             "status": 500,
             "headers": {
                 "Content-Type": "application/json"
             },
             "body": {
-                "message": "Error deleting course by code"
+                "message": "Error updating element viewing time"
             }
         }
     }
-
 }
 
 export default httpTrigger;

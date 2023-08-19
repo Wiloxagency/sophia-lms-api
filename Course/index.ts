@@ -595,110 +595,92 @@ const httpTrigger: AzureFunction = async function (
   const getStudentCourses = async () => {
     try {
       const db = await database
-      const Groups = db.collection('group')
+      const Users = db.collection('user')
+      const Courses = db.collection('course')
       console.log(new Date())
-
-      const body = await Groups.aggregate(
-        // [
-        //   {
-        //     '$match': {
-        //       'users.code': studentCode,
-        //       'status': 'Activo'
-        //     }
-        //   }, {
-        //     '$unwind': {
-        //       'path': '$users'
-        //     }
-        //   }, {
-        //     '$match': {
-        //       'users.code': studentCode,
-        //       'status': 'Activo'
-        //     }
-        //   },
-        //   {
-        //     '$lookup': {
-        //       'from': 'course',
-        //       'localField': 'courseCode',
-        //       'foreignField': 'code',
-        //       'as': 'courses'
-        //     }
-        //   },
-        //   {
-        //     '$unwind': {
-        //       'path': '$courses'
-        //     }
-        //   },
-        //   {
-        //     '$project': {
-        //       'course': '$courses',
-        //       'groupCode': '$code',
-        //       'quizScores': '$users.quizScores',
-        //       'group': '$users'
-        //     }
-        //   },
-        //   {
-        //     '$match': {
-        //       'course.approvalStatus': 'Approved'
-        //     }
-        //   }
-        // ]
-        [
+      const fetchedUser = await Users.findOne({ code: req.query.studentCode })
+      let courseCodes = fetchedUser.groups.map((group: any) => { return group.courseCode })
+      // console.log(courseCodes)
+      const userCourses = await Courses.find(
+        {
+          approvalStatus: 'Approved',
+          code:
           {
-            '$match': {
-              'users.code': req.query.studentCode
-            }
-          },
-          {
-            '$lookup': {
-              'from': 'course',
-              'localField': 'courseCode',
-              'foreignField': 'code',
-              'as': 'course'
-            }
-          },
-          {
-            '$unwind': {
-              path: '$course'
-            }
-          },
-          {
-            '$match': {
-              'course.approvalStatus': 'Approved'
-            }
-          },
-          {
-            '$project': {
-              'course': 1,
-              'group.name': '$name',
-              'group.startDate': '$startDate',
-              'group.endDate': '$endDate',
-              'group.code': '$code',
-              'group.elementTimes': '$users.elementTimes',
-              'group.quizScores': '$users.quizScores'
-            }
-          }, {
-            '$unwind': {
-              'path': '$group.elementTimes',
-              'preserveNullAndEmptyArrays': true
-            }
-          }, {
-            '$unwind': {
-              'path': '$group.quizScores',
-              'preserveNullAndEmptyArrays': true
-            }
+            $in: courseCodes
           }
-        ]
-      ).toArray()
+        },
+        {
+          projection:
+          {
+            "_id": 0,
+            "code": 1,
+            "details.title": 1,
+            "details.summary": 1,
+            "details.cover": 1,
+            "duration": 1
+          }
+        }).toArray()
+
+      // console.log(userCourses)
+
+      // const body = await Groups.aggregate(
+      //   [
+      //     {
+      //       '$match': {
+      //         'users.code': req.query.studentCode
+      //       }
+      //     },
+      //     {
+      //       '$lookup': {
+      //         'from': 'course',
+      //         'localField': 'courseCode',
+      //         'foreignField': 'code',
+      //         'as': 'course'
+      //       }
+      //     },
+      //     {
+      //       '$unwind': {
+      //         path: '$course'
+      //       }
+      //     },
+      //     {
+      //       '$match': {
+      //         'course.approvalStatus': 'Approved'
+      //       }
+      //     },
+      //     {
+      //       '$project': {
+      //         'course': 1,
+      //         'group.name': '$name',
+      //         'group.startDate': '$startDate',
+      //         'group.endDate': '$endDate',
+      //         'group.code': '$code',
+      //         'group.elementTimes': '$users.elementTimes',
+      //         'group.quizScores': '$users.quizScores'
+      //       }
+      //     }, {
+      //       '$unwind': {
+      //         'path': '$group.elementTimes',
+      //         'preserveNullAndEmptyArrays': true
+      //       }
+      //     }, {
+      //       '$unwind': {
+      //         'path': '$group.quizScores',
+      //         'preserveNullAndEmptyArrays': true
+      //       }
+      //     }
+      //   ]
+      // ).toArray()
 
       console.log('Last one', new Date())
 
-      if (body) {
+      if (userCourses) {
         context.res = {
           "status": 200,
           "headers": {
             "Content-Type": "application/json"
           },
-          "body": body
+          "body": userCourses
         }
       } else {
         await saveLog(`Error getting courses by user code for user: ${req.query.studentCode}`, "Error", "getStudentCourses()", "Course/")
