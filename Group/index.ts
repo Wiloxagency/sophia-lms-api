@@ -178,13 +178,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 // console.log(userCode)
                 const fetchedUser = await Users.findOne({ code: user.code })
                 // console.log(fetchedUser)
+
+                // 👇🏼 IF USER ALREADY HAS GROUPS
                 if (fetchedUser.groups && fetchedUser.groups.length > 0) {
-                    // console.log('GROUPS ARRAY EXISTS')
                     let isGroupAlreadyIncluded: boolean = false
                     for (let group of fetchedUser.groups) {
                         if (group.groupCode == groupCode) { isGroupAlreadyIncluded = true }
                     }
-
                     if (isGroupAlreadyIncluded) {
                         const updateUserGroup = await Users.updateOne(
                             {
@@ -193,10 +193,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             },
                             {
                                 $set: {
-                                    "groups.$": groupPayload
+                                    "groups.$.startDate": groupPayload.startDate,
+                                    "groups.$.endDate": groupPayload.endDate
                                 }
                             })
-                        // console.log('Update already included group: ', updateUserGroup)
+                        // console.log(updateUserGroup)
                     } else {
                         const pushUserGroup = await Users.updateOne(
                             {
