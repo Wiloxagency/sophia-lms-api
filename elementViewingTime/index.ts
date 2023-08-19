@@ -16,18 +16,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const currentGroup = fetchedUser.groups[indexGroup]
         let elementTimesArrayPath = `groups.${indexGroup}.elementTimes`
 
+        let elementTimesPayload: any =
+        {
+            elementCode: req.body.elementCode,
+            time: 15,
+            status: 'completed'
+        }
+
         // 👇🏼 IF THERE AREN'T ANY TIME REGISTRIES
         if (currentGroup.elementTimes == undefined) {
-            let elementTimesPayload: any = [
-                {
-                    elementCode: req.body.elementCode,
-                    time: 15,
-                    status: 'completed'
-                }
-            ]
             const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
                 $set: {
-                    [elementTimesArrayPath]: elementTimesPayload
+                    [elementTimesArrayPath]: [elementTimesPayload]
                 }
             })
             // console.log(updateGroupResponse)
@@ -74,7 +74,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         }
     } catch (error) {
-        // ⚠️👇🏼 ADAPT THIS
         await saveLog(`Error updating element viewing time: ${req.body.course.code}` + error.message, "Error", "elementViewingTime()", "elementViewingTime/}")
         context.res = {
             "status": 500,

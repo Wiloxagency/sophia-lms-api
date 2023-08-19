@@ -320,91 +320,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const createQuizScore = async () => {
-        delete req.body._id
-        try {
-            const db = await database
-            const CourseGroups = db.collection('group')
-            const groupPromise = CourseGroups.findOne({ 'code': req.body.groupCode })
-            const group = await groupPromise
-            // console.log(group)
-            let indexFilteredUser: number
-            let filteredUser = group.users.filter((user: any, index: number) => {
-                if (user.code == req.body.studentCode) {
-                    indexFilteredUser = index
-                    return user
-                }
-            })
-            let quizScores: any[] = []
-            let quizScorePayload: any = {
-                quizCode: req.body.quizCode,
-                score: req.body.score
-            }
-            // console.log(filteredUser)
-            if (filteredUser[0].quizScores == undefined) {
-                // console.log('QUIZ SCORES WAS UNDEFINED')
-                if (req.body.isQuizManuallyCorrected == false) {
-                    quizScorePayload.isQuizManuallyCorrected = false
-                }
-                quizScores = [quizScorePayload]
-            } else {
-                quizScores = filteredUser[0].quizScores
-                if (req.body.isQuizManuallyCorrected == false) {
-                    quizScorePayload.isQuizManuallyCorrected = false
-                }
-                quizScores.push(quizScorePayload)
-            }
-            let quizScoresPath = `users.${indexFilteredUser}.quizScores`
-            // console.log(quizScores)
-            const updateGroupResponse = CourseGroups.findOneAndUpdate({ 'code': req.body.groupCode }, {
-                $set: {
-                    [quizScoresPath]: quizScores
-                }
-            })
-            const body = await updateGroupResponse
-            if (body) {
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": body
-                }
-            } else {
-                await saveLog("Error updating courseGroup by code", "Error", "updateGroup()", "CourseGroups/{courseCode?}/{groupCode?}")
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error updating courseGroup by code"
-                    }
-                }
-            }
-        } catch (error) {
-            await saveLog("Error creating quiz score: " + error.message, "Error", "addQuizScore()", "CourseGroups/{courseCode?}/{groupCode?}")
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error updating courseGroup by code"
-                }
-            }
-        }
-    }
-
     switch (req.method) {
         case "POST":
-            if (req.body.quizCode) {
-                await createQuizScore()
-                break;
-            } else {
-                await createGroup()
-                break;
-            }
+            await createGroup()
+            break;
 
         case "PUT":
             await updateGroup(req.params.groupCode)
