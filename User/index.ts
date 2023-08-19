@@ -325,11 +325,93 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const setQuizScore = async () => {
+        delete req.body._id
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const fetchedUser = await Users.findOne({ 'code': req.body.studentCode })
+            console.log(fetchedUser)
+            let indexGroup = fetchedUser.groups.findIndex((group: any) => group.groupCode === req.body.groupCode)
+            const currentGroup = fetchedUser.groups[indexGroup]
+            let quizScoresArrayPath = `groups.${indexGroup}.quizScores`
+
+            let quizScorePayload: any = {
+                quizCode: req.body.quizCode,
+                score: req.body.score
+            }
+
+            if (req.body.isQuizManuallyCorrected == false) {
+                quizScorePayload.isQuizManuallyCorrected = false
+            }
+
+            // 👇🏼 IF THERE AREN'T ANY QUIZ SCORE REGISTRIES
+            if (currentGroup.quizScores == undefined) {
+                if (req.body.isQuizManuallyCorrected == false) {
+                    quizScorePayload.isQuizManuallyCorrected = false
+                }
+                const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
+                    $set: {
+                        [quizScoresArrayPath]: [quizScorePayload]
+                    }
+                })
+                // console.log(updateGroupResponse)
+            } else {
+                let indexQuizScore
+                let indexElementTimeFilter = currentGroup.quizScores.filter((quizScore: any, indexElement: number) => {
+                    if (quizScore.elementCode == req.body.quizCode) {
+                        indexQuizScore = indexElement
+                        return
+                    }
+                })
+                // 👇🏼 IF ELEMENT HAS NO PREVIOUS ENTRY
+                if (indexQuizScore == undefined) {
+                    const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
+                        $push: {
+                            [quizScoresArrayPath]: quizScorePayload
+                        }
+                    })
+                    // console.log(updateGroupResponse)
+                } else {
+                    let singleQuizScorePath = `groups.${indexGroup}.quizScores.${indexQuizScore}`
+                    const updateGroupResponse = Users.updateOne({ 'code': req.body.studentCode }, {
+                        $set: {
+                            [singleQuizScorePath]: quizScorePayload
+                        }
+                    })
+                    // console.log(updateGroupResponse)
+                }
+            }
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Request received"
+                }
+            }
+        } catch (error) {
+            await saveLog("Error creating quiz score: " + error.message, "Error", "addQuizScore()", "User/{userCode?}")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error updating courseGroup by code"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
             if (req.query.excel == 'true') {
                 await createUsersFromExcel()
                 break;
+            } else if (req.body.quizCode) {
+                await setQuizScore()
             } else {
                 await createUser()
                 break;

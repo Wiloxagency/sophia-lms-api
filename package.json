@@ -6,7 +6,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "start": "func start"
+    "start": "func start",
+    "dev": "concurrently -n \"watch,func\" -c \"auto\" -k \"npm:watch\" \"func start\""
   },
   "dependencies": {
     "@anzp/azure-function-multipart": "^3.1.0",
