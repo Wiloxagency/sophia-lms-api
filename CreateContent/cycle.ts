@@ -99,7 +99,6 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                         currentParagrah["audioUrl"] = currentAudio.url
                         // srt creation 
                         const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
-                        console.info(currentSrt)
                         currentParagrah["srt"] = currentSrt
                     }
                     await createAudioFn(0)
