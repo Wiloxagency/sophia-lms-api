@@ -17,5 +17,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Gpt4/index.js"
+  "scriptFile": "../dist/AnswerTheQuestion/index.js"
 }

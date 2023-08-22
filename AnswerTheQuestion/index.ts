@@ -18,53 +18,59 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const getCourse = async (courseCode: string) => {
-    try {
-      const db = await database;
-      const Courses = db.collection("course");
-
-      const resp = Courses.aggregate([
-        {
-          $match: {
-            code: courseCode,
-          },
-        },
-        {
-          $lookup: {
-            from: "user",
-            localField: "author_code",
-            foreignField: "code",
-            as: "createdBy",
-          },
-        },
-        {
-          $addFields: {
-            createdBy: "$createdBy.name",
-          },
-        },
-        {
-          $unwind: {
-            path: "$createdBy",
-          },
-        },
-      ]);
-
-      const body = await resp.toArray();
-
-      if (body && body[0]) {
-        console.log(
-          "Retrieved course:",
-          body[0].sections[0].elements[0].elementLesson.paragraphs[0].content
-        );
-      } else {
-        console.log("Course not found");
-      }
-    } catch (error) {
-      console.error("Error getting course:", error.message);
-    }
-  };
 
   try {
+    const db = await database;
+    const Courses = db.collection("course");
+
+    const resp = await Courses.aggregate(
+      [
+        {
+          '$match': {
+            'code': req.params.courseCode
+          }
+        }, {
+          $unwind: "$sections"
+        },
+        {
+          $unwind: "$sections.elements"
+        },
+        {
+          $unwind: "$sections.elements.elementLesson"
+        },
+        {
+          $unwind: "$sections.elements.elementLesson.paragraphs"
+        },
+        {
+          $group: {
+            _id: null,
+            contents: {
+              $push: "$sections.elements.elementLesson.paragraphs.content"
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            contents: 1
+          }
+        }
+      ]
+    ).toArray()
+
+    // resp.sections.array.forEach((section: any) => {
+    //   section.elements.forEach((element: any) => {
+    //     element.elementLesson.forEach((lesson: any) => {
+    //       element.elementLesson.forEach((lesson: any) => {
+          
+    //       });
+    //     });
+    //   });
+    // });
+
+
+
+
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
       messages: [
@@ -75,12 +81,12 @@ const httpTrigger: AzureFunction = async function (
 
     const extractedValue = response.data.choices[0].message.content;
 
-    await getCourse(extractedValue);
+
 
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
-      body: response.data.choices[0].message.content,
+      body: {body:resp[0], resp: extractedValue},
     };
   } catch (error) {
     await saveLog(
