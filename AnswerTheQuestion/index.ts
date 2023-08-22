@@ -62,20 +62,23 @@ const httpTrigger: AzureFunction = async function (
     //   section.elements.forEach((element: any) => {
     //     element.elementLesson.forEach((lesson: any) => {
     //       element.elementLesson.forEach((lesson: any) => {
-          
+
     //       });
     //     });
     //   });
     // });
 
-
+    const prompt = "Dado el siguiente texto: \n###\n" + resp[0].contents.join(" ") +
+     "\n###\nContesta la siguiente pregunta basado exclusivamente en ese texto:\n###\n" +
+      req.body.question +
+      " \n###\n"
 
 
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
       messages: [
         { role: "system", content: req.body.role },
-        { role: "user", content: req.body.prompt },
+        { role: "user", content: prompt },
       ],
     });
 
@@ -86,14 +89,14 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
-      body: {body:resp[0], resp: extractedValue},
+      body: { resp: extractedValue },
     };
   } catch (error) {
     await saveLog(
       `Error creating Chat Completion: ${error.message}`,
       "Error",
       "AzureFunction()",
-      "GPT"
+      "AnswerTheQuestion"
     );
     context.res = {
       status: 500,
