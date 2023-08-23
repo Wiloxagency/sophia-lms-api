@@ -321,6 +321,77 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const removeUserFromGroup = async () => {
+        const db = await database
+        const Users = db.collection('user')
+        const Groups = db.collection('group')
+
+        const findUserWithGroup = await Users.findOne({
+            code: req.query.userCode,
+            "groups.groupCode": req.query.groupCode
+        })
+
+        let indexGroup: number
+        let indexGroupFilter = findUserWithGroup.groups.filter((group: any, indexElement: number) => {
+            if (group.groupCode == req.query.groupCode) {
+                indexGroup = indexElement
+                return
+            }
+        })
+
+        if (
+            findUserWithGroup.groups[indexGroup].elementTimes ||
+            findUserWithGroup.groups[indexGroup].quizScores
+        ) {
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Can't remove user from group because he has saved progress"
+                }
+            }
+        } else {
+            // console.log('USER HAD NO ENTRIES IN GROUP')
+            const removeGroupFromUser = await Users.updateOne(
+                {
+                    code: req.query.userCode
+                },
+                {
+                    $pull: {
+                        groups: {
+                            groupCode: req.query.groupCode
+                        }
+                    }
+                })
+            // console.log(removeGroupFromUser)
+            const removeUserFromGroup = await Groups.updateOne(
+                {
+                    code: req.query.groupCode
+                },
+                {
+                    $pull: {
+                        users: {
+                            code: req.query.userCode
+                        }
+                    }
+                }
+            )
+            // console.log(removeUserFromGroup)
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "User was removed from group"
+                }
+            }
+        }
+
+    }
+
     switch (req.method) {
         case "POST":
             await createGroup()
@@ -335,8 +406,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "DELETE":
-            await deleteGroup()
-            break;
+            if (req.query.userCode) {
+                await removeUserFromGroup()
+            } else {
+                await deleteGroup()
+                break;
+            }
 
         default:
             break;
