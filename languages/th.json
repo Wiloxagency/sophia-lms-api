@@ -453,5 +453,13 @@
   "Last course accessed": "คอร์สที่เข้าถึงล่าสุด",
   "No limits": "ไม่มีขีดจำกัด",
   "Audio options": "ตัวเลือกเสียง",
-  "Animated text": "ข้อความเคลื่อนไหว"
+  "Animated text": "ข้อความเคลื่อนไหว",
+  "Duration": "ระยะเวลา",
+  "Send welcome email": "ส่งอีเมลต้อนรับ",
+  "Search": "ค้นหา",
+  "Company": "บริษัท",
+  "No courses with specified status": "ไม่มีหลักสูตรที่มีสถานะที่ระบุ",
+  "Create organization": "สร้างองค์กร",
+  "Enter the name of the organization here": "ใส่ชื่อองค์กรที่นี่",
+  "Activo": "ทำงาน"
 }

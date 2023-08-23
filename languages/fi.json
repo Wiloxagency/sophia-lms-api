@@ -453,5 +453,13 @@
   "Last course accessed": "Viimeksi käytetty kurssi",
   "No limits": "Ei rajoituksia",
   "Audio options": "Ääniasetukset",
-  "Animated text": "Animoitu teksti"
+  "Animated text": "Animoitu teksti",
+  "Duration": "Kesto",
+  "Send welcome email": "Lähetä tervetulosähköposti",
+  "Search": "Etsi",
+  "Company": "Yritys",
+  "No courses with specified status": "Ei kursseja määritetyllä tilalla",
+  "Create organization": "Luo organisaatio",
+  "Enter the name of the organization here": "Kirjoita organisaation nimi tähän",
+  "Activo": "Aktiivinen"
 }

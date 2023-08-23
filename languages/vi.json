@@ -453,5 +453,13 @@
   "Last course accessed": "Khóa học cuối cùng được truy cập",
   "No limits": "Không giới hạn",
   "Audio options": "Tùy chọn âm thanh",
-  "Animated text": "Văn bản động"
+  "Animated text": "Văn bản động",
+  "Duration": "Thời lượng",
+  "Send welcome email": "Gửi email chào mừng",
+  "Search": "Tìm kiếm",
+  "Company": "Công ty",
+  "No courses with specified status": "Không có khóa học nào có trạng thái nhất định",
+  "Create organization": "Tạo tổ chức",
+  "Enter the name of the organization here": "Nhập tên tổ chức ở đây",
+  "Activo": "Hoạt động"
 }

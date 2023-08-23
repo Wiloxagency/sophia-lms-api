@@ -453,5 +453,13 @@
   "Last course accessed": "Utolsó elérhető kurzus",
   "No limits": "Nincsenek korlátok",
   "Audio options": "Audió beállítások",
-  "Animated text": "Animált szöveg"
+  "Animated text": "Animált szöveg",
+  "Duration": "Időtartam",
+  "Send welcome email": "Küldjön üdvözlő e-mailt",
+  "Search": "Keresés",
+  "Company": "Cég",
+  "No courses with specified status": "Nincs ilyen státuszú kurzus",
+  "Create organization": "Szervezet létrehozása",
+  "Enter the name of the organization here": "Írja be az szervezet nevét itt",
+  "Activo": "Aktív"
 }

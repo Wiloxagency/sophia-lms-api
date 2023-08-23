@@ -453,5 +453,13 @@
   "Last course accessed": "Últim curs accedit",
   "No limits": "Sense límits",
   "Audio options": "Opcions d'àudio",
-  "Animated text": "Text animat"
+  "Animated text": "Text animat",
+  "Duration": "Durada",
+  "Send welcome email": "Envia un correu electrònic de benvinguda",
+  "Search": "Cerca",
+  "Company": "Empresa",
+  "No courses with specified status": "No hi ha cursos amb l'estat especificat",
+  "Create organization": "Crear organització",
+  "Enter the name of the organization here": "Introduïu el nom de l'organització aquí",
+  "Activo": "Actiu"
 }

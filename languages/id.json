@@ -453,5 +453,13 @@
   "Last course accessed": "Kursus terakhir diakses",
   "No limits": "Tidak ada batas",
   "Audio options": "Opsi audio",
-  "Animated text": "Teks bergerak"
+  "Animated text": "Teks bergerak",
+  "Duration": "Durasi",
+  "Send welcome email": "Kirim email selamat datang",
+  "Search": "Cari",
+  "Company": "Perusahaan",
+  "No courses with specified status": "Tidak ada kursus dengan status yang ditentukan",
+  "Create organization": "Buat organisasi",
+  "Enter the name of the organization here": "Masukkan nama organisasi di sini",
+  "Activo": "Aktif"
 }

@@ -453,5 +453,13 @@
   "Last course accessed": "Ostatnio używany kurs",
   "No limits": "Bez ograniczeń",
   "Audio options": "Opcje audio",
-  "Animated text": "Tekst animowany"
+  "Animated text": "Tekst animowany",
+  "Duration": "Czas trwania",
+  "Send welcome email": "Wyślij e-mail powitalny",
+  "Search": "Szukaj",
+  "Company": "Firma",
+  "No courses with specified status": "Brak kursów o określonym statusie",
+  "Create organization": "Utwórz organizację",
+  "Enter the name of the organization here": "Wpisz tutaj nazwę organizacji",
+  "Activo": "Aktywny"
 }

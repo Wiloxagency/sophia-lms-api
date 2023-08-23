@@ -453,5 +453,13 @@
   "Last course accessed": "Laatst bezochte cursus",
   "No limits": "Geen grenzen",
   "Audio options": "Audi instellingen",
-  "Animated text": "Geanimeerde tekst"
+  "Animated text": "Geanimeerde tekst",
+  "Duration": "Duur",
+  "Send welcome email": "Verstuur welkomst e-mail",
+  "Search": "Zoeken",
+  "Company": "Bedrijf",
+  "No courses with specified status": "Geen cursussen met de opgegeven status",
+  "Create organization": "Organisatie maken",
+  "Enter the name of the organization here": "Voer hier de naam van de organisatie in",
+  "Activo": "Actief"
 }

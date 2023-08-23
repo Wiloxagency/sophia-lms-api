@@ -453,5 +453,13 @@
   "Last course accessed": "הקורס האחרון שנגשת אליו",
   "No limits": "אין גבולות",
   "Audio options": "אפשרויות שמע",
-  "Animated text": "טקסט מונפש"
+  "Animated text": "טקסט מונפש",
+  "Duration": "משך",
+  "Send welcome email": "שלח דואר אלקטרוני ברכה",
+  "Search": "חיפוש",
+  "Company": "חברה",
+  "No courses with specified status": "אין קורסים עם הסטטוס המבוקש",
+  "Create organization": "יצירת ארגון",
+  "Enter the name of the organization here": "הכנס את שם הארגון כאן",
+  "Activo": "פעיל"
 }

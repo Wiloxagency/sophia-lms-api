@@ -453,5 +453,13 @@
   "Last course accessed": "Viimati kasutatud kursus",
   "No limits": "Piiranguteta",
   "Audio options": "Heli valikud",
-  "Animated text": "Animeeritud tekst"
+  "Animated text": "Animeeritud tekst",
+  "Duration": "Kestus",
+  "Send welcome email": "Saada tervitusmeil",
+  "Search": "Otsi",
+  "Company": "Ettevõte",
+  "No courses with specified status": "Spetsifitseeritud staatusega kursusi pole",
+  "Create organization": "Loo organisatsioon",
+  "Enter the name of the organization here": "Sisestage siia organisatsiooni nimi",
+  "Activo": "Aktiivne"
 }

@@ -453,5 +453,13 @@
   "Last course accessed": "Ultimul curs accesat",
   "No limits": "Fără limite",
   "Audio options": "Opțiuni audio",
-  "Animated text": "Text animat"
+  "Animated text": "Text animat",
+  "Duration": "Durată",
+  "Send welcome email": "Trimiteți un email de bun venit",
+  "Search": "Căutare",
+  "Company": "Companie",
+  "No courses with specified status": "Niciun curs cu statutul specificat",
+  "Create organization": "Creați organizație",
+  "Enter the name of the organization here": "Introduceți numele organizației aici",
+  "Activo": "Activ"
 }

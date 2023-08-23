@@ -453,5 +453,13 @@
   "Last course accessed": "अंतिम पाठ्यक्रम जारी",
   "No limits": "कोई सीमाएं नहीं",
   "Audio options": "ऑडियो विकल्प",
-  "Animated text": "एनीमेटेड टेक्स्ट"
+  "Animated text": "एनीमेटेड टेक्स्ट",
+  "Duration": "अवधि",
+  "Send welcome email": "स्वागत ईमेल भेजें",
+  "Search": "खोज",
+  "Company": "कंपनी",
+  "No courses with specified status": "कोई निर्दिष्ट स्थिति वाले कोर्स नहीं",
+  "Create organization": "संगठन बनाएं",
+  "Enter the name of the organization here": "यहाँ संगठन का नाम दर्ज करें",
+  "Activo": "सक्रिय"
 }

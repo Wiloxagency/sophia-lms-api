@@ -453,5 +453,13 @@
   "Last course accessed": "Pēdējais apmeklētais kurss",
   "No limits": "Nav ierobežojumu",
   "Audio options": "Audio iespējas",
-  "Animated text": "Animēts teksts"
+  "Animated text": "Animēts teksts",
+  "Duration": "Ilgums",
+  "Send welcome email": "Nosūtīt uzņemšanas e-pastu",
+  "Search": "Meklēt",
+  "Company": "Uzņēmums",
+  "No courses with specified status": "Nav kursu ar norādīto statūtu",
+  "Create organization": "Izveidot organizāciju",
+  "Enter the name of the organization here": "Šeit ievadiet organizācijas nosaukumu",
+  "Activo": "Aktīvs"
 }

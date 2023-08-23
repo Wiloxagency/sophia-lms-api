@@ -453,5 +453,13 @@
   "Last course accessed": "最后访问的课程",
   "No limits": "没有限制",
   "Audio options": "音频选项",
-  "Animated text": "动画文本"
+  "Animated text": "动画文本",
+  "Duration": "持续时间",
+  "Send welcome email": "发送欢迎电子邮件",
+  "Search": "搜索",
+  "Company": "公司",
+  "No courses with specified status": "没有指定状态的课程",
+  "Create organization": "创建组织",
+  "Enter the name of the organization here": "在此输入组织名称",
+  "Activo": "活跃的"
 }

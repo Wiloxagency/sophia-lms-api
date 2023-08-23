@@ -453,5 +453,13 @@
   "Last course accessed": "Zadnji dostopan tečaj",
   "No limits": "Brez omejitev",
   "Audio options": "Možnosti zvoka",
-  "Animated text": "Animiran tekst"
+  "Animated text": "Animiran tekst",
+  "Duration": "Trajanje",
+  "Send welcome email": "Pošlji pozdravno e-pošto",
+  "Search": "Iskanje",
+  "Company": "Podjetje",
+  "No courses with specified status": "Ni tečajev z določenim statusom",
+  "Create organization": "Ustvari organizacijo",
+  "Enter the name of the organization here": "Vnesite ime organizacije tukaj",
+  "Activo": "Aktiven"
 }

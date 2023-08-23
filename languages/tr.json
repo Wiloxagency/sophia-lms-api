@@ -453,5 +453,13 @@
   "Last course accessed": "Son Erişilen Kurs",
   "No limits": "Sınır yok",
   "Audio options": "Ses seçenekleri",
-  "Animated text": "Animasyonlu metin"
+  "Animated text": "Animasyonlu metin",
+  "Duration": "Süre",
+  "Send welcome email": "Hoşgeldiniz e-postası gönder",
+  "Search": "Arama",
+  "Company": "Şirket",
+  "No courses with specified status": "Belirtilen durumdaki kurslar yok",
+  "Create organization": "Kuruluş oluştur",
+  "Enter the name of the organization here": "Kuruluşun adını buraya girin",
+  "Activo": "Aktif"
 }

@@ -453,5 +453,13 @@
   "Last course accessed": "آخرین دوره دسترسی شده",
   "No limits": "بدون محدودیت",
   "Audio options": "گزینه‌های صوتی",
-  "Animated text": "متن انیمیشنی"
+  "Animated text": "متن انیمیشنی",
+  "Duration": "مدت",
+  "Send welcome email": "ایمیل خوش آمد گویی ارسال کنید",
+  "Search": "جستجو",
+  "Company": "شرکت",
+  "No courses with specified status": "هیچ دوره ای با وضعیت مشخص شده وجود ندارد",
+  "Create organization": "ایجاد سازمان",
+  "Enter the name of the organization here": "نام سازمان را اینجا وارد کنید",
+  "Activo": "فعال"
 }

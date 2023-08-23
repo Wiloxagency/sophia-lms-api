@@ -453,5 +453,13 @@
   "Last course accessed": "An chúrsa deireanach a rochtainigh",
   "No limits": "Gan teorainneacha",
   "Audio options": "Roghanna fuaime",
-  "Animated text": "Téacs ealaíonta"
+  "Animated text": "Téacs ealaíonta",
+  "Duration": "Fad",
+  "Send welcome email": "Seol ríomhphost fáilte",
+  "Search": "Cuardaigh",
+  "Company": "Comhlacht",
+  "No courses with specified status": "Níl cúrsaí le stádas sonraithe",
+  "Create organization": "Cruthaigh comhlacht",
+  "Enter the name of the organization here": "Iontráil an t-ainm an eagraíochta anseo",
+  "Activo": "Gníomhach"
 }

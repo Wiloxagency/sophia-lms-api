@@ -453,5 +453,13 @@
   "Last course accessed": "Poslední přístupovaný kurz",
   "No limits": "Žádné limity",
   "Audio options": "Možnosti zvuku",
-  "Animated text": "Animovaný text"
+  "Animated text": "Animovaný text",
+  "Duration": "Doba trvání",
+  "Send welcome email": "Poslat uvítací e-mail",
+  "Search": "Hledat",
+  "Company": "Společnost",
+  "No courses with specified status": "Žádné kurzy se zadaným statusem",
+  "Create organization": "Vytvořit organizaci",
+  "Enter the name of the organization here": "Zadejte zde název organizace",
+  "Activo": "Aktivní"
 }

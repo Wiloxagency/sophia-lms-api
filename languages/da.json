@@ -453,5 +453,13 @@
   "Last course accessed": "Senest tilgåede kursus",
   "No limits": "Ingen grænser",
   "Audio options": "Lydindstillinger",
-  "Animated text": "Animeret tekst"
+  "Animated text": "Animeret tekst",
+  "Duration": "Varighed",
+  "Send welcome email": "Send velkomst email",
+  "Search": "Søg",
+  "Company": "Virksomhed",
+  "No courses with specified status": "Ingen kurser med den angivne status",
+  "Create organization": "Opret organisation",
+  "Enter the name of the organization here": "Indtast navnet på organisationen her",
+  "Activo": "Aktiv"
 }
