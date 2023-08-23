@@ -156,7 +156,7 @@
   "Question": "Question",
   "Add answer": "Ajouter une réponse",
   "New answer": "Nouvelle réponse",
-  "Write your question here. Select the word to be completed by placing it between asterisks. Example: The term AI stands for *artificial* intelligence": "Écrivez votre question ici. Sélectionnez le mot à compléter en le plaçant entre des astérisques. Exemple : Le terme IA signifie intelligence *artificielle*",
+  "Write your question here. Select the word to be completed by placing it between asterisks. Example: The term AI stands for *artificial* intelligence": "Écrivez votre question ici. Sélectionnez le mot à compléter en le plaçant entre des astérisques. Exemple: Le terme IA signifie intelligence *artificielle*",
   "Name": "Nom",
   "Start": "Démarrer",
   "End": "Fin",
@@ -167,7 +167,7 @@
   "This group is empty": "Ce groupe est vide",
   "Role": "Rôle",
   "Student": "Étudiant",
-  "Instructor": "Formateur",
+  "Instructor": "Professeur",
   "Cancel and return to group": "Annuler et revenir au groupe",
   "Send email": "Envoyer un courriel",
   "Unselected users": "Utilisateurs non sélectionnés",
@@ -448,5 +448,10 @@
   "Quick access": "Accès rapide",
   "Approved": "Approuvé",
   "Code": "Code",
-  "Finished": "Terminé"
+  "Finished": "Terminé",
+  "Profile": "Profil",
+  "Last course accessed": "Dernier cours consulté",
+  "No limits": "Aucune limite",
+  "Audio options": "Options audio",
+  "Animated text": "Texte animé"
 }

@@ -166,7 +166,7 @@
   "Download template": "Ladda ner mall",
   "This group is empty": "Denna grupp är tom",
   "Role": "Roll",
-  "Student": "Elev",
+  "Student": "Studerande",
   "Instructor": "Lärare",
   "Cancel and return to group": "Avbryt och återgå till grupp",
   "Send email": "Skicka e-post",
@@ -448,5 +448,10 @@
   "Quick access": "Snabb åtkomst",
   "Approved": "Godkänd",
   "Code": "Kod",
-  "Finished": "Färdig"
+  "Finished": "Färdig",
+  "Profile": "Profil",
+  "Last course accessed": "Senast tillgängliga kursen",
+  "No limits": "Inga gränser",
+  "Audio options": "Ljudalternativ",
+  "Animated text": "Animerad text"
 }

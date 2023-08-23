@@ -192,7 +192,7 @@
   "Write name or email here": "Zde napište jméno nebo e-mail..",
   "Users": "Uživatelé",
   "Add user": "Přidat uživatele",
-  "User details": "Podrobnosti uživatele",
+  "User details": "Detaily uživatele",
   "Create new user": "Vytvořit nového uživatele",
   "Write email here": "Zde napište e-mail",
   "Created in": "Vytvořeno v",
@@ -448,5 +448,10 @@
   "Quick access": "Rychlý přístup",
   "Approved": "Schváleno",
   "Code": "Kód",
-  "Finished": "Dokončeno"
+  "Finished": "Dokončeno",
+  "Profile": "Profil",
+  "Last course accessed": "Poslední přístupovaný kurz",
+  "No limits": "Žádné limity",
+  "Audio options": "Možnosti zvuku",
+  "Animated text": "Animovaný text"
 }

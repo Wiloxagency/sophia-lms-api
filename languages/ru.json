@@ -448,5 +448,10 @@
   "Quick access": "Быстрый доступ",
   "Approved": "Одобрено",
   "Code": "Код",
-  "Finished": "Закончено"
+  "Finished": "Закончено",
+  "Profile": "Профиль",
+  "Last course accessed": "Последний доступный курс",
+  "No limits": "Нет ограничений",
+  "Audio options": "Настройки аудио",
+  "Animated text": "Анимированный текст"
 }

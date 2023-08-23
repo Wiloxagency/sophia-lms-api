@@ -448,5 +448,10 @@
   "Quick access": "การเข้าถึงที่รวดเร็ว",
   "Approved": "ได้รับการอนุมัติ",
   "Code": "โค้ด",
-  "Finished": "เสร็จสิ้น"
+  "Finished": "เสร็จสิ้น",
+  "Profile": "ประวัติส่วนตัว",
+  "Last course accessed": "คอร์สที่เข้าถึงล่าสุด",
+  "No limits": "ไม่มีขีดจำกัด",
+  "Audio options": "ตัวเลือกเสียง",
+  "Animated text": "ข้อความเคลื่อนไหว"
 }

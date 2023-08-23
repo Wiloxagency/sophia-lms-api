@@ -265,7 +265,7 @@
   "Impact": "Innvirkning",
   "Upload .docx file": "Last opp .docx-fil",
   "Paste text": "Lim inn tekst",
-  "Based on structure": "Strukturbasert",
+  "Based on structure": "Basert på struktur",
   "Based on title": "Baser på tittelen",
   "Instructional design": "Instruksjonsdesign",
   "Remaining courses in membership:": "Gjenstående kurs i medlemskap",
@@ -448,5 +448,10 @@
   "Quick access": "Rask tilgang",
   "Approved": "Godkjent",
   "Code": "Kode",
-  "Finished": "Ferdig"
+  "Finished": "Ferdig",
+  "Profile": "Profil",
+  "Last course accessed": "Siste kurs tilgått",
+  "No limits": "Ingen grenser",
+  "Audio options": "Lydinnstillinger",
+  "Animated text": "Animert tekst"
 }

@@ -166,7 +166,7 @@
   "Download template": "Lejupielādēt veidni",
   "This group is empty": "Šī grupa ir tukša",
   "Role": "Loma",
-  "Student": "Skolēns",
+  "Student": "Students",
   "Instructor": "Pasniedzējs",
   "Cancel and return to group": "Atcelt un atgriezties grupā",
   "Send email": "Sūtīt e-pastu",
@@ -265,7 +265,7 @@
   "Impact": "Ietekme",
   "Upload .docx file": "Augšupielādēt .docx failu",
   "Paste text": "Ielīmēt tekstu",
-  "Based on structure": "Pamatojoties uz struktūru",
+  "Based on structure": "Balstoties uz struktūru",
   "Based on title": "Pēc virsraksta",
   "Instructional design": "Instrukciju dizains",
   "Remaining courses in membership:": "Atlikušie dalības kursi",
@@ -448,5 +448,10 @@
   "Quick access": "Ātra piekļuve",
   "Approved": "Apstiprināts",
   "Code": "Kods",
-  "Finished": "Pabeigts"
+  "Finished": "Pabeigts",
+  "Profile": "Profils",
+  "Last course accessed": "Pēdējais apmeklētais kurss",
+  "No limits": "Nav ierobežojumu",
+  "Audio options": "Audio iespējas",
+  "Animated text": "Animēts teksts"
 }

@@ -167,7 +167,7 @@
   "This group is empty": "Este grupo está vacío",
   "Role": "Rol",
   "Student": "Estudiante",
-  "Instructor": "Profesor",
+  "Instructor": "Instructor",
   "Cancel and return to group": "Cancelar y volver al grupo",
   "Send email": "Enviar correo electrónico",
   "Unselected users": "Usuarios no seleccionados",
@@ -448,5 +448,10 @@
   "Quick access": "Acceso rápido",
   "Approved": "Aprobado",
   "Code": "Código",
-  "Finished": "Terminado"
+  "Finished": "Terminado",
+  "Profile": "Perfil",
+  "Last course accessed": "Último curso accedido",
+  "No limits": "Sin límites",
+  "Audio options": "Opciones de audio",
+  "Animated text": "Texto animado"
 }

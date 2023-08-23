@@ -167,7 +167,7 @@
   "This group is empty": "Αυτή η ομάδα είναι άδεια",
   "Role": "Ρόλος",
   "Student": "Φοιτητής",
-  "Instructor": "Εκπαιδευτής",
+  "Instructor": "Καθηγητής",
   "Cancel and return to group": "Ακύρωση και επιστροφή στην ομάδα",
   "Send email": "Αποστολή email",
   "Unselected users": "Χρήστες που δεν έχουν επιλεγεί",
@@ -448,5 +448,10 @@
   "Quick access": "Γρήγορη πρόσβαση",
   "Approved": "Εγκρίθηκε",
   "Code": "Κώδικας",
-  "Finished": "Ολοκληρώθηκε"
+  "Finished": "Ολοκληρώθηκε",
+  "Profile": "Προφίλ",
+  "Last course accessed": "Τελευταίο μάθημα που επισκεφθήκατε",
+  "No limits": "Χωρίς Όρια",
+  "Audio options": "Επιλογές ήχου",
+  "Animated text": "Κινούμενο κείμενο"
 }

@@ -265,7 +265,7 @@
   "Impact": "Įtaka",
   "Upload .docx file": "Įkelti .docx failą",
   "Paste text": "Įklijuoti tekstą",
-  "Based on structure": "Pagal struktūrą",
+  "Based on structure": "Pagrįstas struktūra",
   "Based on title": "Pagal pavadinimą",
   "Instructional design": "Instrukcinio dizaino",
   "Remaining courses in membership:": "Likę narystės kursai",
@@ -448,5 +448,10 @@
   "Quick access": "Greitas priėjimas",
   "Approved": "Patvirtinta",
   "Code": "Kodas",
-  "Finished": "Baigta"
+  "Finished": "Baigta",
+  "Profile": "Profilis",
+  "Last course accessed": "Paskutinis aplankytas kursas",
+  "No limits": "Jokių ribų",
+  "Audio options": "Garso parinktys",
+  "Animated text": "Animuotas tekstas"
 }

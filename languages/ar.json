@@ -72,7 +72,7 @@
   "No course instructor": "لست مدرسا في أي مقررات",
   "Close": "إغلاق",
   "Assigned students error message": "يحتوي هذا الدورة على طلاب مرتبطين. قم بحذفهم قبل مسح الدورة",
-  "Created courses": "دورات مكونة",
+  "Created courses": "الدورات المنشأة",
   "Pending approval": "في انتظار الموافقة",
   "Approved (singular)": "موافق",
   "Delete": "حذف",
@@ -448,5 +448,10 @@
   "Quick access": "الوصول السريع",
   "Approved": "موافق عليه",
   "Code": "الشفرة",
-  "Finished": "انتهى"
+  "Finished": "انتهى",
+  "Profile": "الملف الشخصي",
+  "Last course accessed": "آخر دورة مطلوبة",
+  "No limits": "لا حدود",
+  "Audio options": "خيارات الصوت",
+  "Animated text": "نص متحرك"
 }

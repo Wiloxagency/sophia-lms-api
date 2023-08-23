@@ -166,7 +166,7 @@
   "Download template": "Preuzmite šablon",
   "This group is empty": "Ova grupa je prazna",
   "Role": "Uloga",
-  "Student": "Učenik",
+  "Student": "Student",
   "Instructor": "Predavač",
   "Cancel and return to group": "Otkaži i vrati se u grupu",
   "Send email": "Pošalji email",
@@ -439,7 +439,6 @@
   "Influence of the": "Uticaj na",
   "Textile screen printing": "Štampanje tekstila na platnu",
   "Basic economy": "Osnovna ekonomija",
-  "total hours ": "Ukupno sati",
   "Result": "Rezultat",
   "Incorrect": "Netačno",
   "Explanation": "Objašnjenje",
@@ -449,5 +448,10 @@
   "Quick access": "Brzi pristup",
   "Approved": "Odobreno",
   "Code": "Kod",
-  "Finished": "Završeno"
+  "Finished": "Završeno",
+  "Profile": "Profil",
+  "Last course accessed": "Poslednji pristupljeni kurs",
+  "No limits": "Bez ograničenja",
+  "Audio options": "Opcije zvuka",
+  "Animated text": "Animirani tekst"
 }

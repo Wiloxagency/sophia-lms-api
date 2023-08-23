@@ -265,7 +265,7 @@
   "Impact": "Vaikutus",
   "Upload .docx file": "Lataa .docx-tiedosto",
   "Paste text": "Liitä teksti",
-  "Based on structure": "Rakenneperusteisesti",
+  "Based on structure": "Rakenteen mukaan",
   "Based on title": "Otsikon mukaan",
   "Instructional design": "Oppimissuunnittelu",
   "Remaining courses in membership:": "Jäsenyys Kurssit jäljellä",
@@ -448,5 +448,10 @@
   "Quick access": "Pika-aloitus",
   "Approved": "Hyväksytty",
   "Code": "Koodi",
-  "Finished": "Valmis"
+  "Finished": "Valmis",
+  "Profile": "Profiili",
+  "Last course accessed": "Viimeksi käytetty kurssi",
+  "No limits": "Ei rajoituksia",
+  "Audio options": "Ääniasetukset",
+  "Animated text": "Animoitu teksti"
 }

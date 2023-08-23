@@ -167,7 +167,7 @@
   "This group is empty": "See grupp on tühi",
   "Role": "Roll",
   "Student": "Õpilane",
-  "Instructor": "Õpetaja",
+  "Instructor": "Juhendaja",
   "Cancel and return to group": "Tühista ja naase grupile",
   "Send email": "Saada e-kiri",
   "Unselected users": "Valimata kasutajad",
@@ -265,7 +265,7 @@
   "Impact": "Mõju",
   "Upload .docx file": "Laadi üles .docx fail",
   "Paste text": "Kleepi tekst",
-  "Based on structure": "Struktuuri alusel",
+  "Based on structure": "Põhineb struktuuril",
   "Based on title": "Pealkirja järgi",
   "Instructional design": "Õppematerjalide disain",
   "Remaining courses in membership:": "Ülejäänud kursused liikmeskonnas",
@@ -448,5 +448,10 @@
   "Quick access": "Kiire juurdepääs",
   "Approved": "Heaks kiidetud",
   "Code": "Kood",
-  "Finished": "Valmis"
+  "Finished": "Valmis",
+  "Profile": "Profiil",
+  "Last course accessed": "Viimati kasutatud kursus",
+  "No limits": "Piiranguteta",
+  "Audio options": "Heli valikud",
+  "Animated text": "Animeeritud tekst"
 }

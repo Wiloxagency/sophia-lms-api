@@ -166,7 +166,7 @@
   "Download template": "Tải mẫu",
   "This group is empty": "Nhóm này trống rỗng",
   "Role": "Vai trò",
-  "Student": "Học sinh",
+  "Student": "Sinh viên",
   "Instructor": "Giảng viên",
   "Cancel and return to group": "Hủy bỏ và quay trở lại nhóm",
   "Send email": "Gửi email",
@@ -448,5 +448,10 @@
   "Quick access": "Truy cập nhanh",
   "Approved": "Đã chấp nhận",
   "Code": "Mã",
-  "Finished": "Hoàn thành"
+  "Finished": "Hoàn thành",
+  "Profile": "Hồ sơ",
+  "Last course accessed": "Khóa học cuối cùng được truy cập",
+  "No limits": "Không giới hạn",
+  "Audio options": "Tùy chọn âm thanh",
+  "Animated text": "Văn bản động"
 }

@@ -265,7 +265,7 @@
   "Impact": "Etki",
   "Upload .docx file": ".docx dosyasını yükle",
   "Paste text": "Metni yapıştır",
-  "Based on structure": "Yapıya göre",
+  "Based on structure": "Yapıya dayalı",
   "Based on title": "Başlığa göre",
   "Instructional design": "Eğitim Tasarımı",
   "Remaining courses in membership:": "Üyelikte kalan dersler",
@@ -448,5 +448,10 @@
   "Quick access": "Hızlı erişim",
   "Approved": "Onaylandı",
   "Code": "Kod",
-  "Finished": "Tamamlandı"
+  "Finished": "Tamamlandı",
+  "Profile": "Profil",
+  "Last course accessed": "Son Erişilen Kurs",
+  "No limits": "Sınır yok",
+  "Audio options": "Ses seçenekleri",
+  "Animated text": "Animasyonlu metin"
 }
