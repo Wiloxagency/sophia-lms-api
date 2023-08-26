@@ -331,7 +331,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const db = await database
             const Users = db.collection('user')
             const fetchedUser = await Users.findOne({ 'code': req.body.studentCode })
-            console.log(fetchedUser)
+            // console.log(fetchedUser)
             let indexGroup = fetchedUser.groups.findIndex((group: any) => group.groupCode === req.body.groupCode)
             const currentGroup = fetchedUser.groups[indexGroup]
             let quizScoresArrayPath = `groups.${indexGroup}.quizScores`
@@ -358,14 +358,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 // console.log(updateGroupResponse)
             } else {
                 let indexQuizScore
-                let indexElementTimeFilter = currentGroup.quizScores.filter((quizScore: any, indexElement: number) => {
-                    if (quizScore.elementCode == req.body.quizCode) {
+                let indexElementTimeFilter = currentGroup.quizScores.filter((quizScoreObject: any, indexElement: number) => {
+                    if (quizScoreObject.quizCode == req.body.quizCode) {
                         indexQuizScore = indexElement
                         return
                     }
                 })
                 // 👇🏼 IF ELEMENT HAS NO PREVIOUS ENTRY
                 if (indexQuizScore == undefined) {
+                    // console.log('THIS RAN 1')
                     const updateGroupResponse = await Users.updateOne({ 'code': req.body.studentCode }, {
                         $push: {
                             [quizScoresArrayPath]: quizScorePayload
@@ -373,6 +374,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     })
                     // console.log(updateGroupResponse)
                 } else {
+                    // console.log('THIS RAN 2')
                     let singleQuizScorePath = `groups.${indexGroup}.quizScores.${indexQuizScore}`
                     const updateGroupResponse = Users.updateOne({ 'code': req.body.studentCode }, {
                         $set: {
@@ -412,6 +414,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 break;
             } else if (req.body.quizCode) {
                 await setQuizScore()
+                break;
             } else {
                 await createUser()
                 break;
