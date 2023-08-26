@@ -68,8 +68,12 @@ const httpTrigger: AzureFunction = async function (
     //   });
     // });
 
-    const prompt = "Dado el siguiente texto: \n###\n" + resp[0].contents.join(" ") +
-     "\n###\nContesta la siguiente pregunta basado exclusivamente en ese texto:\n###\n" +
+    const prompt = req.body.prefix +
+      " \n###\n" +
+      resp[0].contents.join(" ") +
+      "\n###\n" + 
+      req.body.suffix +
+      "\n###\n" +
       req.body.question +
       " \n###\n"
 
