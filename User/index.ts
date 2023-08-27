@@ -407,9 +407,79 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const isUserAllowedToSeeCourse = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            const Courses = db.collection('course')
+            const fetchedUser = await Users.findOne({ code: req.query.userCode })
+            let course
+
+            // console.log(req.query.userCode)
+            // console.log(req.query.courseCode)
+            // console.log(req.query.urlRoot)
+
+            if (req.query.urlRoot == 'instructor') {
+                const organizationCode = fetchedUser.organizationCode
+                course = await Courses.findOne(
+                    {
+                        code: req.query.courseCode,
+                        organizationCode: organizationCode
+                    }
+                )
+
+            } else if (req.query.urlRoot == 'student') {
+                let isUserMember = fetchedUser.groups.filter(group => {
+                    return group.courseCode == req.query.courseCode
+                })
+                if (isUserMember.length > 0) {
+                    course = 'Allowed'
+                }
+            }
+            if (course) {
+                // console.log('THIS RAN 1')
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Allowed"
+                    }
+                }
+            } else {
+                // console.log('THIS RAN 2')
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Not allowed"
+                    }
+                }
+            }
+
+        } catch (error) {
+            await saveLog(`Error validating user: ${req.query.userCode}, error ${error.message}`, "Error", "isUserAllowedToSeeCourse()", "User/")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error validating user"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
-            if (req.query.excel == 'true') {
+            if (req.query.isUserAllowedToSeeCourse) {
+                await isUserAllowedToSeeCourse()
+                break;
+            } else if (req.query.excel == 'true') {
                 await createUsersFromExcel()
                 break;
             } else if (req.body.quizCode) {
@@ -425,6 +495,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
+
             if (req.params.userCode || req.query.userEmail) {
                 await getUser(req)
             } else {
