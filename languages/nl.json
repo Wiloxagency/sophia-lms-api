@@ -265,7 +265,7 @@
   "Impact": "Invloed",
   "Upload .docx file": "Upload .docx bestand",
   "Paste text": "Tekst plakken",
-  "Based on structure": "Op basis van structuur",
+  "Based on structure": "Gebaseerd op structuur",
   "Based on title": "Op titel",
   "Instructional design": "Instructieontwerp",
   "Remaining courses in membership:": "Resterende cursussen in het lidmaatschap",
@@ -448,5 +448,18 @@
   "Quick access": "Snelle toegang",
   "Approved": "Goedgekeurd",
   "Code": "Code",
-  "Finished": "Klaar"
+  "Finished": "Klaar",
+  "Profile": "Profiel",
+  "Last course accessed": "Laatst bezochte cursus",
+  "No limits": "Geen grenzen",
+  "Audio options": "Audi instellingen",
+  "Animated text": "Geanimeerde tekst",
+  "Duration": "Duur",
+  "Send welcome email": "Verstuur welkomst e-mail",
+  "Search": "Zoeken",
+  "Company": "Bedrijf",
+  "No courses with specified status": "Geen cursussen met de opgegeven status",
+  "Create organization": "Organisatie maken",
+  "Enter the name of the organization here": "Voer hier de naam van de organisatie in",
+  "Activo": "Actief"
 }

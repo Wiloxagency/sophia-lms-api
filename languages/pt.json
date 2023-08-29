@@ -265,7 +265,7 @@
   "Impact": "Impacto",
   "Upload .docx file": "Fazer upload de arquivo .docx",
   "Paste text": "Cole o texto",
-  "Based on structure": "Baseado na estrutura",
+  "Based on structure": "Com base na estrutura",
   "Based on title": "Com base no título",
   "Instructional design": "Design instrucional",
   "Remaining courses in membership:": "Cursos restantes na adesão",
@@ -448,5 +448,18 @@
   "Quick access": "Acesso rápido",
   "Approved": "Aprovado",
   "Code": "Código",
-  "Finished": "Concluído"
+  "Finished": "Concluído",
+  "Profile": "Perfil",
+  "Last course accessed": "Último curso acessado",
+  "No limits": "Sem limites",
+  "Audio options": "Opções de áudio",
+  "Animated text": "Texto animado",
+  "Duration": "Duração",
+  "Send welcome email": "Enviar e-mail de boas-vindas",
+  "Search": "Pesquisar",
+  "Company": "Empresa",
+  "No courses with specified status": "Nenhum curso com o status especificado",
+  "Create organization": "Criar organização",
+  "Enter the name of the organization here": "Digite o nome da organização aqui",
+  "Activo": "Ativo"
 }

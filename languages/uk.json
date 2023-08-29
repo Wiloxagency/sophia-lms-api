@@ -167,7 +167,7 @@
   "This group is empty": "Ця група порожня",
   "Role": "Роль",
   "Student": "Студент",
-  "Instructor": "Інструктор",
+  "Instructor": "Викладач",
   "Cancel and return to group": "Скасувати та повернутися до групи",
   "Send email": "Надіслати електронного листа",
   "Unselected users": "Невибрані користувачі",
@@ -448,5 +448,18 @@
   "Quick access": "Швидкий доступ",
   "Approved": "Затверджено",
   "Code": "Код",
-  "Finished": "Завершено"
+  "Finished": "Завершено",
+  "Profile": "Профіль",
+  "Last course accessed": "Останній доступний курс",
+  "No limits": "Без обмежень",
+  "Audio options": "Опції аудіо",
+  "Animated text": "Анімований текст",
+  "Duration": "Тривалість",
+  "Send welcome email": "Надіслати лист з вітанням",
+  "Search": "Пошук",
+  "Company": "Компанія",
+  "No courses with specified status": "Немає курсів з вказаним статусом",
+  "Create organization": "Створити організацію",
+  "Enter the name of the organization here": "Введіть назву організації тут",
+  "Activo": "Активний"
 }

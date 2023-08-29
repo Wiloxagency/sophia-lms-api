@@ -22,7 +22,7 @@
   "System management": "Upravljanje sustavom",
   "Dashboard": "Nadzorna ploča",
   "My courses": "Moji tečajevi",
-  "Courses": "Tečajevi",
+  "Courses": "Kursevi",
   "Course creator": "Stvoritelj tečaja",
   "Manage users": "Upravljanje korisnicima",
   "Manage courses": "Upravljanje kolegijima",
@@ -448,5 +448,18 @@
   "Quick access": "Brzi pristup",
   "Approved": "Odobreno",
   "Code": "Kod",
-  "Finished": "Završeno"
+  "Finished": "Završeno",
+  "Profile": "Profil",
+  "Last course accessed": "Posljednji pristupljeni tečaj",
+  "No limits": "Bez ograničenja",
+  "Audio options": "Opcije zvuka",
+  "Animated text": "Animirani tekst",
+  "Duration": "Trajanje",
+  "Send welcome email": "Pošalji dobrodošlicu e-poštom",
+  "Search": "Pretraživanje",
+  "Company": "Tvrtka",
+  "No courses with specified status": "Nema kolegija s određenim statusom",
+  "Create organization": "Izradite organizaciju",
+  "Enter the name of the organization here": "Unesite naziv organizacije ovdje",
+  "Activo": "Aktivan"
 }

@@ -448,5 +448,18 @@
   "Quick access": "素早いアクセス",
   "Approved": "承認済み",
   "Code": "コード",
-  "Finished": "完了"
+  "Finished": "完了",
+  "Profile": "プロフィール",
+  "Last course accessed": "最後にアクセスしたコース",
+  "No limits": "無制限",
+  "Audio options": "オーディオオプション",
+  "Animated text": "アニメーションテキスト",
+  "Duration": "持続時間",
+  "Send welcome email": "ようこそメールを送信する",
+  "Search": "検索",
+  "Company": "会社",
+  "No courses with specified status": "指定されたステータスのコースはありません",
+  "Create organization": "組織を作成する",
+  "Enter the name of the organization here": "組織の名前をここに入力してください",
+  "Activo": "アクティブ"
 }
