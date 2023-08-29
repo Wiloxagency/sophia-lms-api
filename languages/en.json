@@ -461,5 +461,8 @@
   "No courses with specified status": "No courses with specified status",
   "Create organization": "Create organization",
   "Enter the name of the organization here": "Enter the name of the organization here",
-  "Activo": "Activo"
+  "Activo": "Activo",
+  "Course summary": "Course summary",
+  "Number of paragraphs": "Number of paragraphs",
+  "Redo course summary with AI": "Redo course summary with AI"
 }
