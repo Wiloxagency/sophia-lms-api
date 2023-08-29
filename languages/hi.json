@@ -461,5 +461,8 @@
   "No courses with specified status": "कोई निर्दिष्ट स्थिति वाले कोर्स नहीं",
   "Create organization": "संगठन बनाएं",
   "Enter the name of the organization here": "यहाँ संगठन का नाम दर्ज करें",
-  "Activo": "सक्रिय"
+  "Activo": "सक्रिय",
+  "Course summary": "पाठ्यक्रम सारांश",
+  "Number of paragraphs": "अनुच्छेदों की संख्या",
+  "Redo course summary with AI": "एआई के साथ कोर्स सारांश को पुनः करें"
 }

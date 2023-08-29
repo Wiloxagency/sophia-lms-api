@@ -461,5 +461,8 @@
   "No courses with specified status": "Няма курсове със зададен статус",
   "Create organization": "Създаване на организация",
   "Enter the name of the organization here": "Въведете името на организацията тук",
-  "Activo": "Активен"
+  "Activo": "Активен",
+  "Course summary": "Резюме на курса",
+  "Number of paragraphs": "Брой параграфи",
+  "Redo course summary with AI": "Повторено обобщение на курса с AI"
 }

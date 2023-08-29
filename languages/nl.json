@@ -461,5 +461,8 @@
   "No courses with specified status": "Geen cursussen met de opgegeven status",
   "Create organization": "Organisatie maken",
   "Enter the name of the organization here": "Voer hier de naam van de organisatie in",
-  "Activo": "Actief"
+  "Activo": "Actief",
+  "Course summary": "Cursussamenvatting",
+  "Number of paragraphs": "Aantal paragrafen",
+  "Redo course summary with AI": "Herdoen cursus samenvatting met AI"
 }

@@ -461,5 +461,8 @@
   "No courses with specified status": "Belirtilen durumdaki kurslar yok",
   "Create organization": "Kuruluş oluştur",
   "Enter the name of the organization here": "Kuruluşun adını buraya girin",
-  "Activo": "Aktif"
+  "Activo": "Aktif",
+  "Course summary": "Kurs Özeti",
+  "Number of paragraphs": "Paragraf Sayısı",
+  "Redo course summary with AI": "Kurs özetini AI ile yeniden yap"
 }

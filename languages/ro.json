@@ -461,5 +461,8 @@
   "No courses with specified status": "Niciun curs cu statutul specificat",
   "Create organization": "Creați organizație",
   "Enter the name of the organization here": "Introduceți numele organizației aici",
-  "Activo": "Activ"
+  "Activo": "Activ",
+  "Course summary": "Rezumatul cursului",
+  "Number of paragraphs": "Numărul de paragrafe",
+  "Redo course summary with AI": "Refaceți rezumatul cursului cu AI"
 }

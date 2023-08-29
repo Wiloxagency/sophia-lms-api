@@ -461,5 +461,8 @@
   "No courses with specified status": "ไม่มีหลักสูตรที่มีสถานะที่ระบุ",
   "Create organization": "สร้างองค์กร",
   "Enter the name of the organization here": "ใส่ชื่อองค์กรที่นี่",
-  "Activo": "ทำงาน"
+  "Activo": "ทำงาน",
+  "Course summary": "สรุปรายวิชา",
+  "Number of paragraphs": "จำนวนย่อหน้า",
+  "Redo course summary with AI": "ทำสรุปรายวิชาด้วย AI อีกครั้ง"
 }

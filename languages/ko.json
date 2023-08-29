@@ -461,5 +461,8 @@
   "No courses with specified status": "지정된 상태의 강의가 없습니다",
   "Create organization": "조직 생성",
   "Enter the name of the organization here": "여기에 조직 이름을 입력하세요",
-  "Activo": "활동적인"
+  "Activo": "활동적인",
+  "Course summary": "강의 개요",
+  "Number of paragraphs": "문단 수",
+  "Redo course summary with AI": "AI를 이용하여 강의 요약을 다시 작성하십시오"
 }

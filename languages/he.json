@@ -461,5 +461,8 @@
   "No courses with specified status": "אין קורסים עם הסטטוס המבוקש",
   "Create organization": "יצירת ארגון",
   "Enter the name of the organization here": "הכנס את שם הארגון כאן",
-  "Activo": "פעיל"
+  "Activo": "פעיל",
+  "Course summary": "תקציר הקורס",
+  "Number of paragraphs": "מספר פסקאות",
+  "Redo course summary with AI": "חזור על סיכום הקורס עם AI"
 }

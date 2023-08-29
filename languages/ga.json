@@ -461,5 +461,8 @@
   "No courses with specified status": "Níl cúrsaí le stádas sonraithe",
   "Create organization": "Cruthaigh comhlacht",
   "Enter the name of the organization here": "Iontráil an t-ainm an eagraíochta anseo",
-  "Activo": "Gníomhach"
+  "Activo": "Gníomhach",
+  "Course summary": "Achoimre ar an gcúrsa",
+  "Number of paragraphs": "Uimhir na míreanna",
+  "Redo course summary with AI": "Athdhéan an t-ábhar cúrsa le AI"
 }

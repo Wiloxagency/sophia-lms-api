@@ -461,5 +461,8 @@
   "No courses with specified status": "Nema kolegija s određenim statusom",
   "Create organization": "Izradite organizaciju",
   "Enter the name of the organization here": "Unesite naziv organizacije ovdje",
-  "Activo": "Aktivan"
+  "Activo": "Aktivan",
+  "Course summary": "Sažetak kolegija",
+  "Number of paragraphs": "Broj odlomaka",
+  "Redo course summary with AI": "Ponovite sažetak kolegija s AI"
 }

@@ -461,5 +461,8 @@
   "No courses with specified status": "Spetsifitseeritud staatusega kursusi pole",
   "Create organization": "Loo organisatsioon",
   "Enter the name of the organization here": "Sisestage siia organisatsiooni nimi",
-  "Activo": "Aktiivne"
+  "Activo": "Aktiivne",
+  "Course summary": "Kursuse kokkuvõte",
+  "Number of paragraphs": "Lõikude arv",
+  "Redo course summary with AI": "Tee kursuse kokkuvõte uuesti AI-ga"
 }

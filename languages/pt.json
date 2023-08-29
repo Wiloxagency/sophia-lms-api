@@ -461,5 +461,8 @@
   "No courses with specified status": "Nenhum curso com o status especificado",
   "Create organization": "Criar organização",
   "Enter the name of the organization here": "Digite o nome da organização aqui",
-  "Activo": "Ativo"
+  "Activo": "Ativo",
+  "Course summary": "Resumo do curso",
+  "Number of paragraphs": "Número de parágrafos",
+  "Redo course summary with AI": "Refaça o resumo do curso com IA"
 }

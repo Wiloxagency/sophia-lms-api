@@ -461,5 +461,8 @@
   "No courses with specified status": "هیچ دوره ای با وضعیت مشخص شده وجود ندارد",
   "Create organization": "ایجاد سازمان",
   "Enter the name of the organization here": "نام سازمان را اینجا وارد کنید",
-  "Activo": "فعال"
+  "Activo": "فعال",
+  "Course summary": "خلاصه دوره",
+  "Number of paragraphs": "تعداد پاراگراف‌ها",
+  "Redo course summary with AI": "بازنویسی خلاصه دوره با هوش مصنوعی"
 }

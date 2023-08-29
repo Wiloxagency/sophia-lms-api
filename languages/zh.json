@@ -461,5 +461,8 @@
   "No courses with specified status": "没有指定状态的课程",
   "Create organization": "创建组织",
   "Enter the name of the organization here": "在此输入组织名称",
-  "Activo": "活跃的"
+  "Activo": "活跃的",
+  "Course summary": "课程概要",
+  "Number of paragraphs": "段落数",
+  "Redo course summary with AI": "使用AI重新概括课程"
 }

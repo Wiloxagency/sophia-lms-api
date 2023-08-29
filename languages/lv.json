@@ -461,5 +461,8 @@
   "No courses with specified status": "Nav kursu ar norādīto statūtu",
   "Create organization": "Izveidot organizāciju",
   "Enter the name of the organization here": "Šeit ievadiet organizācijas nosaukumu",
-  "Activo": "Aktīvs"
+  "Activo": "Aktīvs",
+  "Course summary": "Kursa kopsavilkums",
+  "Number of paragraphs": "Paragrāfu skaits",
+  "Redo course summary with AI": "Atkārtot kursa kopsavilkumu ar AI"
 }

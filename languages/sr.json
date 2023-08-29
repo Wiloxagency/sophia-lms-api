@@ -461,5 +461,8 @@
   "No courses with specified status": "Nema kurseva sa određenim statusom",
   "Create organization": "Kreiraj organizaciju",
   "Enter the name of the organization here": "Unesite naziv organizacije ovde",
-  "Activo": "Aktivan"
+  "Activo": "Aktivan",
+  "Course summary": "Rezime kursa",
+  "Number of paragraphs": "Broj pasusa",
+  "Redo course summary with AI": "Ponovite sažetak kursa sa AI"
 }

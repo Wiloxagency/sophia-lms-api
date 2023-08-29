@@ -461,5 +461,8 @@
   "No courses with specified status": "Ni tečajev z določenim statusom",
   "Create organization": "Ustvari organizacijo",
   "Enter the name of the organization here": "Vnesite ime organizacije tukaj",
-  "Activo": "Aktiven"
+  "Activo": "Aktiven",
+  "Course summary": "Povzetek tečaja",
+  "Number of paragraphs": "Število odstavkov",
+  "Redo course summary with AI": "Ponovno preglejte povzetek tečaja z AI"
 }

@@ -461,5 +461,8 @@
   "No courses with specified status": "Nincs ilyen státuszú kurzus",
   "Create organization": "Szervezet létrehozása",
   "Enter the name of the organization here": "Írja be az szervezet nevét itt",
-  "Activo": "Aktív"
+  "Activo": "Aktív",
+  "Course summary": "Kurzusösszefoglaló",
+  "Number of paragraphs": "Bekezdések száma",
+  "Redo course summary with AI": "Újra készítsen összefoglalót AI-val"
 }

@@ -461,5 +461,8 @@
   "No courses with specified status": "指定されたステータスのコースはありません",
   "Create organization": "組織を作成する",
   "Enter the name of the organization here": "組織の名前をここに入力してください",
-  "Activo": "アクティブ"
+  "Activo": "アクティブ",
+  "Course summary": "コースの概要",
+  "Number of paragraphs": "段落の数",
+  "Redo course summary with AI": "AIを使用してコースの概要を再度作成する"
 }

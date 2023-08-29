@@ -461,5 +461,8 @@
   "No courses with specified status": "Žiadne kurzy s daným stavom",
   "Create organization": "Vytvoriť organizáciu",
   "Enter the name of the organization here": "Sem zadajte názov organizácie",
-  "Activo": "Aktívny"
+  "Activo": "Aktívny",
+  "Course summary": "Zhrnutie kurzu",
+  "Number of paragraphs": "Počet odstavcov",
+  "Redo course summary with AI": "Zopakujte prehľad kurzu s AI"
 }

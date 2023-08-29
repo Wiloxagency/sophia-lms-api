@@ -461,5 +461,8 @@
   "No courses with specified status": "لا توجد دورات بالحالة المحددة",
   "Create organization": "إنشاء منظمة",
   "Enter the name of the organization here": "أدخل اسم المنظمة هنا",
-  "Activo": "نشط"
+  "Activo": "نشط",
+  "Course summary": "ملخص الدورة",
+  "Number of paragraphs": "عدد الفقرات",
+  "Redo course summary with AI": "إعادة ملخص الدورة باستخدام الذكاء الإصطناعي"
 }

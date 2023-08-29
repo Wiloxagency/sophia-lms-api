@@ -461,5 +461,8 @@
   "No courses with specified status": "Ingen kurser med den angivne status",
   "Create organization": "Opret organisation",
   "Enter the name of the organization here": "Indtast navnet på organisationen her",
-  "Activo": "Aktiv"
+  "Activo": "Aktiv",
+  "Course summary": "Kursusoversigt",
+  "Number of paragraphs": "Antal af afsnit",
+  "Redo course summary with AI": "Gentag kursusopsummering med AI"
 }

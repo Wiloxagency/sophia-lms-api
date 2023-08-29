@@ -461,5 +461,8 @@
   "No courses with specified status": "Немає курсів з вказаним статусом",
   "Create organization": "Створити організацію",
   "Enter the name of the organization here": "Введіть назву організації тут",
-  "Activo": "Активний"
+  "Activo": "Активний",
+  "Course summary": "Короткий огляд курсу",
+  "Number of paragraphs": "Кількість абзаців",
+  "Redo course summary with AI": "Перезапустити підсумок курсу за допомогою ІІ"
 }

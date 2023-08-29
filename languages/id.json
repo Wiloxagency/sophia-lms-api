@@ -461,5 +461,8 @@
   "No courses with specified status": "Tidak ada kursus dengan status yang ditentukan",
   "Create organization": "Buat organisasi",
   "Enter the name of the organization here": "Masukkan nama organisasi di sini",
-  "Activo": "Aktif"
+  "Activo": "Aktif",
+  "Course summary": "Ringkasan Mata Kuliah",
+  "Number of paragraphs": "Jumlah paragraf",
+  "Redo course summary with AI": "Ulangi ringkasan kursus dengan AI"
 }

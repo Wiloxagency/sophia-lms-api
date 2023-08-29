@@ -461,5 +461,8 @@
   "No courses with specified status": "Nėra kursų su nurodytu būkle",
   "Create organization": "Sukurti organizaciją",
   "Enter the name of the organization here": "Įveskite organizacijos pavadinimą čia",
-  "Activo": "Aktyvus"
+  "Activo": "Aktyvus",
+  "Course summary": "Kurso santrauka",
+  "Number of paragraphs": "Paragrafų skaičius",
+  "Redo course summary with AI": "Atnaujinkite kurso santrauką naudojant AI"
 }

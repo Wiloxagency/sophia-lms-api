@@ -461,5 +461,8 @@
   "No courses with specified status": "Ei kursseja määritetyllä tilalla",
   "Create organization": "Luo organisaatio",
   "Enter the name of the organization here": "Kirjoita organisaation nimi tähän",
-  "Activo": "Aktiivinen"
+  "Activo": "Aktiivinen",
+  "Course summary": "Kurssin yhteenveto",
+  "Number of paragraphs": "Kappaleiden määrä",
+  "Redo course summary with AI": "Tee kurssin yhteenveto uudelleen AI:lla"
 }

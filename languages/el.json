@@ -461,5 +461,8 @@
   "No courses with specified status": "Δεν υπάρχουν μαθήματα με την καθορισμένη κατάσταση",
   "Create organization": "Δημιουργήστε οργανισμό",
   "Enter the name of the organization here": "Εισαγάγετε το όνομα της οργάνωσης εδώ",
-  "Activo": "Ενεργός"
+  "Activo": "Ενεργός",
+  "Course summary": "Περίληψη μαθήματος",
+  "Number of paragraphs": "Αριθμός των παραγράφων",
+  "Redo course summary with AI": "Επαναλάβετε την περίληψη του μαθήματος με την τεχνολογία του AI"
 }
