@@ -448,5 +448,21 @@
   "Quick access": "การเข้าถึงที่รวดเร็ว",
   "Approved": "ได้รับการอนุมัติ",
   "Code": "โค้ด",
-  "Finished": "เสร็จสิ้น"
+  "Finished": "เสร็จสิ้น",
+  "Profile": "ประวัติส่วนตัว",
+  "Last course accessed": "คอร์สที่เข้าถึงล่าสุด",
+  "No limits": "ไม่มีขีดจำกัด",
+  "Audio options": "ตัวเลือกเสียง",
+  "Animated text": "ข้อความเคลื่อนไหว",
+  "Duration": "ระยะเวลา",
+  "Send welcome email": "ส่งอีเมลต้อนรับ",
+  "Search": "ค้นหา",
+  "Company": "บริษัท",
+  "No courses with specified status": "ไม่มีหลักสูตรที่มีสถานะที่ระบุ",
+  "Create organization": "สร้างองค์กร",
+  "Enter the name of the organization here": "ใส่ชื่อองค์กรที่นี่",
+  "Activo": "ทำงาน",
+  "Course summary": "สรุปรายวิชา",
+  "Number of paragraphs": "จำนวนย่อหน้า",
+  "Redo course summary with AI": "ทำสรุปรายวิชาด้วย AI อีกครั้ง"
 }

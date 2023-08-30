@@ -448,5 +448,21 @@
   "Quick access": "Быстрый доступ",
   "Approved": "Одобрено",
   "Code": "Код",
-  "Finished": "Закончено"
+  "Finished": "Закончено",
+  "Profile": "Профиль",
+  "Last course accessed": "Последний доступный курс",
+  "No limits": "Нет ограничений",
+  "Audio options": "Настройки аудио",
+  "Animated text": "Анимированный текст",
+  "Duration": "Длительность",
+  "Send welcome email": "Отправить приветственное письмо",
+  "Search": "Поиск",
+  "Company": "Компания",
+  "No courses with specified status": "Нет курсов с указанным статусом",
+  "Create organization": "Создать организацию",
+  "Enter the name of the organization here": "Введите название организации здесь",
+  "Activo": "Активный",
+  "Course summary": "Обзор курса",
+  "Number of paragraphs": "Количество абзацев",
+  "Redo course summary with AI": "Пересмотреть краткое изложение курса с помощью ИИ"
 }
