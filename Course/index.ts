@@ -305,10 +305,8 @@ const httpTrigger: AzureFunction = async function (
       // const regexCategories = new RegExp(query.categories, "i")
       // const queryCategories = { 'details.categories': { $regex: regexCategories } }
 
-      const skipNum = parseInt(query.skip) ? parseInt(query.skip) : 0;
-      const limitNum = parseInt(query.items_by_page)
-        ? parseInt(query.items_by_page)
-        : 1000;
+      const skipNum = parseInt(query.skip) || 0;
+      const limitNum = parseInt(query.items_by_page) || 1000;
 
       // const count = await collection
       //   .aggregate([
@@ -382,7 +380,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: body[0],
+          body: body[0]  || { Courses: [], Count: 0 },
         };
       } else {
         context.res = {
@@ -528,7 +526,7 @@ const httpTrigger: AzureFunction = async function (
           $facet: {
             "Courses":
               [
-                { $skip: parseInt(req.query.skip) },
+                { $skip: parseInt(req.query.skip) || 0 },
                 { $limit: 20 },
               ],
             "Count":
@@ -560,7 +558,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: aggregationResponse[0],
+          body: aggregationResponse[0] || { Courses: [], Count: 0 },
         };
       } else {
         context.res = {
