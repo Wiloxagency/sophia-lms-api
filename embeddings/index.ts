@@ -31,9 +31,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const CreateEmbeddingDocument = async () => {
+        try {
+            const Embeddings = db.collection('embedding')
+            const createDocumentResponse = await Embeddings.insertOne(req.body)
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": createDocumentResponse
+            }
+        } catch (error) {
+            await saveLog(`Error getting files, error: ${error.message} `, "Error", "GetEmbeddings()", "embeddings")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading file"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "GET":
             await GetEmbeddings()
+            break;
+
+        case "POST":
+            await CreateEmbeddingDocument()
             break;
 
         default:
