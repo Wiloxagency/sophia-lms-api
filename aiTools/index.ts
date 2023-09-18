@@ -3,13 +3,15 @@ import { createConnection } from "../shared/mongo"
 import { BlobServiceClient } from "@azure/storage-blob"
 import { saveLog } from "../shared/saveLog"
 import parseMultipartFormData from "@anzp/azure-function-multipart"
+import xmlbuilder from "xmlbuilder"
+import rp = require('request-promise')
+import { createAudioWithoutCourse } from "../CreateContent/createAudios"
 
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
-    console.log('THIS RAN')
     const db = await database
 
     const uploadFile = async () => {
@@ -47,10 +49,47 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const textToSpeech = async () => {
+        try {
+            let TTSResponse = await createAudioWithoutCourse(
+                req.body.text,
+                req.body.voice,
+                req.body.language
+            )
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": { url: TTSResponse.url }
+            }
+        } catch (error) {
+            await saveLog(`Error creating TTS: ${error.message} `, "Error", "textToSpeech()", "aiTools/")
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading file"
+                }
+            }
+        }
+
+
+    }
+
     switch (req.method) {
         case "POST":
-            await uploadFile()
-            break;
+            if (req.query.uploadFile) {
+                await uploadFile()
+                break;
+            } else if (req.query.textToSpeech) {
+                await textToSpeech()
+                break;
+            }
+
 
         default:
             break;

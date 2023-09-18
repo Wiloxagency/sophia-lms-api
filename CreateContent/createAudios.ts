@@ -6,9 +6,10 @@ import xmlbuilder = require("xmlbuilder")
 import { saveLog } from "../shared/saveLog"
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
-const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
+// const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
+const TTS_SUBSCRIPTION_KEY = process.env.OCP_APIM_SUBSCRIPTION_KEY
 
-async function getAccessToken(subscriptionKey: string, courseCode: string) {
+async function getAccessToken(subscriptionKey: string, courseCode?: string) {
     try {
         let options = {
             method: 'POST',
@@ -24,7 +25,7 @@ async function getAccessToken(subscriptionKey: string, courseCode: string) {
 
 }
 
-function textToSpeech(accessToken: string, text: string, writableStream: any, voice: string, language: string, courseCode: string) {
+function textToSpeech(accessToken: string, text: string, writableStream: any, voice: string, language: string, courseCode?: string) {
 
     // const languageCode = isoLanguage[language]
     const languageCode = language
@@ -101,5 +102,35 @@ export async function createAudio(
     } catch (err) {
         await saveLog(`Error creating audio for course: ${courseCode}, sectionIndex ${sectionIndex}, elementIndex ${elementIndex}, paragraphIndex ${paragraphIndex}.`, "Error", "createAudio()", "Courses/{courseCode}/CreateContent")
         return { url: undefined, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex }
+    }
+}
+
+export async function createAudioWithoutCourse(
+    text: string,
+    voice: string,
+    language: string
+): Promise<{ url: string }> {
+    // console.log(text, voice, language, courseCode, sectionIndex, elementIndex, paragraphIndex)
+    const mp3Name = uuidv4() + ".mp3"
+    try {
+        const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY)
+        const blobService = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING)
+        const writableStream = blobService.createWriteStreamToBlockBlob(
+            "speeches",
+            mp3Name,
+            {
+                blockIdPrefix: "block",
+                contentSettings: {
+                    contentType: "audio/mpeg",
+                },
+            },
+        )
+        await textToSpeech(accessToken, text, writableStream, voice, language)
+        const audioUrl = blobService.getUrl("speeches") + "/" + mp3Name
+        return { url: audioUrl }
+
+    } catch (err) {
+        await saveLog(`Error creating audio for course.`, "Error", "createAudioWithoutCourse()", "Courses/CreateAudio")
+        return { url: undefined }
     }
 }
