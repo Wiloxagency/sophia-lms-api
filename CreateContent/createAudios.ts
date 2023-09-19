@@ -8,7 +8,7 @@ import { saveLog } from "../shared/saveLog"
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
 
-async function getAccessToken(subscriptionKey: string, courseCode?: string) {
+export async function getAccessToken(subscriptionKey: string, courseCode?: string) {
     try {
         let options = {
             method: 'POST',
