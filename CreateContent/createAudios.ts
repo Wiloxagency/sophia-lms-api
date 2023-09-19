@@ -6,8 +6,7 @@ import xmlbuilder = require("xmlbuilder")
 import { saveLog } from "../shared/saveLog"
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
-// const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
-const TTS_SUBSCRIPTION_KEY = process.env.OCP_APIM_SUBSCRIPTION_KEY
+const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
 
 async function getAccessToken(subscriptionKey: string, courseCode?: string) {
     try {
@@ -110,7 +109,7 @@ export async function createAudioWithoutCourse(
     voice: string,
     language: string
 ): Promise<{ url: string }> {
-    // console.log(text, voice, language, courseCode, sectionIndex, elementIndex, paragraphIndex)
+    console.log(text, voice, language)
     const mp3Name = uuidv4() + ".mp3"
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY)
@@ -130,7 +129,7 @@ export async function createAudioWithoutCourse(
         return { url: audioUrl }
 
     } catch (err) {
-        await saveLog(`Error creating audio for course.`, "Error", "createAudioWithoutCourse()", "Courses/CreateAudio")
+        await saveLog(`Error creating audio.`, "Error: " + err, "createAudioWithoutCourse()", "Courses/CreateAudio")
         return { url: undefined }
     }
 }
