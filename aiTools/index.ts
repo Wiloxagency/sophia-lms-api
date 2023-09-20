@@ -120,7 +120,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             // console.log('THIS RUNS');
             // console.log('2', recognizedText);
 
-            let data = fs.readFileSync("test.wav")
+            const { fields, files } = await parseMultipartFormData(req)
+            const responseMessage = {
+                fields,
+                files,
+            }
+            const output = responseMessage.files[0].bufferFile as Buffer
+            // console.log(responseMessage)
+            // console.log(output)
+            // let data = fs.readFileSync("test.wav")
+            let data = output
             let accesToken = await getAccessToken(process.env.TTS_SUBSCRIPTION_KEY)
 
             let config = {
@@ -147,12 +156,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 })
                 .catch((error) => {
-                    console.log(error);
+                    // console.log(error);
+                    saveLog(`Error creating STT: ${error.message} `, "Error", "speechToText()", "aiTools/")
+
+                    context.res = {
+                        "status": 500,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": {
+                            "message": "Error uploading file"
+                        }
+                    }
                 });
 
         } catch (error) {
             await saveLog(`Error creating STT: ${error.message} `, "Error", "speechToText()", "aiTools/")
-
             context.res = {
                 "status": 500,
                 "headers": {
@@ -163,8 +182,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
         }
-
-
     }
 
     switch (req.method) {
