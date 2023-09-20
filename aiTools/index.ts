@@ -135,7 +135,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'https://eastus2.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US',
+                url: 'https://eastus2.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=es-MX',
                 headers: {
                     'Ocp-Apim-Subscription-Key': process.env.TTS_SUBSCRIPTION_KEY,
                     'Content-Type': 'audio/wav',
