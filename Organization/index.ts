@@ -274,9 +274,141 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
+  const postOrganizationFolder = async () => {
+    delete req.body._id;
+
+    try {
+      const db = await database;
+      const Organizations = db.collection("organization");
+
+      console.log(req.body)
+      console.log(req.params.organizationCode)
+
+      const resp = Organizations.updateOne(
+        { organizationCode: req.params.organizationCode },
+        {
+          $push: { "repository.repositoryFolders": req.body }
+        }
+      );
+      const body = await resp;
+
+      if (body) {
+        context.res = {
+          status: 201,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: body,
+        };
+      } else {
+        await saveLog(
+          `Error updating organization by code: ${req.body.organizationCode}`,
+          "Error",
+          "deleteOrganization()",
+          "Organization/{organizationCode?}"
+        );
+
+        context.res = {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "Error updating organization by code",
+          },
+        };
+      }
+    } catch (error) {
+      await saveLog(
+        `Error updating organization by code: ${req.body.organizationCode}, error ${error.message}`,
+        "Error",
+        "deleteOrganization()",
+        "Organization/{organizationCode?}"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error updating organization by code",
+        },
+      };
+    }
+  };
+
+  const deleteOrganizationFolder = async () => {
+    delete req.body._id;
+    try {
+      const db = await database;
+      const Organizations = db.collection("organization");
+      const resp = Organizations.updateOne(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull:
+          {
+            "repository.repositoryFolders": { folderCode: req.query.folderCode }
+          }
+        }
+      );
+      const body = await resp;
+      if (body) {
+        context.res = {
+          status: 201,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: body,
+        };
+      } else {
+        await saveLog(
+          `Error updating organization by code: ${req.body.organizationCode}`,
+          "Error",
+          "deleteOrganizationFolder()",
+          "Organization/{organizationCode?}"
+        );
+
+        context.res = {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "Error updating organization by code",
+          },
+        };
+      }
+    } catch (error) {
+      await saveLog(
+        `Error updating organization by code: ${req.body.organizationCode}, error ${error.message}`,
+        "Error",
+        "deleteOrganizationFolder()",
+        "Organization/{organizationCode?}"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error updating organization by code",
+        },
+      };
+    }
+  };
+
   switch (req.method) {
     case "POST":
-      await createOrganization();
+      if (req.query.postOrganizationFolder) {
+        await postOrganizationFolder()
+      } else if (req.query.deleteOrganizationFolder) {
+        await deleteOrganizationFolder()
+      } else {
+        await createOrganization();
+        break;
+      }
       break;
     case "PUT":
       await updateOrganization(req.params.organizationCode);
