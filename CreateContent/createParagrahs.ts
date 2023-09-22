@@ -58,7 +58,9 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
             paragraphs.push(validParagraph.replace(/\n/g, ""))
         }
     })
-    return paragraphs
+    return paragraphs.filter(p => {
+        return p.trim().length >= 2
+    })
 }
 
 export async function createParagraphs(payload: paragraphCreation): Promise<{ content: string[]; sectionIndex: number; }> {
