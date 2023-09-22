@@ -403,8 +403,10 @@ const httpTrigger: AzureFunction = async function (
     case "POST":
       if (req.query.postOrganizationFolder) {
         await postOrganizationFolder()
+        break;
       } else if (req.query.deleteOrganizationFolder) {
         await deleteOrganizationFolder()
+        break;
       } else {
         await createOrganization();
         break;
