@@ -34,7 +34,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const CreateEmbeddingDocument = async () => {
         try {
             const Embeddings = db.collection('embedding')
+            const Organization = db.collection('embedding')
             const createDocumentResponse = await Embeddings.insertOne(req.body)
+
+            // TODO: BECAUSE A DOCUMENT CAN ONLY BE CREATED FROM WITHIN AN ORGANIZATION'S FOLDER,
+            // CREATING A DOCUMENT SHOULD ALSO UPDATE THE ORGANIZATION'S FOLDER 👇🏻
+            // let folderPath = "repository.repositoryFolders"
+            // const updateFolder = await Organization.updateOne({ code: '' }, { ''})
+
             context.res = {
                 "status": 201,
                 "headers": {
