@@ -36,7 +36,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         const addGenerationTypeToCourse = await Courses.updateOne(
             { "code": courseCode },
-            { 'generationType': req.body.type }
+            {
+                $set: {
+                    'generationType': req.body.type
+                }
+            }
         )
 
         const body = await resp
