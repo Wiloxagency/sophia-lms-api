@@ -31,6 +31,32 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const GetFolderFiles = async () => {
+        console.log(req.query.folderCode)
+        try {
+            const Embeddings = db.collection('embedding')
+            const folderFiles = await Embeddings.find({ folderCode: req.query.folderCode }).toArray()
+            context.res = {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": folderFiles
+            }
+        } catch (error) {
+            await saveLog(`Error getting folder files, error: ${error.message} `, "Error", "GetFolderFiles()", "embeddings")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading file"
+                }
+            }
+        }
+    }
+
     const CreateEmbeddingDocument = async () => {
         try {
             const Embeddings = db.collection('embedding')
@@ -65,9 +91,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     switch (req.method) {
         case "GET":
-            await GetEmbeddings()
-            break;
-
+            if (req.query.folderCode) {
+                await GetFolderFiles()
+                break;
+            } else {
+                await GetEmbeddings()
+                break;
+            }
         case "POST":
             await CreateEmbeddingDocument()
             break;
