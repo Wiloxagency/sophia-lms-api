@@ -88,47 +88,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     const speechToText = async () => {
-        // const speechConfig = sdk.SpeechConfig.fromSubscription(process.env.TTS_SUBSCRIPTION_KEY, 'eastus2');
-        // speechConfig.speechRecognitionLanguage = "en-US";
-        // let audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync("test.wav"));
-        // let speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-        // let recognizedText = ''
         try {
-            // speechRecognizer.recognizeOnceAsync(result => {
-            //     switch (result.reason) {
-            //         case sdk.ResultReason.RecognizedSpeech:
-            //             console.log(`RECOGNIZED: Text=${result.text}`);
-            //             recognizedText = `${result.text}`
-            //             console.log('1', recognizedText);
-            //             break;
-            //         case sdk.ResultReason.NoMatch:
-            //             console.log("NOMATCH: Speech could not be recognized.");
-            //             break;
-            //         case sdk.ResultReason.Canceled:
-            //             const cancellation = sdk.CancellationDetails.fromResult(result);
-            //             console.log(`CANCELED: Reason=${cancellation.reason}`);
-
-            //             if (cancellation.reason == sdk.CancellationReason.Error) {
-            //                 console.log(`CANCELED: ErrorCode=${cancellation.ErrorCode}`);
-            //                 console.log(`CANCELED: ErrorDetails=${cancellation.errorDetails}`);
-            //                 console.log("CANCELED: Did you set the speech resource key and region values?");
-            //             }
-            //             break;
-            //     }
-            //     speechRecognizer.close();
-            // });
-            // console.log('THIS RUNS');
-            // console.log('2', recognizedText);
-
             const { fields, files } = await parseMultipartFormData(req)
             const responseMessage = {
                 fields,
                 files,
             }
             const output = responseMessage.files[0].bufferFile as Buffer
-            // console.log(responseMessage)
-            // console.log(output)
-            // let data = fs.readFileSync("test.wav")
             let data = output
             let accesToken = await getAccessToken(process.env.TTS_SUBSCRIPTION_KEY)
 
