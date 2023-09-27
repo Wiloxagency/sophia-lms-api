@@ -63,11 +63,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const Organization = db.collection('embedding')
             const createDocumentResponse = await Embeddings.insertOne(req.body)
 
-            // TODO: BECAUSE A DOCUMENT CAN ONLY BE CREATED FROM WITHIN AN ORGANIZATION'S FOLDER,
-            // CREATING A DOCUMENT SHOULD ALSO UPDATE THE ORGANIZATION'S FOLDER 👇🏻
-            // let folderPath = "repository.repositoryFolders"
-            // const updateFolder = await Organization.updateOne({ code: '' }, { ''})
-
             context.res = {
                 "status": 201,
                 "headers": {
@@ -92,20 +87,35 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const UpdateEmbeddingDocument = async () => {
         try {
             const Embeddings = db.collection('embedding')
-            const Organization = db.collection('embedding')
-            const createDocumentResponse = await Embeddings.insertOne(req.body)
 
-            // TODO: BECAUSE A DOCUMENT CAN ONLY BE CREATED FROM WITHIN AN ORGANIZATION'S FOLDER,
-            // CREATING A DOCUMENT SHOULD ALSO UPDATE THE ORGANIZATION'S FOLDER 👇🏻
-            // let folderPath = "repository.repositoryFolders"
-            // const updateFolder = await Organization.updateOne({ code: '' }, { ''})
+            if (req.query.addedTag != '') {
+                const addTagToFile = await Embeddings.updateOne(
+                    { code: req.query.fileCode },
+                    {
+                        $push:
+                        {
+                            fileTags: req.query.addedTag
+                        }
+                    }
+                )
+            } else if (req.query.removedTag != '') {
+                const removeTagFromFile = await Embeddings.updateOne(
+                    { code: req.query.fileCode },
+                    {
+                        $pull:
+                        {
+                            fileTags: req.query.removedTag
+                        }
+                    }
+                )
+            }
 
             context.res = {
                 "status": 201,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": createDocumentResponse
+                "body": { response: 'Executed' }
             }
         } catch (error) {
             await saveLog(`Error updating embedding document, error: ${error.message} `, "Error", "UpdateEmbeddingDocument()", "embeddings")
