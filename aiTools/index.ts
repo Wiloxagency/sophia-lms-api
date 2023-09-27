@@ -163,7 +163,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 break;
             }
 
-
         default:
             break;
     }
