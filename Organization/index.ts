@@ -516,15 +516,15 @@ const httpTrigger: AzureFunction = async function (
       const Embeddings = db.collection<EmbeddingType>('embedding')
 
       // // ⚠️ STEP 1 WORKING
-      // const updateOrganization = await Organizations.updateOne(
-      //   { organizationCode: req.params.organizationCode },
-      //   {
-      //     $pull:
-      //     {
-      //       "repository.repositoryTags": { tagName: req.query.removedTag }
-      //     }
-      //   }
-      // )
+      const updateOrganization = await Organizations.updateOne(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull:
+          {
+            "repository.repositoryTags": { tagName: req.query.removedTag }
+          }
+        }
+      )
 
       // ⚠️ STEP 2
       const removeTagFromFolder = await Organizations.updateOne(
@@ -532,21 +532,22 @@ const httpTrigger: AzureFunction = async function (
         {
           $pull:
           {
-            "repository.repositoryFolders.$.folderTags": req.query.removedTag
+            "repository.repositoryFolders.$[].folderTags": req.query.removedTag
           }
-
         }
       )
 
-      // // ⚠️ STEP 3 WORKING
-      // const updateFiles = await Embeddings.updateMany({},
-      //   {
-      //     $pull:
-      //     {
-      //       fileTags: req.query.removedTag
-      //     }
+      console.log(removeTagFromFolder)
 
-      //   })
+      // // ⚠️ STEP 3 WORKING
+      const updateFiles = await Embeddings.updateMany({},
+        {
+          $pull:
+          {
+            fileTags: req.query.removedTag
+          }
+
+        })
 
       console.log('updateOrganization')
 
