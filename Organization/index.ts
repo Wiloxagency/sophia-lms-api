@@ -13,6 +13,10 @@ type EmbeddingType = {
   fileTags?: string[]
 }
 
+type UserType = {
+  repositoryTags: string[]
+}
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -514,8 +518,9 @@ const httpTrigger: AzureFunction = async function (
     try {
       const Organizations = db.collection('organization')
       const Embeddings = db.collection<EmbeddingType>('embedding')
+      const Users = db.collection<UserType>('user')
 
-      // // ⚠️ STEP 1 WORKING
+      // // STEP 1: DELETE TAG FROM REPOSITORY
       const updateOrganization = await Organizations.updateOne(
         { organizationCode: req.params.organizationCode },
         {
@@ -526,7 +531,7 @@ const httpTrigger: AzureFunction = async function (
         }
       )
 
-      // ⚠️ STEP 2
+      // STEP 2: DELETE TAG FROM FOLDERS
       const removeTagFromFolder = await Organizations.updateOne(
         { organizationCode: req.params.organizationCode },
         {
@@ -539,7 +544,7 @@ const httpTrigger: AzureFunction = async function (
 
       console.log(removeTagFromFolder)
 
-      // // ⚠️ STEP 3 WORKING
+      // STEP 3: DELETE TAG FROM FILES
       const updateFiles = await Embeddings.updateMany({},
         {
           $pull:
@@ -547,6 +552,15 @@ const httpTrigger: AzureFunction = async function (
             fileTags: req.query.removedTag
           }
 
+        })
+
+      // STEP 4: DELETE TAG FROM USERS
+      const updateUsers = await Users.updateMany(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull: {
+            repositoryTags: req.query.removedTag
+          }
         })
 
       console.log('updateOrganization')
