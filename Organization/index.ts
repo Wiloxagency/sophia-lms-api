@@ -510,6 +510,67 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
+  async function DeleteOrganizationTag() {
+    try {
+      const Organizations = db.collection('organization')
+      const Embeddings = db.collection<EmbeddingType>('embedding')
+
+      // // ⚠️ STEP 1 WORKING
+      // const updateOrganization = await Organizations.updateOne(
+      //   { organizationCode: req.params.organizationCode },
+      //   {
+      //     $pull:
+      //     {
+      //       "repository.repositoryTags": { tagName: req.query.removedTag }
+      //     }
+      //   }
+      // )
+
+      // ⚠️ STEP 2
+      const removeTagFromFolder = await Organizations.updateOne(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull:
+          {
+            "repository.repositoryFolders.$.folderTags": req.query.removedTag
+          }
+
+        }
+      )
+
+      // // ⚠️ STEP 3 WORKING
+      // const updateFiles = await Embeddings.updateMany({},
+      //   {
+      //     $pull:
+      //     {
+      //       fileTags: req.query.removedTag
+      //     }
+
+      //   })
+
+      console.log('updateOrganization')
+
+      context.res = {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": { response: 'Executed' }
+      }
+    } catch (error) {
+      await saveLog(`Error deleting organization tag, error: ${error.message} `, "Error", "DeleteOrganizationTag()", "organization")
+      context.res = {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "message": "Error deleting organization tag"
+        }
+      }
+    }
+  }
+
   switch (req.method) {
     case "POST":
       if (req.query.postOrganizationFolder) {
@@ -526,6 +587,9 @@ const httpTrigger: AzureFunction = async function (
     case "PUT":
       if (req.query.updateOrganizationFolder) {
         await UpdateOrganizationFolder()
+        break;
+      } else if (req.query.deleteOrganizationTag) {
+        await DeleteOrganizationTag()
         break;
       } else {
         await updateOrganization(req.params.organizationCode);
