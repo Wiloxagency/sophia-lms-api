@@ -2,15 +2,26 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 
-const database = createConnection();
+const database = createConnection()
+
+type EmbeddingType = {
+  filename: string
+  content: string
+  code: string
+  folderCode: string
+  organizationCode: string
+  fileTags?: string[]
+}
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const db = await database;
+
   const createOrganization = async () => {
     try {
-      const db = await database;
       const Organizations = db.collection("organization");
       const organization = req.body;
       organization.creationDate = new Date();
@@ -58,7 +69,6 @@ const httpTrigger: AzureFunction = async function (
 
   const deleteOrganization = async (organizationCode: string) => {
     try {
-      const db = await database;
       const usersInOrganization = db.collection("user");
       const coursesInOrganization = db.collection("course");
 
@@ -114,7 +124,6 @@ const httpTrigger: AzureFunction = async function (
     delete req.body._id;
 
     try {
-      const db = await database;
       const Organizations = db.collection("organization");
 
       const resp = Organizations.findOneAndUpdate(
@@ -171,7 +180,6 @@ const httpTrigger: AzureFunction = async function (
 
   const getOrganization = async (organizationCode: string) => {
     try {
-      const db = await database;
       const Organizations = db.collection("organization");
 
       const resp = Organizations.aggregate([
@@ -232,7 +240,6 @@ const httpTrigger: AzureFunction = async function (
 
   const getOrganizations = async () => {
     try {
-      const db = await database;
 
       const Organizations = db.collection("organization");
 
@@ -278,7 +285,6 @@ const httpTrigger: AzureFunction = async function (
     delete req.body._id;
 
     try {
-      const db = await database;
       const Organizations = db.collection("organization");
 
       console.log(req.body)
@@ -341,7 +347,6 @@ const httpTrigger: AzureFunction = async function (
   const deleteOrganizationFolder = async () => {
     delete req.body._id;
     try {
-      const db = await database;
       const Organizations = db.collection("organization");
       const resp = Organizations.updateOne(
         { organizationCode: req.params.organizationCode },
@@ -399,6 +404,112 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
+  const UpdateOrganizationFolder = async () => {
+
+    try {
+      const Embeddings = db.collection<EmbeddingType>('embedding')
+      const Organizations = db.collection('organization')
+
+      if (req.query.addedTag != '') {
+        // ADD TAG TO FOLDER AND TO ALL FOLDER FILES
+        const folderTagsPath = `repository.repositoryFolders.$[element].folderTags`
+        const addTagToFolder = await Organizations.updateOne(
+          { organizationCode: req.params.organizationCode },
+          {
+            $push:
+            {
+              [folderTagsPath]: req.query.addedTag
+            }
+          },
+          {
+            arrayFilters: [
+              {
+                "element.folderCode": req.query.folderCode
+              }
+            ]
+          }
+        )
+        const addTagToFolderFiles = await Embeddings.updateMany(
+          { 'folderCode': req.query.folderCode },
+          {
+            $push:
+            {
+              fileTags: req.query.addedTag
+            }
+          }
+        )
+      } else if (req.query.removedTag != '') {
+        // REMOVE TAG FROM FOLDER AND ALL FOLDER FILES
+        const folderTagsPath = `repository.repositoryFolders.$[element].folderTags`
+
+        const removeTagFromFolder = await Organizations.updateOne(
+          { organizationCode: req.params.organizationCode },
+          {
+            $pull:
+            {
+              [folderTagsPath]: req.query.removedTag
+            }
+          },
+          {
+            arrayFilters: [
+              {
+                "element.folderCode": req.query.folderCode
+              }
+            ]
+          }
+        )
+
+        const removeTagFromFolderFiles = await Embeddings.updateMany(
+          { 'folderCode': req.query.folderCode },
+          {
+            $pull:
+            {
+              fileTags: req.query.removedTag
+            }
+          }
+        )
+      } else {
+        // UPDATE FOLDER NAME
+        const folderNamePath = `repository.repositoryFolders.$[element].folderName`
+        const removeTagFromFolder = await Organizations.updateOne(
+          { organizationCode: req.params.organizationCode },
+          {
+            $set:
+            {
+              [folderNamePath]: req.body.folderName
+            }
+          },
+          {
+            arrayFilters: [
+              {
+                "element.folderCode": req.query.folderCode
+              }
+            ]
+          }
+        )
+      }
+
+      context.res = {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": { response: 'Executed' }
+      }
+    } catch (error) {
+      await saveLog(`Error updating embedding document, error: ${error.message} `, "Error", "UpdateEmbeddingDocument()", "embeddings")
+      context.res = {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "message": "Error updating embedding document"
+        }
+      }
+    }
+  }
+
   switch (req.method) {
     case "POST":
       if (req.query.postOrganizationFolder) {
@@ -413,7 +524,13 @@ const httpTrigger: AzureFunction = async function (
       }
       break;
     case "PUT":
-      await updateOrganization(req.params.organizationCode);
+      if (req.query.updateOrganizationFolder) {
+        await UpdateOrganizationFolder()
+        break;
+      } else {
+        await updateOrganization(req.params.organizationCode);
+        break;
+      }
       break;
     case "GET":
       if (req.params.organizationCode) {
