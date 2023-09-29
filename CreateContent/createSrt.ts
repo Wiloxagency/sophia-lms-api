@@ -22,6 +22,7 @@ export async function createSrt(audioUrl: string, textForSubtitles: string, cour
     .replace(/(\s*)\)/g, '}')
     .replace(/\((\s*)/g, '[')
     .replace(/(\s*)\)/g, ']')
+    .replace(/[\r\n]/gm, ' ')
 
     try {
         return await axios.post(urlSrt,{audio_url: audioUrl, text_for_subtitles: textForSubtitles}, configSrt).then(async result => { return result.data })
