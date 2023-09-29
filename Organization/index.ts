@@ -436,7 +436,7 @@ const httpTrigger: AzureFunction = async function (
         const addTagToFolderFiles = await Embeddings.updateMany(
           { 'folderCode': req.query.folderCode },
           {
-            $push:
+            $addToSet:
             {
               fileTags: req.query.addedTag
             }
@@ -542,8 +542,6 @@ const httpTrigger: AzureFunction = async function (
         }
       )
 
-      console.log(removeTagFromFolder)
-
       // STEP 3: DELETE TAG FROM FILES
       const updateFiles = await Embeddings.updateMany({},
         {
@@ -562,8 +560,6 @@ const httpTrigger: AzureFunction = async function (
             repositoryTags: req.query.removedTag
           }
         })
-
-      console.log('updateOrganization')
 
       context.res = {
         "status": 200,
