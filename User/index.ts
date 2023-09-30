@@ -290,7 +290,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     company: req.query.company,
                     position: student.Cargo,
                     password: student.Email,
-                    language: req.query.language
+                    language: req.query.language,
+                    organizationCode: req.query.organizationCode,
                 }
             })
             // console.log(addedFields)
