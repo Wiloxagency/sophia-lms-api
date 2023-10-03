@@ -1,6 +1,8 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { saveLog } from "../shared/saveLog"
 import { createConnection } from "../shared/mongo"
+import parseMultipartFormData from "@anzp/azure-function-multipart"
+import { BlobServiceClient } from "@azure/storage-blob"
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -84,6 +86,42 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    async function UploadFileToAzure() {
+        try {
+            const { fields, files } = await parseMultipartFormData(req)
+            const responseMessage = {
+                fields,
+                files,
+            }
+            const output = responseMessage.files[0].bufferFile as Buffer
+            // TODO: CREATE AN ENVIRONMENT VARIABLE FOR THIS 👇🏻
+            const blobServiceClient = BlobServiceClient.fromConnectionString("DefaultEndpointsProtocol=https;AccountName=sophiaembeddingsstr;AccountKey=7kSlA9gEyraVjGGIhKoLPaJQj2ADnxsTJGwWTmek1eCdgOWt3Yx2BdZexY+9kw8RfVKKz+3rdvcr+AStgH/7LA==;EndpointSuffix=core.windows.net")
+            const containerClient = blobServiceClient.getContainerClient("documents")
+            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
+            await blockBlobClient.upload(output, output.length)
+
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": { "url": blockBlobClient.url }
+            }
+        } catch (error) {
+            await saveLog(`Error uploading file, error: ${error.message} `, "Error", "AzureFunction()", "ElementFile")
+
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error uploading file"
+                }
+            }
+        }
+    }
+
     const UpdateEmbeddingDocument = async () => {
         try {
             const Embeddings = db.collection('embedding')
@@ -142,6 +180,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         case "POST":
+            if (req.query.uploadFileToBlobContainer) {
+                await UploadFileToAzure()
+                break;
+            }
             await CreateEmbeddingDocument()
             break;
 
