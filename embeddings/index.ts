@@ -98,7 +98,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const blobServiceClient = BlobServiceClient.fromConnectionString("DefaultEndpointsProtocol=https;AccountName=sophiaembeddingsstr;AccountKey=7kSlA9gEyraVjGGIhKoLPaJQj2ADnxsTJGwWTmek1eCdgOWt3Yx2BdZexY+9kw8RfVKKz+3rdvcr+AStgH/7LA==;EndpointSuffix=core.windows.net")
             const containerClient = blobServiceClient.getContainerClient("documents")
             const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
+
+            const metadata = {
+                converted: 'false',
+                embeddings_added: 'false'
+            }
+
             await blockBlobClient.upload(output, output.length)
+            await blockBlobClient.setMetadata(metadata)
 
             context.res = {
                 "status": 201,
@@ -108,7 +115,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "body": { "url": blockBlobClient.url }
             }
         } catch (error) {
-            await saveLog(`Error uploading file, error: ${error.message} `, "Error", "AzureFunction()", "ElementFile")
+            await saveLog(`Error uploading file, error: ${error.message} `, "Error", "UploadFileToAzure()", "Embeddings")
 
             context.res = {
                 "status": 500,
