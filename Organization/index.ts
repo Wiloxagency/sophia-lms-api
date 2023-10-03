@@ -13,6 +13,10 @@ type EmbeddingType = {
   fileTags?: string[]
 }
 
+type UserType = {
+  repositoryTags: string[]
+}
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -432,7 +436,7 @@ const httpTrigger: AzureFunction = async function (
         const addTagToFolderFiles = await Embeddings.updateMany(
           { 'folderCode': req.query.folderCode },
           {
-            $push:
+            $addToSet:
             {
               fileTags: req.query.addedTag
             }
@@ -514,41 +518,48 @@ const httpTrigger: AzureFunction = async function (
     try {
       const Organizations = db.collection('organization')
       const Embeddings = db.collection<EmbeddingType>('embedding')
+      const Users = db.collection<UserType>('user')
 
-      // // ⚠️ STEP 1 WORKING
-      // const updateOrganization = await Organizations.updateOne(
-      //   { organizationCode: req.params.organizationCode },
-      //   {
-      //     $pull:
-      //     {
-      //       "repository.repositoryTags": { tagName: req.query.removedTag }
-      //     }
-      //   }
-      // )
+      // // STEP 1: DELETE TAG FROM REPOSITORY
+      const updateOrganization = await Organizations.updateOne(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull:
+          {
+            "repository.repositoryTags": { tagName: req.query.removedTag }
+          }
+        }
+      )
 
-      // ⚠️ STEP 2
+      // STEP 2: DELETE TAG FROM FOLDERS
       const removeTagFromFolder = await Organizations.updateOne(
         { organizationCode: req.params.organizationCode },
         {
           $pull:
           {
-            "repository.repositoryFolders.$.folderTags": req.query.removedTag
+            "repository.repositoryFolders.$[].folderTags": req.query.removedTag
           }
-
         }
       )
 
-      // // ⚠️ STEP 3 WORKING
-      // const updateFiles = await Embeddings.updateMany({},
-      //   {
-      //     $pull:
-      //     {
-      //       fileTags: req.query.removedTag
-      //     }
+      // STEP 3: DELETE TAG FROM FILES
+      const updateFiles = await Embeddings.updateMany({},
+        {
+          $pull:
+          {
+            fileTags: req.query.removedTag
+          }
 
-      //   })
+        })
 
-      console.log('updateOrganization')
+      // STEP 4: DELETE TAG FROM USERS
+      const updateUsers = await Users.updateMany(
+        { organizationCode: req.params.organizationCode },
+        {
+          $pull: {
+            repositoryTags: req.query.removedTag
+          }
+        })
 
       context.res = {
         "status": 200,
