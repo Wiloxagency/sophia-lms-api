@@ -176,6 +176,32 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    async function DeleteEmbedding() {
+        try {
+            const Embeddings = db.collection('embedding')
+            const deleteEmbedding = await Embeddings.deleteOne({ code: req.query.fileCode })
+            context.res = {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: { response: deleteEmbedding }
+            }
+        } catch (error) {
+            await saveLog(`Error deleting embedding document, error: ${error.message} `, "Error", "DeleteEmbedding()", "embeddings")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error updating embedding document"
+                }
+            }
+        }
+
+    }
+
     switch (req.method) {
         case "GET":
             if (req.query.folderCode) {
@@ -198,6 +224,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             await UpdateEmbeddingDocument()
             break;
 
+        case "DELETE":
+            await DeleteEmbedding()
+            break;
 
         default:
             break;
