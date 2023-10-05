@@ -474,9 +474,19 @@ function startPresentation() {
       // console.info("keyPhrase-->", keyPhrase.toLowerCase())
       // console.info("Position of --> ", keyPhrase, phrasePosition)
       if (phrasePosition >= 0) {
+        let startAtMSecond = phrasePosition * wordDuration
+        let srt = elementLesson.paragraphs[slideIndex].srt
+        if (srt && srt.length > 0 ){
+          const wordsAtTheLeft = text.substring(0, phrasePosition).trim().split(" ").length
+          if (wordsAtTheLeft) {
+            startAtMSecond = srt[wordsAtTheLeft].start_time * 1000
+          }
+          
+          
+        }
         setTimeout(() => {
-          nextKinetic(keyIndex)
-        }, phrasePosition * wordDuration);
+          this.nextKinetic(keyIndex)
+        }, startAtMSecond);
       }
 
 
