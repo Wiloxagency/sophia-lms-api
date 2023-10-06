@@ -8,16 +8,26 @@ const database = createConnection()
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     const db = await database
 
-    const GetEmbeddings = async () => {
+    const GetEmbeddingsByUserTags = async () => {
         try {
             const Embeddings = db.collection('embedding')
-            const allEmbeddings = await Embeddings.find({}).toArray()
+            let allEmbeddings
+            let filteredEmbeddings
+            if (req.body.userTags == undefined) {
+                allEmbeddings = await Embeddings.find({}).toArray()
+                // console.log('allEmbeddings: ', allEmbeddings.length)
+            } else {
+                filteredEmbeddings = await Embeddings.find(
+                    { fileTags: 'Cursos' }
+                ).toArray()
+                // console.log('filteredEmbeddings: ', filteredEmbeddings.length)
+            }
             context.res = {
                 "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": allEmbeddings
+                "body": req.body.userTags == undefined ? allEmbeddings : filteredEmbeddings
             }
         } catch (error) {
             await saveLog(`Error getting files, error: ${error.message} `, "Error", "GetEmbeddings()", "embeddings")
@@ -182,16 +192,19 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 await GetFolderFiles()
                 break;
             } else {
-                await GetEmbeddings()
-                break;
+                // await GetEmbeddings()
+                // break;
             }
 
         case "POST":
             if (req.query.uploadFileToBlobContainer) {
                 await UploadFileToAzure()
                 break;
-            }
-            await CreateEmbeddingDocument()
+            } else if (req.query.userTags) {
+                await GetEmbeddingsByUserTags()
+                break;
+            } else
+                await CreateEmbeddingDocument()
             break;
 
         case "PUT":
