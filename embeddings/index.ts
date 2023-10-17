@@ -13,14 +13,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const Embeddings = db.collection('embedding')
             let allEmbeddings
             let filteredEmbeddings
+            // IF userTags DOESN'T EXIST, IT MEANS THE USER IS A SUPERADMIN.
+            // THEREFORE, IT SHOULD RETURN ALL DOCUMENTS
             if (req.body.userTags == undefined) {
                 allEmbeddings = await Embeddings.find({}).toArray()
-                // console.log('allEmbeddings: ', allEmbeddings.length)
             } else {
                 filteredEmbeddings = await Embeddings.find(
-                    { fileTags: 'Cursos' }
+                    { fileTags: { $in: req.body.userTags } }
                 ).toArray()
-                // console.log('filteredEmbeddings: ', filteredEmbeddings.length)
             }
             context.res = {
                 "status": 200,
