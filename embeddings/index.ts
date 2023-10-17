@@ -8,16 +8,26 @@ const database = createConnection()
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     const db = await database
 
-    const GetEmbeddings = async () => {
+    const GetEmbeddingsByUserTags = async () => {
         try {
             const Embeddings = db.collection('embedding')
-            const allEmbeddings = await Embeddings.find({}).toArray()
+            let allEmbeddings
+            let filteredEmbeddings
+            // IF userTags DOESN'T EXIST, IT MEANS THE USER IS A SUPERADMIN.
+            // THEREFORE, IT SHOULD RETURN ALL DOCUMENTS
+            if (req.body.userTags == undefined) {
+                allEmbeddings = await Embeddings.find({}).toArray()
+            } else {
+                filteredEmbeddings = await Embeddings.find(
+                    { fileTags: { $in: req.body.userTags } }
+                ).toArray()
+            }
             context.res = {
                 "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": allEmbeddings
+                "body": req.body.userTags == undefined ? allEmbeddings : filteredEmbeddings
             }
         } catch (error) {
             await saveLog(`Error getting files, error: ${error.message} `, "Error", "GetEmbeddings()", "embeddings")
@@ -176,28 +186,60 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    async function DeleteEmbedding() {
+        try {
+            const Embeddings = db.collection('embedding')
+            const deleteEmbedding = await Embeddings.deleteOne({ code: req.query.fileCode })
+            context.res = {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: { response: deleteEmbedding }
+            }
+        } catch (error) {
+            await saveLog(`Error deleting embedding document, error: ${error.message} `, "Error", "DeleteEmbedding()", "embeddings")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error updating embedding document"
+                }
+            }
+        }
+
+    }
+
     switch (req.method) {
         case "GET":
             if (req.query.folderCode) {
                 await GetFolderFiles()
                 break;
             } else {
-                await GetEmbeddings()
-                break;
+                // await GetEmbeddings()
+                // break;
             }
 
         case "POST":
             if (req.query.uploadFileToBlobContainer) {
                 await UploadFileToAzure()
                 break;
-            }
-            await CreateEmbeddingDocument()
+            } else if (req.query.userTags) {
+                await GetEmbeddingsByUserTags()
+                break;
+            } else
+                await CreateEmbeddingDocument()
             break;
 
         case "PUT":
             await UpdateEmbeddingDocument()
             break;
 
+        case "DELETE":
+            await DeleteEmbedding()
+            break;
 
         default:
             break;

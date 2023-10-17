@@ -8,14 +8,14 @@ const database = createConnection()
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
   try {
-    console.log(req.body)
+    // console.log(req.body)
     const db = await database
     var { email, password } = req.body
     const regex = new RegExp(req.body.email)
     const Users = db.collection('user')
     const resp = Users.findOne({ email: { '$regex': new RegExp(regex, 'i') } })
     const body = await resp
-    console.info("body -->", body)
+    // console.info("body -->", body)
     if (body) {
       const savedPassword = body.password
       const found = bcrypt.compareSync(password, savedPassword)
