@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
+    "watch": "tsup --watch",
     "prestart": "npm run build",
     "start": "func start",
     "dev": "concurrently -n \"watch,func\" -c \"auto\" -k \"npm:watch\" \"func start\""
