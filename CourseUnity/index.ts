@@ -244,6 +244,7 @@ const httpTrigger: AzureFunction = async function (
       const body = await resp.toArray();
 
       const sections = body[0]['sections'] 
+      // const section_content = sections[section_number]
 
       if (body && body[0]) {
         if (sections.length - 1 < section_number || section_number < 0) {
@@ -271,7 +272,8 @@ const httpTrigger: AzureFunction = async function (
             headers: {
               "Content-Type": "application/json",
             },
-            body: body[0]['sections'][section_number],
+            body: body[0]['sections'][section_number]
+              .elements[0].elementLesson.paragraphs[0],
           };
         } else {
           context.res = {
