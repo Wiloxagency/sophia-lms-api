@@ -16,9 +16,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
-  const helloWorld = async () => {
-  }
-
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -273,7 +270,7 @@ const httpTrigger: AzureFunction = async function (
               "Content-Type": "application/json",
             },
             body: body[0]['sections'][section_number]
-              .elements[0].elementLesson.paragraphs[0],
+              .elements[0].elementLesson.paragraphs,
           };
         } else {
           context.res = {
