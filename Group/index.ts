@@ -373,7 +373,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 {
                     $pull: {
                         users: {
-                            code: req.query.userCode
+                            userCode: req.query.userCode
                         }
                     }
                 }
@@ -392,24 +392,25 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
-    const getUsersNamesAndEmails = async (courseCode: string) => {
+    const getUsersNamesAndEmails = async () => {
         try {
             db = await database
             const Users = db.collection('user')
+            let usersData = []
 
-            console.log(req.body)
+            for await (let user of req.body) {
+                let fetchedUser = await Users.findOne({ code: user })
+                // console.log(fetchedUser)
+                usersData.push({ name: fetchedUser.name, email: fetchedUser.email })
+            }
 
-            return
-            const resp = Users.find({ courseCode: courseCode }).sort({ _id: -1 })
-            const body = await resp.toArray()
-
-            if (body) {
+            if (usersData) {
                 context.res = {
                     "status": 200,
                     "headers": {
                         "Content-Type": "application/json"
                     },
-                    "body": body
+                    "body": usersData
                 }
 
             } else {
@@ -443,7 +444,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     switch (req.method) {
         case "POST":
             if (req.query.getUsersNamesAndEmails) {
-                await getUsersNamesAndEmails(req.query.courseCode)
+                await getUsersNamesAndEmails()
                 break;
             } else {
                 await createGroup()
