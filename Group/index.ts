@@ -176,8 +176,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             for (let user of req.body.users) {
                 // console.log(userCode)
-                const fetchedUser = await Users.findOne({ code: user.code })
-                // console.log(fetchedUser)
+                const fetchedUser = await Users.findOne({ code: user.userCode })
+                console.log(fetchedUser)
 
                 // 👇🏼 IF USER ALREADY HAS GROUPS
                 if (fetchedUser.groups && fetchedUser.groups.length > 0) {
@@ -188,7 +188,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     if (isGroupAlreadyIncluded) {
                         const updateUserGroup = await Users.updateOne(
                             {
-                                code: user.code,
+                                code: user.userCode,
                                 "groups.groupCode": groupCode
                             },
                             {
@@ -201,7 +201,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     } else {
                         const pushUserGroup = await Users.updateOne(
                             {
-                                code: user.code
+                                code: user.userCode
                             },
                             {
                                 $push: {
@@ -212,7 +212,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
 
                 } else {
-                    const updateUser = await Users.updateOne({ code: user.code }, {
+                    const updateUser = await Users.updateOne({ code: user.userCode }, {
                         $set: {
                             groups: [groupPayload]
                         }
@@ -373,7 +373,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 {
                     $pull: {
                         users: {
-                            code: req.query.userCode
+                            userCode: req.query.userCode
                         }
                     }
                 }
@@ -392,10 +392,64 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    const getUsersNamesAndEmails = async () => {
+        try {
+            db = await database
+            const Users = db.collection('user')
+            let usersData = []
+
+            for await (let user of req.body) {
+                let fetchedUser = await Users.findOne({ code: user })
+                // console.log(fetchedUser)
+                usersData.push({ name: fetchedUser.name, email: fetchedUser.email })
+            }
+
+            if (usersData) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": usersData
+                }
+
+            } else {
+                await saveLog("Error getting user data ", "Error", "getUsersNamesAndEmails()", "Group/")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error getting user data"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+            await saveLog("Error getting user data ", "Error", "getUsersNamesAndEmails()", "Group/")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error in CourseGroups method"
+                }
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
-            await createGroup()
-            break;
+            if (req.query.getUsersNamesAndEmails) {
+                await getUsersNamesAndEmails()
+                break;
+            } else {
+                await createGroup()
+                break;
+            }
 
         case "PUT":
             await updateGroup(req.params.groupCode)
