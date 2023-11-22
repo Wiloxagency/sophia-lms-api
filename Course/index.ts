@@ -527,7 +527,7 @@ const httpTrigger: AzureFunction = async function (
             "Courses":
               [
                 { $skip: parseInt(req.query.skip) || 0 },
-                { $limit: 20 },
+                { $limit: parseInt(req.query.items_by_page) || 20 },
               ],
             "Count":
               [
