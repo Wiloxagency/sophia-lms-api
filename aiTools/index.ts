@@ -9,10 +9,6 @@ import { createAudioWithoutCourse, getAccessToken } from "../CreateContent/creat
 import fs from "fs"
 const axios = require('axios');
 
-// import sdk from "microsoft-cognitiveservices-speech-sdk"
-
-const sdk = require("microsoft-cognitiveservices-speech-sdk");
-
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 

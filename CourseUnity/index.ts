@@ -942,7 +942,6 @@ const httpTrigger: AzureFunction = async function (
       if (req.query.uploadCourseCover == "true") {
         await uploadCourseCover(req);
       } else {
-        //await updateCourse(req.params.courseCode);
         await updateCourse(req.params.courseCode);
         break;
       }
