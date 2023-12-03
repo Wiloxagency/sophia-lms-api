@@ -72,7 +72,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         sectionIndex: number,
         elementIndex: number,
         slideIndex: number,
-        externalUrlImage: string) => {
+        thumbnailUrl: string,
+        externalUrlImage: string
+    ) => {
 
         try {
 
@@ -87,19 +89,28 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const blobName = uuidv4() + ".jpeg"
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
             await blockBlobClient.upload(output, output.length);
-            const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
+            const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData`
 
             const resp = Courses.findOneAndUpdate({ code: courseCode }, {
                 $set: {
-                    [imageField]: blockBlobClient.url
+                    [imageField]: {
+                        thumb: {
+                            url: thumbnailUrl,
+                            width: -1,
+                            height: -1,
+                        },
+                        finalImage: {
+                            url: blockBlobClient.url,
+                            width: -1,
+                            height: -1,
+                        },
+                    }
                 }
             })
 
-            let videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
+            let videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData`
             const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
-                $set: {
-                    [videoUrlField]: ''
-                }
+                $unset: { [videoUrlField]: '' }
             })
 
             context.res = {
@@ -235,7 +246,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 req.body.sectionIndex,
                 req.body.elementIndex,
                 req.body.slideIndex,
-                req.body.externalUrlImage)
+                req.body.thumbnailUrl,
+                req.body.externalUrlImage
+            )
             break;
 
         case "GET":
