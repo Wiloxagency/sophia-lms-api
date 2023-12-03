@@ -7,6 +7,8 @@ const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
+  console.log(req.headers)
+
   try {
     // console.log(req.body)
     const db = await database

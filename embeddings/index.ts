@@ -9,25 +9,51 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const db = await database
 
     const GetEmbeddingsByUserTags = async () => {
+        console.log(req.body)
         try {
+            if (req.body.organizationCode == '') {
+                console.log('CLAUSE FOR DEBUGGING PURPOSES')
+                return
+            }
             const Embeddings = db.collection('embedding')
             let allEmbeddings
             let filteredEmbeddings
-            // IF userTags DOESN'T EXIST, IT MEANS THE USER IS A SUPERADMIN.
-            // THEREFORE, IT SHOULD RETURN ALL DOCUMENTS
-            if (req.body.userTags == undefined) {
-                allEmbeddings = await Embeddings.find({}).toArray()
+
+            if (req.body.userRole == 'Superadmin') {
+                allEmbeddings = await Embeddings
+                    .find(
+                        {
+                            organizationCode: req.body.organizationCode
+                        }
+                    ).toArray()
+
+                console.log(allEmbeddings)
+
             } else {
-                filteredEmbeddings = await Embeddings.find(
-                    { fileTags: { $in: req.body.userTags } }
-                ).toArray()
+                if (req.body.userTags == undefined) {
+                    context.res = {
+                        "status": 200,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": { "response": 'User has no tags assigned.' }
+                    }
+                    return
+                }
+                filteredEmbeddings = await Embeddings
+                    .find(
+                        {
+                            organizationCode: req.body.organizationCode,
+                            fileTags: { $in: req.body.userTags }
+                        }
+                    ).toArray()
             }
             context.res = {
                 "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": req.body.userTags == undefined ? allEmbeddings : filteredEmbeddings
+                "body": req.body.userRole == 'Superadmin' ? allEmbeddings : filteredEmbeddings
             }
         } catch (error) {
             await saveLog(`Error getting files, error: ${error.message} `, "Error", "GetEmbeddings()", "embeddings")
@@ -226,7 +252,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             if (req.query.uploadFileToBlobContainer) {
                 await UploadFileToAzure()
                 break;
-            } else if (req.query.userTags) {
+            } else if (req.query.GetEmbeddings) {
                 await GetEmbeddingsByUserTags()
                 break;
             } else

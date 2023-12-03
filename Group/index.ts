@@ -2,12 +2,14 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { Db } from "mongodb";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import parseMultipartFormData from "@anzp/azure-function-multipart";
+import { BlobServiceClient } from "@azure/storage-blob";
+
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 
 const database = createConnection()
-var db: Db
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-
     // const getGroup = async () => {
     //     try {
     //         const db = await database
@@ -62,9 +64,56 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     //     }
     // }
 
+    const getGroup = async () => {
+        try {
+            const db = await database
+            const group = await db
+                .collection('group')
+                .findOne({ code: req.params.groupCode });
+
+            if (group) {
+                context.res = {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: group,
+                }
+            } else {
+                await saveLog(
+                    'Could not find course group',
+                    'Error',
+                    'getGroupName()',
+                    'Group/{groupCode?}'
+                );
+                context.res = {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: 'Could not find course group'
+                }
+            }
+        } catch (error) {
+            await saveLog(
+                `Unknown error when getting group name: ${error.message}`,
+                'Error',
+                'getGroupName()',
+                'Group/{groupCode?}'
+            );
+            context.res = {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: 'Unknown error when getting group name',
+            }
+        }
+    }
+
     const getCourseGroups = async (courseCode: string) => {
         try {
-            db = await database
+            const db = await database
             const Groups = db.collection('group')
             const resp = Groups.find({ courseCode: courseCode }).sort({ _id: -1 })
             const body = await resp.toArray()
@@ -174,53 +223,57 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 endDate: req.body.endDate,
             }
 
-            for (let user of req.body.users) {
-                // console.log(userCode)
-                const fetchedUser = await Users.findOne({ code: user.code })
-                // console.log(fetchedUser)
+            if (req.body.users != undefined) {
+                for (let user of req.body.users) {
+                    // console.log(userCode)
+                    const fetchedUser = await Users.findOne({ code: user.userCode })
+                    console.log(fetchedUser)
 
-                // 👇🏼 IF USER ALREADY HAS GROUPS
-                if (fetchedUser.groups && fetchedUser.groups.length > 0) {
-                    let isGroupAlreadyIncluded: boolean = false
-                    for (let group of fetchedUser.groups) {
-                        if (group.groupCode == groupCode) { isGroupAlreadyIncluded = true }
-                    }
-                    if (isGroupAlreadyIncluded) {
-                        const updateUserGroup = await Users.updateOne(
-                            {
-                                code: user.code,
-                                "groups.groupCode": groupCode
-                            },
-                            {
-                                $set: {
-                                    "groups.$.startDate": groupPayload.startDate,
-                                    "groups.$.endDate": groupPayload.endDate
-                                }
-                            })
-                        // console.log(updateUserGroup)
-                    } else {
-                        const pushUserGroup = await Users.updateOne(
-                            {
-                                code: user.code
-                            },
-                            {
-                                $push: {
-                                    "groups": groupPayload
-                                }
-                            })
-                        // console.log('Push new group: ', pushUserGroup)
-                    }
-
-                } else {
-                    const updateUser = await Users.updateOne({ code: user.code }, {
-                        $set: {
-                            groups: [groupPayload]
+                    // 👇🏼 IF USER ALREADY HAS GROUPS
+                    if (fetchedUser.groups && fetchedUser.groups.length > 0) {
+                        let isGroupAlreadyIncluded: boolean = false
+                        for (let group of fetchedUser.groups) {
+                            if (group.groupCode == groupCode) { isGroupAlreadyIncluded = true }
                         }
-                    })
-                    // console.log('Create group array: ', updateUser)
-                }
+                        if (isGroupAlreadyIncluded) {
+                            const updateUserGroup = await Users.updateOne(
+                                {
+                                    code: user.userCode,
+                                    "groups.groupCode": groupCode
+                                },
+                                {
+                                    $set: {
+                                        "groups.$.startDate": groupPayload.startDate,
+                                        "groups.$.endDate": groupPayload.endDate
+                                    }
+                                })
+                            // console.log(updateUserGroup)
+                        } else {
+                            const pushUserGroup = await Users.updateOne(
+                                {
+                                    code: user.userCode
+                                },
+                                {
+                                    $push: {
+                                        "groups": groupPayload
+                                    }
+                                })
+                            // console.log('Push new group: ', pushUserGroup)
+                        }
 
+                    } else {
+                        const updateUser = await Users.updateOne({ code: user.userCode }, {
+                            $set: {
+                                groups: [groupPayload]
+                            }
+                        })
+                        // console.log('Create group array: ', updateUser)
+                    }
+
+                }
             }
+
+
             // console.log(groupPayload)
 
             if (body) {
@@ -246,7 +299,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
         } catch (error) {
-            await saveLog("Error updating courseGroup by code: " + error.message, "Error", "createGroup()", "Group/{courseCode?}/{groupCode?}")
+            await saveLog("Error updating courseGroup by code: " + error.message, "Error", "updateGroup()", "Group/{courseCode?}/{groupCode?}")
             context.res = {
                 "status": 500,
                 "headers": {
@@ -373,7 +426,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 {
                     $pull: {
                         users: {
-                            code: req.query.userCode
+                            userCode: req.query.userCode
                         }
                     }
                 }
@@ -392,17 +445,185 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    const getUsersNamesAndEmails = async () => {
+        try {
+            const db = await database
+            const Users = db.collection('user')
+            let usersData = []
+
+            for await (let user of req.body) {
+                let fetchedUser = await Users.findOne({ code: user })
+                // console.log(fetchedUser)
+                usersData.push({ name: fetchedUser.name, email: fetchedUser.email })
+            }
+
+            if (usersData) {
+                context.res = {
+                    "status": 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": usersData
+                }
+
+            } else {
+                await saveLog("Error getting user data ", "Error", "getUsersNamesAndEmails()", "Group/")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error getting user data"
+                    }
+                }
+
+            }
+
+        } catch (error) {
+            await saveLog("Error getting user data ", "Error", "getUsersNamesAndEmails()", "Group/")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error in CourseGroups method"
+                }
+            }
+        }
+    }
+
+    async function postCertificateBackground() {
+        try {
+            const db = await database
+            const Organizations = db.collection("organization")
+
+            const { fields, files } = await parseMultipartFormData(req)
+            const responseMessage = {
+                fields,
+                files,
+            }
+            const organizationCode = responseMessage.fields[0].value
+
+            const output = responseMessage.files[0].bufferFile as Buffer
+            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+            const containerClient = blobServiceClient.getContainerClient("certificates")
+            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
+            await blockBlobClient.upload(output, output.length)
+
+            const updateOrganizationResponse = await Organizations.updateOne(
+                { organizationCode: organizationCode },
+                {
+                    $push: { "certificateBackgroundUrls": blockBlobClient.url }
+                }
+            );
+
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": { "url": blockBlobClient.url }
+            }
+        } catch (error) {
+            await saveLog(`Error posting certificate background/ Error: ${error.message}`, "Error", "postCertificateBackground()", "Group/")
+            context.res = {
+                "status": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Error in postCertificateBackground method"
+                }
+            }
+        }
+    }
+
+    const getGroupCertificate = async () => {
+        try {
+            const db = await database
+            const group = await db
+                .collection('group')
+                .findOne(
+                    { code: req.query.groupCode },
+                    {
+                        projection: {
+                            _id: 0,
+                            certificate: 1
+                        }
+                    }
+                );
+
+            if (group) {
+                context.res = {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: group,
+                }
+            } else {
+                await saveLog(
+                    'Could not find course certificate',
+                    'Error',
+                    'getGroupCertificate()',
+                    'Group/'
+                );
+                context.res = {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: 'Could not find course certificate'
+                }
+            }
+        } catch (error) {
+            await saveLog(
+                `Unknown error when getting group name: ${error.message}`,
+                'Error',
+                'getGroupName()',
+                'Group/{groupCode?}'
+            );
+            context.res = {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: 'Unknown error when getting group name',
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
-            await createGroup()
-            break;
+            if (req.query.getUsersNamesAndEmails) {
+                await getUsersNamesAndEmails()
+                break;
+            } else if (req.query.postCertificateBackground) {
+                await postCertificateBackground()
+                break;
+            } else {
+                await createGroup()
+                break;
+            }
 
         case "PUT":
             await updateGroup(req.params.groupCode)
             break;
 
         case "GET":
-            await getCourseGroups(req.query.courseCode)
+
+            if (req.query.getCertificate) {
+                await getGroupCertificate()
+                break;
+            } else if (req.params.groupCode) {
+                await getGroup()
+                break;
+            } else {
+                await getCourseGroups(req.query.courseCode)
+                break;
+            }
             break;
 
         case "DELETE":

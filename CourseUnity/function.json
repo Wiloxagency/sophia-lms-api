@@ -10,8 +10,8 @@
         "post",
         "put",
         "delete"
-      ], 
-      "route": "Language/{lang?}"
+      ],
+      "route": "CoursesUnity/{courseCode?}"
     },
     {
       "type": "http",
@@ -19,5 +19,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Language/index.js"
+  "scriptFile": "../dist/CourseUnity/index.js"
 }

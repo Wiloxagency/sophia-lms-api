@@ -16,6 +16,9 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
+  const helloWorld = async () => {
+  }
+
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -191,6 +194,23 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const getCourse = async (courseCode: string) => {
+    console.log("--------------------- here ---------------------")
+
+    console.log('query', req.headers)
+    var section_request = false
+    var section_number = 0;
+    if (req.headers.section) {
+      section_number = parseInt(req.headers.section)
+      section_request = true
+
+
+
+    }
+    // check if there is a "section" in req.header
+
+
+
+
     try {
       const db = await database;
       const Courses = db.collection("course");
@@ -223,14 +243,47 @@ const httpTrigger: AzureFunction = async function (
 
       const body = await resp.toArray();
 
+      const sections = body[0]['sections'] 
+      // const section_content = sections[section_number]
+
       if (body && body[0]) {
-        context.res = {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: body[0],
-        };
+        if (sections.length - 1 < section_number || section_number < 0) {
+          await saveLog(
+            `Error getting course by code: ${courseCode}`,
+            "Error",
+            "updateCourse()",
+            "Courses/{courseCode?}"
+          );
+          context.res = {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: {
+              message: "Error, section not found valid sections are 0 - " + (sections.length - 1),
+            },
+          };
+          return;
+        }
+
+        if (section_request) {
+          context.res = {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body[0]['sections'][section_number]
+              .elements[0].elementLesson.paragraphs[0],
+          };
+        } else {
+          context.res = {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body[0],
+          };
+        }
       } else {
         await saveLog(
           `Error getting course by code: ${courseCode}`,
@@ -261,7 +314,7 @@ const httpTrigger: AzureFunction = async function (
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error getting course by code",
+          message: "Error getting course by code hhh",
         },
       };
     }
@@ -527,7 +580,7 @@ const httpTrigger: AzureFunction = async function (
             "Courses":
               [
                 { $skip: parseInt(req.query.skip) || 0 },
-                { $limit: parseInt(req.query.items_by_page) || 20 },
+                { $limit: 20 },
               ],
             "Count":
               [
@@ -851,20 +904,23 @@ const httpTrigger: AzureFunction = async function (
 
     case "GET":
       if (req.params.courseCode) {
+        console.log('query', req.query)
         await getCourse(req.params.courseCode)
-      } else {
-        if (req.query.search) {
-          await getCoursesBySearch(req.query)
-        } else {
-          if (req.query.studentCode) {
-            await getStudentCourses()
-          } else if (req.query.authorCode) {
-            await getAuthorCourses()
-          } else if (req.query.organizationCode) {
-            await getOrganizationCourses()
-          }
-        }
       }
+      console.log("Hello there")
+      //else {
+      //   if (req.query.search) {
+      //     await getCoursesBySearch(req.query)
+      //   } else {
+      //     if (req.query.studentCode) {
+      //       await getStudentCourses()
+      //     } else if (req.query.authorCode) {
+      //       await getAuthorCourses()
+      //     } else if (req.query.organizationCode) {
+      //       await getOrganizationCourses()
+      //     }
+      //   }
+      // }
       break;
 
     default:
