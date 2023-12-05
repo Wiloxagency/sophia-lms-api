@@ -16,6 +16,9 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
+  const helloWorld = async () => {
+  }
+
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -138,22 +141,14 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Courses = db.collection("course");
 
-      var resp = null;
-      var body = null;
+      let elementPath = `sections.${req.query.indexSection}.elements`;
 
-      if (req.query.layoutType != null) {
-        let elementPath = `sections.${req.query.indexSection}.elements.0.elementLesson.paragraphs.${req.query.indexParagraph}.layoutType`;
+      // console.log(req.body)
+      // return
 
-        resp = Courses.updateOne({ code: courseCode }, { $set: { [elementPath]: req.query.layoutType } })
-        body = await resp;
-      } else {
-
-        resp = Courses.updateOne({ code: courseCode }, { $set: { "courseTheme": req.query.courseTheme, "colorTheme": req.query.colorTheme } })
-        body = await resp;
-      }
-
-      //const body = await resp;
-
+      const resp = Courses.updateOne({ code: courseCode }, { $push: req.body });
+      const body = await resp;
+      updateCourseDuration(courseCode)
       if (body) {
         context.res = {
           status: 201,
@@ -207,8 +202,13 @@ const httpTrigger: AzureFunction = async function (
     if (req.headers.section) {
       section_number = parseInt(req.headers.section)
       section_request = true
+
+
+
     }
     // check if there is a "section" in req.header
+
+
 
 
     try {
@@ -243,7 +243,7 @@ const httpTrigger: AzureFunction = async function (
 
       const body = await resp.toArray();
 
-      const sections = body[0]['sections']
+      const sections = body[0]['sections'] 
       // const section_content = sections[section_number]
 
       if (body && body[0]) {
@@ -273,7 +273,7 @@ const httpTrigger: AzureFunction = async function (
               "Content-Type": "application/json",
             },
             body: body[0]['sections'][section_number]
-              .elements[0].elementLesson.paragraphs,
+              .elements[0].elementLesson.paragraphs[0],
           };
         } else {
           context.res = {
@@ -433,7 +433,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: body[0] || { Courses: [], Count: 0 },
+          body: body[0]  || { Courses: [], Count: 0 },
         };
       } else {
         context.res = {
@@ -881,60 +881,12 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-
-  async function uploadCourseTypeLayoutParagraph(courseCode: any, section: number, parrafo: number, layout: string) {
-    const db = await database;
-    const Courses = db.collection("course")
-    let course = await Courses.findOne({ code: courseCode })
-    let allTextInsideCourse: string = ''
-    for (const section of course.sections) {
-      for (const element of section.elements) {
-        if (element.type == 'Lección Engine') {
-          for (const paragraph of element.elementLesson.paragraphs) {
-            allTextInsideCourse = allTextInsideCourse.concat(paragraph.audioScript)
-          }
-        }
-      }
-    }
-    let wordCount = allTextInsideCourse.trim().split(/\s+/).length
-    let courseTimeMinutes = Math.round(wordCount / 140)
-    console.log("Course time minutes: ", courseTimeMinutes)
-    if (courseTimeMinutes > 59) {
-      let formatMinutesToHours = (courseTimeMinutes: any) => `${courseTimeMinutes / 60 ^ 0}:` + courseTimeMinutes % 60
-      const formattedTime = formatMinutesToHours(courseTimeMinutes).toString() + ' h'
-      const update = Courses.findOneAndUpdate(
-        { code: courseCode },
-        {
-          $set: {
-            "duration": formattedTime
-          }
-        }
-      )
-      const updateResponse = await update
-      // console.log(updateResponse)
-    } else {
-      let formattedMinutes = Math.round(courseTimeMinutes).toString() + ' m'
-      const update = Courses.findOneAndUpdate(
-        { code: courseCode },
-        {
-          $set: {
-            "duration": formattedMinutes
-          }
-        }
-      )
-      const updateResponse = await update
-      // console.log(updateResponse)
-    }
-  }
-
   switch (req.method) {
     case "POST":
-
       if (req.query.postElement == "true") {
         await addCourseElement(req.params.courseCode);
       } else {
-        console.log("*** Create course ")
-        //await createCourse();
+        await createCourse();
       }
       break;
 

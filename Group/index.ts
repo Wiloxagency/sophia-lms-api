@@ -64,6 +64,53 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     //     }
     // }
 
+    const getGroup = async () => {
+        try {
+            const db = await database
+            const group = await db
+                .collection('group')
+                .findOne({ code: req.params.groupCode });
+
+            if (group) {
+                context.res = {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: group,
+                }
+            } else {
+                await saveLog(
+                    'Could not find course group',
+                    'Error',
+                    'getGroupName()',
+                    'Group/{groupCode?}'
+                );
+                context.res = {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: 'Could not find course group'
+                }
+            }
+        } catch (error) {
+            await saveLog(
+                `Unknown error when getting group name: ${error.message}`,
+                'Error',
+                'getGroupName()',
+                'Group/{groupCode?}'
+            );
+            context.res = {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: 'Unknown error when getting group name',
+            }
+        }
+    }
+
     const getCourseGroups = async (courseCode: string) => {
         try {
             const db = await database
@@ -493,6 +540,61 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    const getGroupCertificate = async () => {
+        try {
+            const db = await database
+            const group = await db
+                .collection('group')
+                .findOne(
+                    { code: req.query.groupCode },
+                    {
+                        projection: {
+                            _id: 0,
+                            certificate: 1
+                        }
+                    }
+                );
+
+            if (group) {
+                context.res = {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: group,
+                }
+            } else {
+                await saveLog(
+                    'Could not find course certificate',
+                    'Error',
+                    'getGroupCertificate()',
+                    'Group/'
+                );
+                context.res = {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: 'Could not find course certificate'
+                }
+            }
+        } catch (error) {
+            await saveLog(
+                `Unknown error when getting group name: ${error.message}`,
+                'Error',
+                'getGroupName()',
+                'Group/{groupCode?}'
+            );
+            context.res = {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: 'Unknown error when getting group name',
+            }
+        }
+    }
+
     switch (req.method) {
         case "POST":
             if (req.query.getUsersNamesAndEmails) {
@@ -511,7 +613,17 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
 
         case "GET":
-            await getCourseGroups(req.query.courseCode)
+
+            if (req.query.getCertificate) {
+                await getGroupCertificate()
+                break;
+            } else if (req.params.groupCode) {
+                await getGroup()
+                break;
+            } else {
+                await getCourseGroups(req.query.courseCode)
+                break;
+            }
             break;
 
         case "DELETE":
