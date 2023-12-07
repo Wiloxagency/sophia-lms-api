@@ -28,8 +28,8 @@ export const userAggregation = (byUserCode: any, byUserEmail: any) => [
     }, {
         '$lookup': {
             'from': 'organization',
-            'localField': 'company',
-            'foreignField': 'name',
+            'localField': 'organizationCode',
+            'foreignField': 'organizationCode',
             'as': 'organization'
         }
     }, {
