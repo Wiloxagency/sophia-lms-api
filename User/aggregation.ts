@@ -40,18 +40,20 @@ export const userAggregation = (byUserCode: any, byUserEmail: any) => [
         '$addFields': {
             'organizationTheme': '$organization.theme'
         }
-    }, {
-        '$lookup': {
-            'from': 'theme',
-            'localField': 'organizationTheme',
-            'foreignField': 'name',
-            'as': 'organizationTheme'
-        }
-    }, {
-        '$unwind': {
-            'path': '$organizationTheme'
-        }
-    }, {
+    }, 
+    // {
+    //     '$lookup': {
+    //         'from': 'theme',
+    //         'localField': 'organizationTheme',
+    //         'foreignField': 'name',
+    //         'as': 'organizationTheme'
+    //     }
+    // }, {
+    //     '$unwind': {
+    //         'path': '$organizationTheme'
+    //     }
+    // },
+     {
         '$lookup': {
             'from': 'membership',
             'localField': 'organization.membershipCode',
