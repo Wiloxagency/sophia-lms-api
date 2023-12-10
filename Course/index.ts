@@ -871,7 +871,7 @@ const httpTrigger: AzureFunction = async function (
       }
   
       if (req.query.organizationCode) {
-        console.info(req.query.organizationCode)
+        console.info("organizationCode", req.query.organizationCode)
         await getOrganizationCourses();
         break;
       }
