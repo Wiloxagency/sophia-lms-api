@@ -1,7 +1,7 @@
 npm uninstall sharp
 
 Azure
-npm install --platform=linux --arch=x64 sharp  
+npm install --platform=linux --arch=x64 sharp@0.32.6
 
 Local
 npm i sharp 
