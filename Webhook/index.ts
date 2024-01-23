@@ -9,17 +9,25 @@ const database = createConnection()
 
     const createWebhook = async () => {
 
-
         try {
             console.info("Receiving webhook")
-
             console.info("req.body", req.body)
-
             
-
             const decodedString = decodeURIComponent(req.body);
 
             console.info("decodedString", decodedString)
+
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Ayo wassup"
+                }
+            }
+
+            return
 
             const urlParams = new URLSearchParams(decodedString);
             const webhookData = {
