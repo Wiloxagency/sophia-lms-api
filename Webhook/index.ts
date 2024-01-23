@@ -14,6 +14,7 @@ const database = createConnection()
             console.info("req.body", req.body)
             
             const decodedString = decodeURIComponent(req.body);
+            const validationToken = req.query.validationToken
 
             console.info("decodedString", decodedString)
 
@@ -23,7 +24,7 @@ const database = createConnection()
                     "Content-Type": "application/json"
                 },
                 "body": {
-                    "message": "Ayo wassup"
+                    validationToken
                 }
             }
 
