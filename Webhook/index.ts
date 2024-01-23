@@ -17,6 +17,16 @@ const database = createConnection()
 
             console.info("decodedString", decodedString)
 
+            context.res = {
+                "status": 201,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "message": "Ayo wassup"
+                }
+            }
+
             return
 
             const urlParams = new URLSearchParams(decodedString);
