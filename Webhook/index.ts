@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail";
 
 const database = createConnection()
 
@@ -15,6 +16,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             const decodedString = decodeURIComponent(req.body);
             const validationToken = req.query.validationToken
+
+            sendScormUnderConstructionEmail(
+                "LeoLeto@proton.me",
+                "Leo",
+                JSON.stringify(req.body)
+            )
 
             console.info("decodedString", decodedString)
 
