@@ -5,7 +5,6 @@ import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmai
 
 const database = createConnection()
 
-
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createWebhook = async () => {
@@ -23,7 +22,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             sendScormUnderConstructionEmail(
                 "LeoLeto@proton.me",
                 "Leo",
-                JSON.stringify(req)
+                JSON.stringify(req.body)
             )
 
             context.res = {
@@ -97,8 +96,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-
-
     switch (req.method) {
         case "POST":
             await createWebhook()
@@ -108,8 +105,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             break;
     }
 
-
 }
 
 export default httpTrigger;
-
