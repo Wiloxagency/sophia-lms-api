@@ -11,19 +11,20 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const createWebhook = async () => {
 
         try {
-            console.info("Receiving webhook")
-            console.info("req.body", req.body)
+            // console.info("Receiving webhook")
+            // console.info("req.body", req)
+            // console.log(JSON.stringify(req))
+            // console.info("decodedString", decodedString)
+            // console.log(req.headers['x-microsoftspeechservices-event'])
 
-            const decodedString = decodeURIComponent(req.body);
+            const event = req.headers['x-microsoftspeechservices-event']
             const validationToken = req.query.validationToken
 
             sendScormUnderConstructionEmail(
                 "LeoLeto@proton.me",
                 "Leo",
-                JSON.stringify(req.body)
+                JSON.stringify(req)
             )
-
-            console.info("decodedString", decodedString)
 
             context.res = {
                 "status": 200,
@@ -31,11 +32,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "Content-Type": "application/json"
                 },
                 "body":
-                    validationToken
+                    event == 'Challenge' ? validationToken : event
             }
 
             return
 
+            const decodedString = decodeURIComponent(req.body);
             const urlParams = new URLSearchParams(decodedString);
             const webhookData = {
                 nombre: urlParams.get('Nombre'),
