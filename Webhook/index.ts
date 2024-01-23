@@ -5,27 +5,26 @@ import { saveLog } from "../shared/saveLog";
 const database = createConnection()
 
 
- const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createWebhook = async () => {
 
         try {
             console.info("Receiving webhook")
             console.info("req.body", req.body)
-            
+
             const decodedString = decodeURIComponent(req.body);
             const validationToken = req.query.validationToken
 
             console.info("decodedString", decodedString)
 
             context.res = {
-                "status": 201,
+                "status": 200,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": {
+                "body":
                     validationToken
-                }
             }
 
             return
@@ -89,7 +88,7 @@ const database = createConnection()
         }
     }
 
-    
+
 
     switch (req.method) {
         case "POST":
