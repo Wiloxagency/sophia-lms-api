@@ -131,19 +131,19 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
                 )
 
-                const debugResponse =
-                    JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
-                    + courseCode
-                    + indexSection
-                    + indexElement
-                    + indexParagraph
-                // console.log(JSON.stringify(response.data))
+                // const debugResponse =
+                //     JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
+                //     + courseCode
+                //     + indexSection
+                //     + indexElement
+                //     + indexParagraph
+                // // console.log(JSON.stringify(response.data))
 
-                sendScormUnderConstructionEmail(
-                    "LeoLeto@proton.me",
-                    "Leo",
-                    debugResponse
-                )
+                // sendScormUnderConstructionEmail(
+                //     "LeoLeto@proton.me",
+                //     "Leo",
+                //     debugResponse
+                // )
             })
             .catch((error) => {
                 console.log(error)
