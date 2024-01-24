@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { saveLog } from "../shared/saveLog"
 import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail"
+import { updateSlideAfterTranscriptionJob } from "../shared/azureSpeechToText"
 
 const axios = require('axios').default
 
@@ -120,20 +121,29 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         axios.request(config)
             .then((response) => {
 
-                const debugResponse =
+                updateSlideAfterTranscriptionJob(
+                    courseCode,
+                    indexSection,
+                    indexElement,
+                    indexParagraph,
+                    transcriptionContentUrl,
+                    'finished',
                     JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
-                    + courseCode
-                    + indexSection
-                    + indexElement
-                    + indexParagraph
-                // console.log(JSON.stringify(response.data))
-
-                sendScormUnderConstructionEmail(
-                    "LeoLeto@proton.me",
-                    "Leo",
-                    debugResponse
-                    // JSON.stringify(response.data)
                 )
+
+                // const debugResponse =
+                //     JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
+                //     + courseCode
+                //     + indexSection
+                //     + indexElement
+                //     + indexParagraph
+                // // console.log(JSON.stringify(response.data))
+
+                // sendScormUnderConstructionEmail(
+                //     "LeoLeto@proton.me",
+                //     "Leo",
+                //     debugResponse
+                // )
             })
             .catch((error) => {
                 console.log(error)

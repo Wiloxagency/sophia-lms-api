@@ -8,7 +8,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         0,
         0,
         0,
-        'https://sophiafiles.blob.core.windows.net/speeches/5a5472a3-ca10-4436-a342-9631d0fa65ed.mp3'
+        'https://sophiafiles.blob.core.windows.net/speeches/f9d41f17-665e-4989-b3a9-c616a0c46c5b.mp3',
+        'es-ES'
     )
 
 }

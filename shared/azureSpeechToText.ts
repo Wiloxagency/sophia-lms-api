@@ -7,22 +7,10 @@ export async function createTranscriptionJob(
     courseCode: string,
     indexSection: number,
     indexElement: number,
-    indexSlide: number,
-    audioUrl: string
+    indexParagraph: number,
+    audioUrl: string,
+    locale: string
 ) {
-
-    updateSlide(
-        courseCode,
-        indexSection,
-        indexElement,
-        indexSlide,
-        'https://eastus2.api.cognitive.microsoft.com/speechtotext/v3.1/transcriptions/079680c4-04c1-4e40-80f5-809eea1112fd',
-        'created'
-    )
-
-    return
-
-    audioUrl = "https://sophieassets.blob.core.windows.net/speeches/7eb2d468-5a3d-4bb9-a2d2-cd5b461749da.mp3"
 
     let requestBody = JSON.stringify({
         "contentUrls": [audioUrl],
@@ -30,8 +18,14 @@ export async function createTranscriptionJob(
             "wordLevelTimestampsEnabled": true,
             "displayFormWordLevelTimestampsEnabled": true
         },
-        "locale": "es-ES",
-        "displayName": "Test"
+        "locale": locale,
+        "displayName": "Single paragraph transcription",
+        "customProperties": {
+            "courseCode": courseCode,
+            "indexSection": indexSection,
+            "indexElement": indexElement,
+            "indexParagraph": indexParagraph
+        }
     });
 
     let config = {
@@ -48,13 +42,13 @@ export async function createTranscriptionJob(
     axios.request(config)
         .then((response) => {
             // checkTranscriptionJobStatus(response.data.self)
-            updateSlide(
+            updateSlideAfterTranscriptionJob(
                 courseCode,
                 indexSection,
                 indexElement,
-                indexSlide,
+                indexParagraph,
                 response.data.self,
-                'created'
+                'running'
             )
         })
         .catch((error) => {
@@ -62,22 +56,25 @@ export async function createTranscriptionJob(
         });
 }
 
-async function updateSlide(
+export async function updateSlideAfterTranscriptionJob(
     courseCode: string,
     indexSection: number,
     indexElement: number,
-    indexSlide: number,
+    indexParagraph: number,
     transcriptionJobUrl: string,
     transcriptionJobStatus: string,
+    transcriptionResult?: string
 ) {
     try {
         const db = await database
         const Courses = db.collection('course')
 
-        const slidePath = `sections.${indexSection}.elements.${indexElement}.elementLesson.paragraphs.${indexSlide}`
+        const slidePath = `sections.${indexSection}.elements.${indexElement}.elementLesson.paragraphs.${indexParagraph}`
 
         const transcriptionJobUrlPath = slidePath + '.transcriptionJobUrl'
         const transcriptionJobStatusPath = slidePath + '.transcriptionJobStatus'
+
+        const transcriptionResultPath = slidePath + '.transcriptionResult'
         // const course = await Courses.findOne({ code: courseCode })
         // console.log(course)
 
@@ -86,7 +83,8 @@ async function updateSlide(
             {
                 $set: {
                     [transcriptionJobUrlPath]: transcriptionJobUrl,
-                    [transcriptionJobStatusPath]: transcriptionJobStatus
+                    [transcriptionJobStatusPath]: transcriptionJobStatus,
+                    [transcriptionResultPath]: transcriptionResult,
                 }
             })
 
