@@ -10,32 +10,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const event = req.headers['x-microsoftspeechservices-event']
         const validationToken = req.query.validationToken
 
-        if (event == 'Challenge') {
+        if (event != 'Challenge') {
 
-        } else {
-            sendScormUnderConstructionEmail(
-                "LeoLeto@proton.me",
-                "Leo",
-                JSON.stringify(req.body)
-            )
+            getCustomParameters(req.body.self)
 
-            let config = {
-                method: 'get',
-                maxBodyLength: Infinity,
-                url: req.body.self + '/files',
-                headers: {
-                    'Ocp-Apim-Subscription-Key': '205669de4511412299e6684bb83e5eb1'
-                }
-            }
-
-            axios.request(config)
-                .then((response) => {
-
-                    getTranscriptionResult(response.data.values[0].links.contentUrl)
-                })
-                .catch((error) => {
-                    console.log(error)
-                })
         }
 
         context.res = {
@@ -62,24 +40,98 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
-    async function getTranscriptionResult(transcriptionFileUrl: string) {
+    async function getCustomParameters(transcriptionJobUrl: string) {
 
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: transcriptionFileUrl,
+            url: transcriptionJobUrl,
             headers: {
                 'Ocp-Apim-Subscription-Key': '205669de4511412299e6684bb83e5eb1'
             }
-        };
+        }
 
         axios.request(config)
             .then((response) => {
+
+                getTranscriptionFileUrl(
+                    response.data.self,
+                    response.data.customProperties.courseCode,
+                    response.data.customProperties.indexSection,
+                    response.data.customProperties.indexElement,
+                    response.data.customProperties.indexParagraph
+                )
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }
+
+    async function getTranscriptionFileUrl(
+        transcriptionFilesUrl: string,
+        courseCode: string,
+        indexSection: number,
+        indexElement: number,
+        indexParagraph: number
+    ) {
+
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: transcriptionFilesUrl + '/files',
+            headers: {
+                'Ocp-Apim-Subscription-Key': '205669de4511412299e6684bb83e5eb1'
+            }
+        }
+
+        axios.request(config)
+            .then((response) => {
+
+                getTranscriptionResult(
+                    response.data.values[0].links.contentUrl,
+                    courseCode,
+                    indexSection,
+                    indexElement,
+                    indexParagraph
+                )
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }
+
+    async function getTranscriptionResult(
+        transcriptionContentUrl: string,
+        courseCode: string,
+        indexSection: number,
+        indexElement: number,
+        indexParagraph: number,
+    ) {
+
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: transcriptionContentUrl,
+            headers: {
+                'Ocp-Apim-Subscription-Key': '205669de4511412299e6684bb83e5eb1'
+            }
+        }
+
+        axios.request(config)
+            .then((response) => {
+
+                const debugResponse =
+                    JSON.stringify(response.data.combinedRecognizedPhrases.display)
+                    + courseCode
+                    + indexSection
+                    + indexElement
+                    + indexParagraph
                 // console.log(JSON.stringify(response.data))
+
                 sendScormUnderConstructionEmail(
                     "LeoLeto@proton.me",
                     "Leo",
-                    JSON.stringify(response.data)
+                    debugResponse
                 )
             })
             .catch((error) => {
