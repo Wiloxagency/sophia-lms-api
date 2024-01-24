@@ -131,7 +131,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 sendScormUnderConstructionEmail(
                     "LeoLeto@proton.me",
                     "Leo",
-                    debugResponse
+                    // debugResponse
+                    JSON.stringify(response.data)
                 )
             })
             .catch((error) => {
