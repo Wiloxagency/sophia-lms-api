@@ -63,7 +63,15 @@ export async function updateSlideAfterTranscriptionJob(
     indexParagraph: number,
     transcriptionJobUrl: string,
     transcriptionJobStatus: string,
-    transcriptionResult?: string
+    transcriptionResult?:
+        {
+            display: string
+            displayWords: {
+                displayText: string
+                offsetInTicks: number
+                durationInTicks: number
+            }[]
+        }
 ) {
     try {
         const db = await database

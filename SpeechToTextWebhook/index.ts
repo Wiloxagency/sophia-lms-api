@@ -121,6 +121,34 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         axios.request(config)
             .then((response) => {
 
+                let parsedTranscriptionResult: {
+                    display: string
+                    displayWords: {
+                        displayText: string
+                        offsetInTicks: number
+                        durationInTicks: number
+                    }[]
+                } = {
+                    display: '',
+                    displayWords: [{
+                        displayText: '',
+                        offsetInTicks: 0,
+                        durationInTicks: 0
+                    }]
+                }
+                        
+                parsedTranscriptionResult.display = response.data.recognizedPhrases[0].nBest[0].display
+            
+                parsedTranscriptionResult.displayWords =
+                response.data.recognizedPhrases[0].nBest[0].displayWords
+                        .map(word => {
+                            return {
+                                displayText: word.displayText,
+                                offsetInTicks: word.offsetInTicks,
+                                durationInTicks: word.durationInTicks
+                            }
+                        })
+
                 updateSlideAfterTranscriptionJob(
                     courseCode,
                     indexSection,
@@ -128,7 +156,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     indexParagraph,
                     transcriptionContentUrl,
                     'finished',
-                    JSON.stringify(response.data.combinedRecognizedPhrases[0].display)
+                    parsedTranscriptionResult
                 )
 
                 // const debugResponse =
