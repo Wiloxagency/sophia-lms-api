@@ -5,6 +5,15 @@ import { updateSlideAfterTranscriptionJob } from "../shared/azureSpeechToText"
 
 const axios = require('axios').default
 
+interface transcriptionInterface {
+    display: string
+    displayWords: {
+        displayText: string
+        offsetInTicks: number
+        durationInTicks: number
+    }[]
+}
+
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     try {
@@ -121,33 +130,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         axios.request(config)
             .then((response) => {
 
-                let parsedTranscriptionResult: {
-                    display: string
-                    displayWords: {
-                        displayText: string
-                        offsetInTicks: number
-                        durationInTicks: number
-                    }[]
-                } = {
-                    display: '',
-                    displayWords: [{
-                        displayText: '',
-                        offsetInTicks: 0,
-                        durationInTicks: 0
-                    }]
-                }
-                        
-                parsedTranscriptionResult.display = response.data.recognizedPhrases[0].nBest[0].display
-            
-                parsedTranscriptionResult.displayWords =
-                response.data.recognizedPhrases[0].nBest[0].displayWords
-                        .map(word => {
-                            return {
+                let parsedTranscriptionResult: transcriptionInterface = { display: '', displayWords: [] }
+
+                for (const phrase of response.data.recognizedPhrases) {
+                    parsedTranscriptionResult.display =
+                        parsedTranscriptionResult.display
+                        + ' '
+                        + phrase.nBest[0].display
+
+                    for (const word of phrase.nBest[0].displayWords) {
+                        parsedTranscriptionResult.displayWords.push(
+                            {
                                 displayText: word.displayText,
                                 offsetInTicks: word.offsetInTicks,
                                 durationInTicks: word.durationInTicks
                             }
-                        })
+
+                        )
+                    }
+
+                }
 
                 updateSlideAfterTranscriptionJob(
                     courseCode,
