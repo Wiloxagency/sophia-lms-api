@@ -8,6 +8,8 @@ import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
 import { createSrt } from "./createSrt";
 import { updateCourseDuration } from "../shared/updateCourseDuration";
+import { createTranscriptionJob } from "../shared/azureSpeechToText";
+import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 
 const database = createConnection()
 
@@ -98,12 +100,23 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                         console.info(`Audio for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                         currentParagrah["audioUrl"] = currentAudio.url
                         // srt creation 
-                        const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
-                        currentParagrah["srt"] = currentSrt
+
+                        // const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
+                        // currentParagrah["srt"] = currentSrt
+
+                        const azureSpeechToText = await createTranscriptionJob(
+                            course.code,
+                            currentAudio.sectionIndex,
+                            lessonCounter,
+                            currentAudio.paragraphIndex,
+                            currentAudio.url,
+                            await returnLanguageAndLocaleFromLanguage(course.language)
+                        )
+
+                        currentParagrah["srt"] = azureSpeechToText
                     }
                     await createAudioFn(0)
                     saveCourseCreationLog(course.code, course.details.title)
-
 
                     // Start stract english title for images context searching
                     var extractedTitle = {

@@ -3,6 +3,7 @@ import { createAudio } from "../CreateContent/createAudios"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { createSrt } from "../CreateContent/createSrt";
+import { createTranscriptionJob } from "../shared/azureSpeechToText";
 
 const database = createConnection()
 
@@ -18,7 +19,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         audioData.elementIndex,
         audioData.paragraphIndex)
 
-    const srt = await createSrt(newAudio.url, audioData.text, audioData.courseCode)
+    // const srt = await createSrt(newAudio.url, audioData.text, audioData.courseCode)
+
+    const srt = await createTranscriptionJob(
+        audioData.courseCode,
+        audioData.sectionIndex,
+        audioData.elementIndex,
+        audioData.paragraphIndex,
+        newAudio.url,
+        await returnLanguageAndLocaleFromLanguage(course.language)
+    )
 
     try {
 
@@ -66,9 +76,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
 
     }
-
-
-
 
 }
 export default httpTrigger;
