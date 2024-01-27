@@ -10,6 +10,7 @@ const database = createConnection()
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const audioData = req.body
+
     const newAudio = await createAudio(
         audioData.audioScript,
         audioData.voice,
@@ -27,7 +28,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         audioData.elementIndex,
         audioData.paragraphIndex,
         newAudio.url,
-        await returnLanguageAndLocaleFromLanguage(course.language)
+        audioData.language
     )
 
     try {
