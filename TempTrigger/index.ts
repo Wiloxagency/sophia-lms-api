@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
+import { returnRandomLocalImage } from "../shared/localImages";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -14,6 +15,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // )
 
     // returnLanguageAndLocaleFromLanguage('es')
+
+    returnRandomLocalImage()
 
 }
 
