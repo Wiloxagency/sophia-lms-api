@@ -10,8 +10,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     let query = req.body.query
     try {
-        let translatedQuery = await translateQuery(query)
-        query = translatedQuery
+        // let translatedQuery = await translateQuery(query)
+        // query = translatedQuery
         let responseImages = await client.photos.search({ query, per_page: 80, orientation: 'landscape' })
 
         context.res = {
