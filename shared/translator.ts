@@ -5,7 +5,7 @@ const axios = require('axios').default
 const { v4: uuidv4 } = require('uuid')
 
 //TODO: put this key outside this file
-let key = "569573b0d7c9412887eaef823b637e01"
+let key = "41589751e1a24680ab0e464d492e4559"
 let endpoint = "https://api.cognitive.microsofttranslator.com"
 
 // location, also known as region.
@@ -14,28 +14,55 @@ let location = "eastus2";
 
 export async function translateQuery(receivedQuery: string): Promise<any> {
 
+    let payloadX = {
+        baseURL: endpoint,
+        url: '/translate',
+        method: 'post',
+        headers: {
+            'Ocp-Apim-Subscription-Key': key,
+            // location required if you're using a multi-service or regional (not global) resource.
+            'Ocp-Apim-Subscription-Region': location,
+            'Content-type': 'application/json',
+            'X-ClientTraceId': uuidv4().toString()
+        },
+        params: {
+            'api-version': '3.0',
+            'to': ['en']
+        },
+        data: [{
+            'text': receivedQuery
+        }],
+        responseType: 'json'
+    }
+
+    let payload = {
+        baseURL: endpoint,
+        url: '/translate',
+        method: 'post',
+        headers: {
+            'Ocp-Apim-Subscription-Key': key,
+             // location required if you're using a multi-service or regional (not global) resource.
+            'Ocp-Apim-Subscription-Region': location,
+            'Content-type': 'application/json',
+            'X-ClientTraceId': uuidv4().toString(),
+        },
+        params: {
+            'api-version': '3.0',
+            'from': 'en',
+            'to': ['fr', 'zu']
+        },
+        data: [{
+            'text': 'The human brain'
+        }],
+        responseType: 'json'
+    }
+
+
+    console.info(payload)
+
     try {
 
-        const axiosResponse = await axios({
-            baseURL: endpoint,
-            url: '/translate',
-            method: 'post',
-            headers: {
-                'Ocp-Apim-Subscription-Key': key,
-                // location required if you're using a multi-service or regional (not global) resource.
-                'Ocp-Apim-Subscription-Region': location,
-                'Content-type': 'application/json',
-                'X-ClientTraceId': uuidv4().toString()
-            },
-            params: {
-                'api-version': '3.0',
-                'to': ['en']
-            },
-            data: [{
-                'text': receivedQuery
-            }],
-            responseType: 'json'
-        })
+        const axiosResponse = await axios(payload)
 
         // console.log(
         //     JSON.stringify(axiosResponse.data, null, 4)

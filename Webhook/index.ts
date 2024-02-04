@@ -1,34 +1,22 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail";
 
 const database = createConnection()
 
-
- const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
     const createWebhook = async () => {
 
         try {
-            console.info("Receiving webhook")
-            console.info("req.body", req.body)
-            
+            // console.info("Receiving webhook")
+            // console.info("req.body", req)
+           
+            // console.info("decodedString", decodedString)
+            // console.log(req.headers['x-microsoftspeechservices-event'])
+
             const decodedString = decodeURIComponent(req.body);
-
-            console.info("decodedString", decodedString)
-
-            context.res = {
-                "status": 201,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Ayo wassup"
-                }
-            }
-
-            return
-
             const urlParams = new URLSearchParams(decodedString);
             const webhookData = {
                 nombre: urlParams.get('Nombre'),
@@ -88,8 +76,6 @@ const database = createConnection()
         }
     }
 
-    
-
     switch (req.method) {
         case "POST":
             await createWebhook()
@@ -99,8 +85,6 @@ const database = createConnection()
             break;
     }
 
-
 }
 
 export default httpTrigger;
-
