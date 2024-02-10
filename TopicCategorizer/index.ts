@@ -1,35 +1,31 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { Configuration, OpenAIApi } from 'openai'
-import { saveLog } from "../shared/saveLog"
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { Configuration, OpenAIApi } from 'openai';
+import { saveLog } from "../shared/saveLog";
 
 // Credenciais do OpenAI
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
-const openai = new OpenAIApi(configuration)
+const openai = new OpenAIApi(configuration);
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-
     try {
-        let topic = req.body.topic
+        let topic = req.body.topic;
         let conversationContext = req.body.context;
 
         const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4-1106-preview",
             messages: [
                 {
-                    role: "system",
-                    content: conversationContext
-                },
-                {
                     role: "user",
-                    content: topic
+                    content: `We have the following topic, '${topic},' based in the context of '${conversationContext}.' Classify it within the most suitable categories considering the following options: 1. Technology 2. Nature 3. Travel 4. Food 5. Health 6. Education 7. People 8. Lifestyle 9. Architecture 10. Animals 11. Art and Culture 12. Sports and Outdoor Activities 13. Fashion 14. Abstract Concepts 15. Backgrounds/Textures. If it cannot be classified within any specific category, use category number 15.\nThe output format must be json with the following structure:\n{'categories': numbers[]}`
                 }
             ]
         });
 
-        const categories = classifyTopic(topic + ' ' + conversationContext);
+        // Extrair as categorias da resposta
+        let categories: any = response.data.choices?.[0]?.message?.content;
 
         // Retorna a resposta do modelo de linguagem da OpenAI e as categorias
         context.res = {
@@ -38,12 +34,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 "Content-Type": "application/json"
             },
             body: {
-                categories: categories
+                content: categories
             }
         };
     } catch (error) {
         // Registra e retorna um erro em caso de falha
-        await saveLog(`Error creating Chat Completion, error: ${error.message} `, "Error", "AzureFunction()", "GPT")
+        await saveLog(`Error creating Chat Completion, error: ${error.message} `, "Error", "AzureFunction()", "GPT");
         context.res = {
             status: 500,
             headers: {
@@ -54,42 +50,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
         };
     }
-}
+};
 
-// Função para classificar o texto em categorias
-function classifyTopic(text: string): number[] {
-    // Defina as palavras-chave associadas a cada categoria
-    const categories = {
-        "Technology": ["technology", "computers", "innovation"],
-        "Nature": ["nature", "environment", "ecosystem"],
-        "Travel": ["travel", "tourism", "destination"],
-        "Food": ["food", "cuisine", "cooking"],
-        "Health": ["health", "wellness", "medicine"],
-        "Education": ["education", "learning", "school"],
-        "People": ["people", "person", "society"],
-        "Lifestyle": ["lifestyle", "living", "culture"],
-        "Architecture": ["architecture", "building", "design"],
-        "Animals": ["animals", "wildlife", "creature"],
-        "Art and Culture": ["art", "culture", "heritage"],
-        "Sports and Outdoor Activities": ["sports", "fitness", "outdoors"],
-        "Fashion": ["fashion", "style", "clothing"],
-        "Abstract Concepts": ["concept", "idea", "theory"],
-        "Backgrounds/Textures": ["background", "texture", "pattern"]
-    };
-
-    // Percorra as categorias e verifique se alguma palavra-chave está presente no texto
-    const matchedCategories: number[] = [];
-    for (const [category, keywords] of Object.entries(categories)) {
-        const regex = new RegExp(`\\b(?:${keywords.join('|')})\\b`, 'gi');
-        if (regex.test(text)) {
-            matchedCategories.push(parseInt(category));
-        }
-    }
-
-    if (matchedCategories.length === 0) {
-        matchedCategories.push(15);
-    }
-
-    return matchedCategories;
-}
-export default httpTrigger
+export default httpTrigger;
