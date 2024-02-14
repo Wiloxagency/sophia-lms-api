@@ -16,6 +16,7 @@
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@types/sharp": "^0.31.1",
     "adm-zip": "^0.5.10",
+    "axios": "^1.6.7",
     "azure-functions-core-tools": "^4.0.5312",
     "azure-storage": "^2.10.7",
     "bcrypt": "^5.1.0",

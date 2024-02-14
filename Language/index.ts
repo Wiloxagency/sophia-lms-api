@@ -1,18 +1,18 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-const { Configuration, OpenAIApi } = require("openai");
 import { isoLangPro } from "./isoLang";
 import { template } from "./template";
 import fs = require("fs");
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 interface Language {
   [key: string]: string;
 }
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const database = createConnection();
 
@@ -28,9 +28,7 @@ const httpTrigger: AzureFunction = async function (
     console.info("Prompt --> ", prompt);
 
     try {
-      const openai = new OpenAIApi(configuration);
-
-      const response = await openai.createCompletion({
+      const response = await openai.completions.create({
         model: "text-davinci-003",
         prompt: prompt,
         temperature: 0,
@@ -39,7 +37,7 @@ const httpTrigger: AzureFunction = async function (
         frequency_penalty: 0,
         presence_penalty: 0,
       });
-      const translation = response.data.choices[0].text;
+      const translation = response.choices[0].text;
       console.info("Start translation -->", translation, "End translation");
 
       //return "{'Original':" + translation + "}" // adicionado o retorno da tradução

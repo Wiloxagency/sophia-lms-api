@@ -1,19 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Configuration, OpenAIApi } from 'openai';
 import { saveLog } from "../shared/saveLog";
+import OpenAI from 'openai';
 
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY // This is also the default, can be omitted
+  });
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     try {
         let topic = req.body.topic;
         let conversationContext = req.body.context;
 
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-4-1106-preview",
             messages: [
                 {
@@ -25,7 +23,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             ]
         });
 
-        const responseMessage = response.data.choices?.[0]?.message?.content || "";
+        const responseMessage = response.choices?.[0]?.message?.content || "";
         const categoriesRegex = /\d+/g;
         const extractedCategories = responseMessage.match(categoriesRegex);
         const categories = extractedCategories?.map(category => parseInt(category, 10)) || [];
