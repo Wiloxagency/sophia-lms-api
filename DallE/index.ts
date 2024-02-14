@@ -25,10 +25,11 @@ const httpTrigger: AzureFunction = async function (
   const createImages = async (courseCode: string) => {
     try {
       const response = await openai.images.generate({
+        model: "dall-e-3",
         prompt: req.body.prompt,
         // prompt: "a white siamese cat",
-        n: 4,
-        size: "1024x1024",
+        n: 1,
+        size: "1792x1024",
       });
 
       context.res = {
