@@ -1,7 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
-import { findImageFromAssets } from "../CreateContent/findImages";
+import {
+  findImagesFromAssets,
+  returnInitialImages,
+} from "../CreateContent/findImages";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -10,11 +13,21 @@ const httpTrigger: AzureFunction = async function (
   const paragraphTitle = "Estrategias básicas";
   const courseTitle = "Pasos concretos para mejorar la productividad laboral";
 
-  const findImageResponse = await findImageFromAssets(
-    paragraphTitle,
-    courseTitle
-  );
-//   console.log(findImageResponse);
+  //   const findImageResponse = await findImageFromAssets(
+  //     paragraphTitle,
+  //     courseTitle
+  //   );
+
+  const returnInitialImagesResponse = await returnInitialImages();
+
+  context.res = {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: returnInitialImagesResponse,
+  };
+  //   console.log(findImageResponse);
 
   // createTranscriptionJob(
   //     '65962c5b-58b1-4fee-a3d2-e0f1eecd8c92',

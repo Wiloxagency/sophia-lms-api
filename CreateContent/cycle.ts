@@ -1,7 +1,7 @@
 import { createAudio } from "./createAudios";
 import { createConnection } from "../shared/mongo";
 import { createParagraphs } from "./createParagrahs"
-import { findImageFromAssets, findImages } from "./findImages";
+import { findImages, findImagesFromAssets } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph"
 import { deleteCourseCreationLog, saveCourseCreationLog, saveLog } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
@@ -142,7 +142,7 @@ export async function createContentCycle(course: any, sectionIndex: number, less
                     currentParagrah["titleAI"] = extractedTitle.title
 
                     // const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
-                    const currentImageData = await findImageFromAssets(paragraphContent, extractedTitle.title)
+                    const currentImageData = await findImagesFromAssets(paragraphContent, extractedTitle.title, 1)
 
                     console.info(`Image for section ${sectionCounter + 1}/${course.sections.length}, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${currentParagraphs.content.length} created`)
                     currentParagrah["imageData"] = currentImageData

@@ -53,21 +53,57 @@ async function searchBingImages(urlBing: string, courseCode: string) {
   }
 }
 
-export async function findImageFromAssets(
-  paragraphTitle: string,
-  courseTitle: string
-): Promise<{
-  image: {};
-  thumb: {};
-  finalImage: {};
-  imagesIds: string[];
-  urlBing: string;
-}> {
+export async function returnInitialImages(): Promise<string[]> {
+  const db = await database();
+  const Assets = db.collection("assets");
+
+  let images = await Assets.find({
+    type: "image",
+  }).toArray();
+
+  let randomIndex;
+  let selectedImage;
+  let selectedImages = [];
+  let imageUrl;
+
+  let numberOfImages = 25;
+  while (numberOfImages--) {
+    randomIndex = Math.floor(Math.random() * images.length - 1);
+
+    selectedImage = images[randomIndex];
+
+    imageUrl =
+      imagesBlobContainerUrl +
+      selectedImage.file_name +
+      "." +
+      selectedImage.format;
+
+    selectedImages.push(imageUrl);
+  }
+
+  // console.log(selectedImages);
+  return selectedImages;
+}
+
+export async function findImagesFromAssets(
+  topic: string,
+  conversationContext: string,
+  quantity: number
+): Promise<
+  | {
+      image: {};
+      thumb: {};
+      finalImage: {};
+      imagesIds: string[];
+      urlBing: string;
+    }
+  | string[]
+> {
   const db = await database();
 
   const getCategoriesResponse = await getTopicCategories(
-    paragraphTitle,
-    courseTitle
+    topic,
+    conversationContext
   );
 
   let categoryNames = [];
@@ -88,15 +124,22 @@ export async function findImageFromAssets(
     categories: { $in: categoryNames },
   }).toArray();
 
-  let randomIndex = Math.floor(Math.random() * matchingImages.length - 1);
+  let randomIndex;
+  let selectedImage;
+  let selectedImages = [];
+  let imageUrl;
 
-  let selectedImage = matchingImages[randomIndex];
+  while (quantity--) {
+    randomIndex = Math.floor(Math.random() * matchingImages.length - 1);
+    selectedImage = matchingImages[randomIndex];
+    imageUrl =
+      imagesBlobContainerUrl +
+      selectedImage.file_name +
+      "." +
+      selectedImage.format;
 
-  let imageUrl =
-    imagesBlobContainerUrl +
-    selectedImage.file_name +
-    "." +
-    selectedImage.format;
+    selectedImages.push(imageUrl);
+  }
 
   // console.log({
   //   url: imageUrl,
@@ -104,17 +147,19 @@ export async function findImageFromAssets(
   //   height: selectedImage.scaled.Y,
   // });
 
-  return {
-    image: {},
-    thumb: {},
-    finalImage: {
-      url: imageUrl,
-      width: selectedImage.scaled.X,
-      height: selectedImage.scaled.Y,
-    },
-    imagesIds: [],
-    urlBing: "",
-  };
+  return quantity == 1
+    ? {
+        image: {},
+        thumb: {},
+        finalImage: {
+          url: imageUrl,
+          width: selectedImage.scaled.X,
+          height: selectedImage.scaled.Y,
+        },
+        imagesIds: [],
+        urlBing: "",
+      }
+    : selectedImages;
 }
 
 export async function findImages(
