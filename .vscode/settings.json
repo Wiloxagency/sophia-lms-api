@@ -4,5 +4,10 @@
     "azureFunctions.projectLanguage": "TypeScript",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.preDeployTask": "npm prune (functions)"
+    "azureFunctions.preDeployTask": "npm prune (functions)",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#06323C",
+        "titleBar.activeBackground": "#094654",
+        "titleBar.activeForeground": "#F4FCFE"
+    }
 }
