@@ -851,20 +851,31 @@ const httpTrigger: AzureFunction = async function (
 
     case "GET":
       if (req.params.courseCode) {
-        await getCourse(req.params.courseCode)
-      } else {
-        if (req.query.search) {
-          await getCoursesBySearch(req.query)
-        } else {
-          if (req.query.studentCode) {
-            await getStudentCourses()
-          } else if (req.query.authorCode) {
-            await getAuthorCourses()
-          } else if (req.query.organizationCode) {
-            await getOrganizationCourses()
-          }
-        }
+        await getCourse(req.params.courseCode);
+        break;
       }
+  
+      if (req.query.search) {
+        await getCoursesBySearch(req.query);
+        break;
+      }
+  
+      if (req.query.studentCode) {
+        await getStudentCourses();
+        break;
+      }
+  
+      if (req.query.authorCode) {
+        await getAuthorCourses();
+        break;
+      }
+  
+      if (req.query.organizationCode) {
+        console.info("organizationCode", req.query.organizationCode)
+        await getOrganizationCourses();
+        break;
+      }
+
       break;
 
     default:
