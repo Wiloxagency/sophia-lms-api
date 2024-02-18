@@ -6,14 +6,21 @@ import { extractTitle } from "./titleExtraction";
 import axios, { AxiosResponse } from "axios";
 import sharp = require("sharp");
 import OpenAI from "openai";
+import {
+  getTopicCategories,
+  topicCategories,
+} from "../TopicCategorizer/categorizer";
+import { createConnection } from "../shared/mongo";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const database = createConnection;
 
 const OCP_APIM_SUBSCRIPTION_KEY = process.env.OCP_APIM_SUBSCRIPTION_KEY;
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Bing search engine
 const configBing = {
@@ -24,6 +31,9 @@ const configBing = {
     Pragma: "no-cache",
   },
 };
+
+const imagesBlobContainerUrl =
+  "https://sophieassets.blob.core.windows.net/assets/images/";
 
 async function searchBingImages(urlBing: string, courseCode: string) {
   try {
@@ -41,6 +51,115 @@ async function searchBingImages(urlBing: string, courseCode: string) {
 
     return { data: { value: [] } };
   }
+}
+
+export async function returnInitialImages(): Promise<string[]> {
+  const db = await database();
+  const Assets = db.collection("assets");
+
+  let images = await Assets.find({
+    type: "image",
+  }).toArray();
+
+  let randomIndex;
+  let selectedImage;
+  let selectedImages = [];
+  let imageUrl;
+
+  let numberOfImages = 25;
+  while (numberOfImages--) {
+    randomIndex = Math.floor(Math.random() * images.length - 1);
+
+    selectedImage = images[randomIndex];
+
+    imageUrl =
+      imagesBlobContainerUrl +
+      selectedImage.file_name +
+      "." +
+      selectedImage.format;
+
+    selectedImages.push(imageUrl);
+  }
+
+  // console.log(selectedImages);
+  return selectedImages;
+}
+
+export async function findImagesFromAssets(
+  topic: string,
+  conversationContext: string,
+  quantity: number
+): Promise<
+  | {
+      image: {};
+      thumb: {};
+      finalImage: {};
+      imagesIds: string[];
+      urlBing: string;
+    }
+  | string[]
+> {
+  const db = await database();
+
+  const getCategoriesResponse = await getTopicCategories(
+    topic,
+    conversationContext
+  );
+
+  let categoryNames = [];
+
+  for (const categoryNumber of getCategoriesResponse.categories) {
+    const isCategoryFound = topicCategories.find((element) =>
+      element.includes(categoryNumber + ".")
+    );
+    if (isCategoryFound) {
+      categoryNames.push(isCategoryFound.split(".")[1].trim().toLowerCase());
+    }
+  }
+
+  const Assets = db.collection("assets");
+
+  let matchingImages = await Assets.find({
+    type: "image",
+    categories: { $in: categoryNames },
+  }).toArray();
+
+  let randomIndex;
+  let selectedImage;
+  let selectedImages = [];
+  let imageUrl;
+
+  while (quantity--) {
+    randomIndex = Math.floor(Math.random() * matchingImages.length - 1);
+    selectedImage = matchingImages[randomIndex];
+    imageUrl =
+      imagesBlobContainerUrl +
+      selectedImage.file_name +
+      "." +
+      selectedImage.format;
+
+    selectedImages.push(imageUrl);
+  }
+
+  // console.log({
+  //   url: imageUrl,
+  //   width: selectedImage.scaled.X,
+  //   height: selectedImage.scaled.Y,
+  // });
+
+  return quantity == 1
+    ? {
+        image: {},
+        thumb: {},
+        finalImage: {
+          url: imageUrl,
+          width: selectedImage.scaled.X,
+          height: selectedImage.scaled.Y,
+        },
+        imagesIds: [],
+        urlBing: "",
+      }
+    : selectedImages;
 }
 
 export async function findImages(
