@@ -27,7 +27,7 @@ export async function getTopicCategories(
   conversationContext: string
 ) {
   const response = await openai.chat.completions.create({
-    model: "gpt-4-0125-preview",
+    model: "gpt-3.5-turbo-16k",
     response_format: { type: "json_object" },
     messages: [
       {

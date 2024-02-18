@@ -29,7 +29,7 @@ const httpTrigger: AzureFunction = async function (
 
     try {
       const response = await openai.completions.create({
-        model: "text-davinci-003",
+        model: "gpt-3.5-turbo-16k",
         prompt: prompt,
         temperature: 0,
         max_tokens: 256,
