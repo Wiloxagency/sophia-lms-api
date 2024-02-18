@@ -1,20 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
-import { Configuration, OpenAIApi } from "openai";
 import { saveLog } from "../shared/saveLog";
 import { downloadQuiz } from "./download";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
 const database = createConnection();
-
-// OpenAI Credentials
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -32,7 +29,7 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [
             {
@@ -48,7 +45,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
         quizList.push({
-          question: response.data.choices[0].message.content,
+          question: response.choices[0].message.content,
           source: paragraph.content,
         });
       }
@@ -70,7 +67,7 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         { $push: { [sectionElementsPath]: quizElementPayload } }
-      )
+      );
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -113,7 +110,7 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [
             {
@@ -129,7 +126,7 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
-        let completionQuizParts = response.data.choices[0].message.content
+        let completionQuizParts = response.choices[0].message.content
           .split("Frase principal: ")
           .pop()
           .split("Palabra extraída: ");
@@ -147,7 +144,7 @@ const httpTrigger: AzureFunction = async function (
 
           if (completionQuizParts[0].toLowerCase().includes(keyword)) {
             quizList.push({
-              question: response.data.choices[0].message.content,
+              question: response.choices[0].message.content,
             });
           }
         } else {
@@ -174,7 +171,7 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $push: { [sectionElementsPath]: quizElementPayload }
+          $push: { [sectionElementsPath]: quizElementPayload },
         }
       );
       await updatePromise;
@@ -217,7 +214,7 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [
             {
@@ -237,7 +234,7 @@ const httpTrigger: AzureFunction = async function (
         // console.log(response.data.choices[0].message.content)
         // console.log('______________________________________________________')
         // return
-        let trueOrFalseQuizParts = response.data.choices[0].message.content
+        let trueOrFalseQuizParts = response.choices[0].message.content
           .split("Frase verdadera: ")
           .pop()
           .split("Frase falsa: ");
@@ -275,9 +272,9 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $push: { [sectionElementsPath]: quizElementPayload }
+          $push: { [sectionElementsPath]: quizElementPayload },
         }
-      )
+      );
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -316,7 +313,7 @@ const httpTrigger: AzureFunction = async function (
                 Mi respuesta:
                 ${quiz.studentFullResponse}
                 ¿Son el texto original y mi respuesta equivalentes? Ignora diferencias en letras mayúsculas o minúsculas. Responde usando sólo 2 letras: sí o no`;
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [
             {
@@ -330,18 +327,16 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
         // console.log(response.data.choices[0].message.content)
-        if (
-          response.data.choices[0].message.content.toLowerCase().includes("s")
-        ) {
+        if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
           // console.log(response.data.choices[0].message.content)
           GPTResponses.push({ result: "Correcto" });
         } else if (
-          response.data.choices[0].message.content.toLowerCase().includes("n")
+          response.choices[0].message.content.toLowerCase().includes("n")
         ) {
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
-          const response2 = await openai.createChatCompletion({
+          const response2 = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
               {
@@ -354,7 +349,7 @@ const httpTrigger: AzureFunction = async function (
               },
               {
                 role: "assistant",
-                content: response.data.choices[0].message.content,
+                content: response.choices[0].message.content,
               },
               {
                 role: "user",
@@ -365,7 +360,7 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
           GPTResponses.push({
-            result: response2.data.choices[0].message.content,
+            result: response2.choices[0].message.content,
           });
         }
         // console.log(response.data.choices[0].message.content)
@@ -408,7 +403,7 @@ const httpTrigger: AzureFunction = async function (
                 Mi respuesta:
                 ${quiz.answer}
                 ¿Mi respuesta es correcta? Responde usando sólo 2 letras: sí o no`;
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [
             {
@@ -422,18 +417,16 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
         // console.log(response.data.choices[0].message.content)
-        if (
-          response.data.choices[0].message.content.toLowerCase().includes("s")
-        ) {
+        if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
           // console.log(response.data.choices[0].message.content)
           GPTResponses.push({ result: "Correcto" });
         } else if (
-          response.data.choices[0].message.content.toLowerCase().includes("n")
+          response.choices[0].message.content.toLowerCase().includes("n")
         ) {
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
-          const response2 = await openai.createChatCompletion({
+          const response2 = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
               {
@@ -446,7 +439,7 @@ const httpTrigger: AzureFunction = async function (
               },
               {
                 role: "assistant",
-                content: response.data.choices[0].message.content,
+                content: response.choices[0].message.content,
               },
               {
                 role: "user",
@@ -456,9 +449,9 @@ const httpTrigger: AzureFunction = async function (
               // ¿La respuesta completa correctamente la actividad de completación?
             ],
           });
-          // console.log(response2.data.choices[0].message.content)
+          // console.log(response2.choices[0].message.content)
           GPTResponses.push({
-            result: response2.data.choices[0].message.content,
+            result: response2.choices[0].message.content,
           });
         }
         // console.log(GPTResponses)

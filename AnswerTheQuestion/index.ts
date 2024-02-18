@@ -1,62 +1,58 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Configuration, OpenAIApi } from "openai";
 import { saveLog } from "../shared/saveLog";
 import { createConnection } from "../shared/mongo";
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
 const database = createConnection();
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-
   try {
     const db = await database;
     const Courses = db.collection("course");
 
-    const resp = await Courses.aggregate(
-      [
-        {
-          '$match': {
-            'code': req.params.courseCode
-          }
-        }, {
-          $unwind: "$sections"
+    const resp = await Courses.aggregate([
+      {
+        $match: {
+          code: req.params.courseCode,
         },
-        {
-          $unwind: "$sections.elements"
+      },
+      {
+        $unwind: "$sections",
+      },
+      {
+        $unwind: "$sections.elements",
+      },
+      {
+        $unwind: "$sections.elements.elementLesson",
+      },
+      {
+        $unwind: "$sections.elements.elementLesson.paragraphs",
+      },
+      {
+        $group: {
+          _id: null,
+          contents: {
+            $push: "$sections.elements.elementLesson.paragraphs.content",
+          },
         },
-        {
-          $unwind: "$sections.elements.elementLesson"
+      },
+      {
+        $project: {
+          _id: 0,
+          contents: 1,
         },
-        {
-          $unwind: "$sections.elements.elementLesson.paragraphs"
-        },
-        {
-          $group: {
-            _id: null,
-            contents: {
-              $push: "$sections.elements.elementLesson.paragraphs.content"
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            contents: 1
-          }
-        }
-      ]
-    ).toArray()
+      },
+    ]).toArray();
 
     // resp.sections.array.forEach((section: any) => {
     //   section.elements.forEach((element: any) => {
@@ -68,17 +64,17 @@ const httpTrigger: AzureFunction = async function (
     //   });
     // });
 
-    const prompt = req.body.prefix +
+    const prompt =
+      req.body.prefix +
       " \n###\n" +
       resp[0].contents.join(" ") +
-      "\n###\n" + 
+      "\n###\n" +
       req.body.suffix +
       "\n###\n" +
       req.body.question +
-      " \n###\n"
+      " \n###\n";
 
-
-    const response = await openai.createChatCompletion({
+    const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-16k",
       messages: [
         { role: "system", content: req.body.role },
@@ -86,9 +82,7 @@ const httpTrigger: AzureFunction = async function (
       ],
     });
 
-    const extractedValue = response.data.choices[0].message.content;
-
-
+    const extractedValue = response.choices[0].message.content;
 
     context.res = {
       status: 200,
