@@ -19,7 +19,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     const body = await axios
       .post(
-        "https://sophiacreatelanguage.cognitiveservices.azure.com/language/:analyze-text?api-version=2022-05-01",
+        "https://sophia-services-language.cognitiveservices.azure.com/language/:analyze-text?api-version=2022-05-01",
         req.body,
         requestConfiguration
       )
