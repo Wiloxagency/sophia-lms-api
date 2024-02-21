@@ -27,7 +27,7 @@ const httpTrigger: AzureFunction = async function (
 
     console.info(req.body.prompt);
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-0125-preview",
       messages: [
         {
           role: "system",

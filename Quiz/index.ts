@@ -30,7 +30,7 @@ const httpTrigger: AzureFunction = async function (
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
         const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -111,7 +111,7 @@ const httpTrigger: AzureFunction = async function (
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
         const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -215,7 +215,7 @@ const httpTrigger: AzureFunction = async function (
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
         const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -314,7 +314,7 @@ const httpTrigger: AzureFunction = async function (
                 ${quiz.studentFullResponse}
                 ¿Son el texto original y mi respuesta equivalentes? Ignora diferencias en letras mayúsculas o minúsculas. Responde usando sólo 2 letras: sí o no`;
         const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -337,7 +337,7 @@ const httpTrigger: AzureFunction = async function (
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
           const response2 = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4-0125-preview",
             messages: [
               {
                 role: "system",
@@ -404,7 +404,7 @@ const httpTrigger: AzureFunction = async function (
                 ${quiz.answer}
                 ¿Mi respuesta es correcta? Responde usando sólo 2 letras: sí o no`;
         const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -427,7 +427,7 @@ const httpTrigger: AzureFunction = async function (
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
           const response2 = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4-0125-preview",
             messages: [
               {
                 role: "system",

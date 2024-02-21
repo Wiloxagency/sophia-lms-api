@@ -8,6 +8,7 @@ import sharp = require("sharp");
 import OpenAI from "openai";
 import {
   getTopicCategories,
+  getTopicCategoryNamesFromNumbers,
   topicCategories,
 } from "../TopicCategorizer/categorizer";
 import { createConnection } from "../shared/mongo";
@@ -85,10 +86,14 @@ export async function returnInitialImages(): Promise<string[]> {
   return selectedImages;
 }
 
+// let lastUsedCourseCode = "";
+// let matchingImages
+
 export async function findImagesFromAssets(
   topic: string,
   conversationContext: string,
-  quantity: number
+  quantity: number,
+  courseCode?: string
 ): Promise<
   | {
       image: {};
@@ -100,26 +105,21 @@ export async function findImagesFromAssets(
   | string[]
 > {
   const db = await database();
+  const Assets = db.collection("assets");
+  const isSingleImage = quantity == 1 ? true : false;
 
   const getCategoriesResponse = await getTopicCategories(
     topic,
     conversationContext
   );
 
-  let categoryNames = [];
+  let categoryNames = await getTopicCategoryNamesFromNumbers(
+    getCategoriesResponse.categories
+  );
 
-  for (const categoryNumber of getCategoriesResponse.categories) {
-    const isCategoryFound = topicCategories.find((element) =>
-      element.includes(categoryNumber + ".")
-    );
-    if (isCategoryFound) {
-      categoryNames.push(isCategoryFound.split(".")[1].trim().toLowerCase());
-    }
-  }
+  console.log(categoryNames);
 
-  const Assets = db.collection("assets");
-
-  let matchingImages = await Assets.find({
+  const matchingImages = await Assets.find({
     type: "image",
     categories: { $in: categoryNames },
   }).toArray();
@@ -132,6 +132,13 @@ export async function findImagesFromAssets(
   while (quantity--) {
     randomIndex = Math.floor(Math.random() * matchingImages.length - 1);
     selectedImage = matchingImages[randomIndex];
+
+    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    console.log(matchingImages.length - 1);
+    console.log(randomIndex);
+
+    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ SELECTED IMAGE: ", selectedImage);
+
     imageUrl =
       imagesBlobContainerUrl +
       selectedImage.file_name +
@@ -147,7 +154,9 @@ export async function findImagesFromAssets(
   //   height: selectedImage.scaled.Y,
   // });
 
-  return quantity == 1
+  // lastUsedCourseCode = "";
+
+  return isSingleImage
     ? {
         image: {},
         thumb: {},
