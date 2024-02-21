@@ -33,7 +33,7 @@ const httpTrigger: AzureFunction = async function (
     headers: {
       "Content-Type": "application/json",
     },
-    body: "",
+    body: "Working",
   };
 };
 
