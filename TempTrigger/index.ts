@@ -2,44 +2,39 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnRandomLocalImage } from "../shared/localImages";
+import { returnInitialImages } from "../CreateContent/findImages";
 import {
-  findImagesFromAssets,
-  returnInitialImages,
-} from "../CreateContent/findImages";
+  getTopicCategories,
+  getTopicCategoryNamesFromNumbers,
+} from "../TopicCategorizer/categorizer";
+import { createConnection } from "../shared/mongo";
+
+// const database = createConnection;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const paragraphTitle = "Estrategias básicas";
-  const courseTitle = "Pasos concretos para mejorar la productividad laboral";
+  // const db = await database();
 
-  //   const findImageResponse = await findImageFromAssets(
-  //     paragraphTitle,
-  //     courseTitle
-  //   );
+  // const Assets = db.collection("assets");
 
-  const returnInitialImagesResponse = await returnInitialImages();
+  // let categoryNames = await getTopicCategoryNamesFromNumbers([15]);
+
+  // const matchingImages = await Assets.find({
+  //   type: "image",
+  //   categories: { $in: categoryNames },
+  // }).toArray();
+
+  // console.log(matchingImages);
 
   context.res = {
     status: 200,
     headers: {
       "Content-Type": "application/json",
     },
-    body: returnInitialImagesResponse,
+    body: "",
   };
-  //   console.log(findImageResponse);
-
-  // createTranscriptionJob(
-  //     '65962c5b-58b1-4fee-a3d2-e0f1eecd8c92',
-  //     0,
-  //     0,
-  //     0,
-  //     'https://audio-lingua.ac-versailles.fr/IMG/mp3/frixuelos.mp3',
-  //     'es-ES'
-  // )
-
-  // returnLanguageAndLocaleFromLanguage('es')
 };
 
 export default httpTrigger;

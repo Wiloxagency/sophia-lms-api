@@ -32,7 +32,7 @@ export async function extractTitle(
 
   try {
     // const response = await openai.createChatCompletion({
-    //     model: "gpt-3.5-turbo",
+    //     model: "",
     //     messages: [
     //         {
     //             role: "system",
@@ -49,16 +49,25 @@ export async function extractTitle(
     // console.info("gptSearchImages response -->",data)
     // const obj = JSON.parse(data)
 
-    const titleAIObj = await openai.completions.create({
-      model: "gpt-3.5-turbo-16k",
-      prompt: prompt,
+    const titleAIObj = await openai.chat.completions.create({
+      model: "gpt-4-0125-preview",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        }
+      ],
       temperature: 0.2,
       max_tokens: 500,
       top_p: 1,
       frequency_penalty: 0.5,
       presence_penalty: 0,
     });
-    const mainPhrase = titleAIObj.choices[0].text
+    const mainPhrase = titleAIObj.choices[0].message.content
       .replace(/[\r\n]/gm, "")
       .trim();
 

@@ -18,9 +18,18 @@ export async function createkeyphrases(
   //console.info("Keyphrases prompt -->", prompt)
 
   try {
-    const response = await openai.completions.create({
-      model: "gpt-3.5-turbo-16k",
-      prompt: prompt,
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-0125-preview",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        }
+      ],
       temperature: 0,
       max_tokens: 250,
       top_p: 1,
@@ -28,7 +37,7 @@ export async function createkeyphrases(
       presence_penalty: 1,
     });
 
-    const keywords = response.choices[0].text
+    const keywords = response.choices[0].message.content
       .split(",")
       .map((item) => {
         return item

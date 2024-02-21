@@ -27,7 +27,7 @@ export async function getTopicCategories(
   conversationContext: string
 ) {
   const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo-16k",
+    model: "gpt-4-0125-preview",
     response_format: { type: "json_object" },
     messages: [
       {
@@ -46,4 +46,41 @@ export async function getTopicCategories(
     extractedCategories?.map((category) => parseInt(category, 10)) || [];
 
   return { categories: categories, usage: response.usage };
+}
+
+export async function getTopicCategoryNamesFromNumbers(
+  categoryNumbers: number[]
+): Promise<string[]> {
+  let categoryNames: string[] = [];
+  for (const categoryNumber of categoryNumbers) {
+    const isCategoryFound = topicCategories.find((element) =>
+      element.includes(categoryNumber + ".")
+    );
+    if (isCategoryFound) {
+      categoryNames.push(isCategoryFound.split(".")[1].trim().toLowerCase());
+    }
+  }
+
+  let isArtIncluded = categoryNames.indexOf("art and culture");
+  let isSportsIncluded = categoryNames.indexOf("sports and outdoor activities");
+  let isAbstractIncluded = categoryNames.indexOf("abstract concepts");
+  let isBackgroundsIncluded = categoryNames.indexOf("backgrounds/textures");
+
+  if (isArtIncluded != -1) {
+    categoryNames[isArtIncluded] = "art";
+  }
+
+  if (isSportsIncluded != -1) {
+    categoryNames[isSportsIncluded] = "sports";
+  }
+
+  if (isAbstractIncluded != -1) {
+    categoryNames[isAbstractIncluded] = "abstract";
+  }
+
+  if (isBackgroundsIncluded != -1) {
+    categoryNames[isBackgroundsIncluded] = "backgrounds";
+  }
+
+  return categoryNames;
 }

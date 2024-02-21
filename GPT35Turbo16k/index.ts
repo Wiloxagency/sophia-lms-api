@@ -70,7 +70,7 @@ const httpTrigger: AzureFunction = async function (
       // console.log(messagesPipeline)
 
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-16k",
+        model: "gpt-4-0125-preview",
         messages: messagesPipeline,
       });
 
@@ -99,7 +99,7 @@ const httpTrigger: AzureFunction = async function (
   async function summarizeContent() {
     try {
       const prompt = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-16k",
+        model: "gpt-4-0125-preview",
         messages: [
           { role: "system", content: "You are a helpful assistant" },
           {
