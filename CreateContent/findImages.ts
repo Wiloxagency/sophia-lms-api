@@ -117,7 +117,7 @@ export async function findImagesFromAssets(
     getCategoriesResponse.categories
   );
 
-  console.log(categoryNames);
+  // console.log(categoryNames);
 
   const matchingImages = await Assets.find({
     type: "image",
@@ -132,12 +132,6 @@ export async function findImagesFromAssets(
   while (quantity--) {
     randomIndex = Math.floor(Math.random() * matchingImages.length - 1);
     selectedImage = matchingImages[randomIndex];
-
-    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-    console.log(matchingImages.length - 1);
-    console.log(randomIndex);
-
-    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ SELECTED IMAGE: ", selectedImage);
 
     imageUrl =
       imagesBlobContainerUrl +
