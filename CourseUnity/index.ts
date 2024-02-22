@@ -887,7 +887,7 @@ const httpTrigger: AzureFunction = async function (
       if (req.query.postElement == "true") {
         await addCourseElement(req.params.courseCode);
       } else {
-        console.log("*** Create course ")
+        console.log("*** Create course ***")
         //await createCourse();
       }
       break;
