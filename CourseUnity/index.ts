@@ -16,9 +16,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
-  const helloWorld = async () => {
-  }
-
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -141,14 +138,22 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Courses = db.collection("course");
 
-      let elementPath = `sections.${req.query.indexSection}.elements`;
+      var resp = null;
+      var body = null;
 
-      // console.log(req.body)
-      // return
+      if (req.query.layoutType != null) {
+        let elementPath = `sections.${req.query.indexSection}.elements.0.elementLesson.paragraphs.${req.query.indexParagraph}.layoutType`;
 
-      const resp = Courses.updateOne({ code: courseCode }, { $push: req.body });
-      const body = await resp;
-      updateCourseDuration(courseCode)
+        resp = Courses.updateOne({ code: courseCode }, { $set: { [elementPath]: req.query.layoutType } })
+        body = await resp;
+      } else {
+
+        resp = Courses.updateOne({ code: courseCode }, { $set: { "courseTheme": req.query.courseTheme, "colorTheme": req.query.colorTheme } })
+        body = await resp;
+      }
+
+      //const body = await resp;
+
       if (body) {
         context.res = {
           status: 201,
@@ -194,7 +199,6 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const getCourse = async (courseCode: string) => {
-    console.log("--------------------- here ---------------------")
 
     console.log('query', req.headers)
     var section_request = false
@@ -202,13 +206,8 @@ const httpTrigger: AzureFunction = async function (
     if (req.headers.section) {
       section_number = parseInt(req.headers.section)
       section_request = true
-
-
-
     }
     // check if there is a "section" in req.header
-
-
 
 
     try {
@@ -243,7 +242,7 @@ const httpTrigger: AzureFunction = async function (
 
       const body = await resp.toArray();
 
-      const sections = body[0]['sections'] 
+      const sections = body[0]['sections']
       // const section_content = sections[section_number]
 
       if (body && body[0]) {
@@ -273,7 +272,7 @@ const httpTrigger: AzureFunction = async function (
               "Content-Type": "application/json",
             },
             body: body[0]['sections'][section_number]
-              .elements[0].elementLesson.paragraphs[0],
+              .elements[0].elementLesson.paragraphs,
           };
         } else {
           context.res = {
@@ -433,7 +432,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: body[0]  || { Courses: [], Count: 0 },
+          body: body[0] || { Courses: [], Count: 0 },
         };
       } else {
         context.res = {
@@ -881,12 +880,15 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
+
   switch (req.method) {
     case "POST":
+
       if (req.query.postElement == "true") {
         await addCourseElement(req.params.courseCode);
       } else {
-        await createCourse();
+        console.log("*** Create course ***")
+        //await createCourse();
       }
       break;
 
