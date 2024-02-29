@@ -39,7 +39,8 @@ const httpTrigger: AzureFunction = async function (
             {
               role: "user",
               content:
-                "Redacta una pregunta basada en el siguiente párrafo: " +
+                // "Redacta una pregunta basada en el siguiente párrafo: " +
+                "Generate an open-ended question based on the information provided in the text. Ensure that the question can be answered using the given information. Respond in Spanish: " +
                 paragraph.content,
             },
           ],
@@ -54,6 +55,90 @@ const httpTrigger: AzureFunction = async function (
       let quizz_list = quizList;
       let quizElementPayload = {
         type: "shortAnswer",
+        title: "Quiz",
+        quizCode: req.body.quizCode,
+        elementQuiz: {
+          quizz_list: quizz_list,
+          isAICreated: true,
+        },
+      };
+      // sectionElements.push(quizElementPayload);
+      // console.log(sectionElements)
+
+      const updatePromise = Courses.updateOne(
+        { code: req.body.courseCode },
+        { $push: { [sectionElementsPath]: quizElementPayload } }
+      );
+      await updatePromise;
+      // console.log(response.data.choices[0].message.content)
+      context.res = {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: quizList,
+      };
+    } catch (error) {
+      // console.log(error)
+      await saveLog(
+        `Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`,
+        "Error",
+        "createShortAnswerQuiz()",
+        "Quiz"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error",
+        },
+      };
+    }
+  };
+
+  const createMultipleChoiceQuiz = async () => {
+    try {
+      const db = await database;
+      const Courses = db.collection("course");
+      // console.log(req.body)
+      let coursePromise = Courses.findOne({ code: req.body.courseCode });
+      let course = await coursePromise;
+      let lessonFirst5Paragraphs = course.sections[
+        req.body.indexSection
+      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+      let quizList = [];
+      for (const paragraph of lessonFirst5Paragraphs) {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful assistant.",
+            },
+            {
+              role: "user",
+              content:
+                "Extract from the following text 4 options for a multiple choice test, only one of the options will be the correct answer. Deliver your response in Spanish in valid json format as an array of strings. The first string corresponds to the question, the second to the correct answer, the third, fourth and fifth to false answers: " +
+                paragraph.content,
+            },
+          ],
+        });
+        let firstStepParsing =
+          response.choices[0].message.content.split("[")[1];
+        let secondStepParsing = firstStepParsing.split("]")[0];
+        let thirdStepParsing = JSON.parse("[" + secondStepParsing + "]");
+
+        // console.log(thirdStepParsing);
+
+        quizList.push(thirdStepParsing);
+      }
+      let sectionElementsPath = `sections.${req.body.indexSection}.elements`;
+      let quizz_list = quizList;
+      let quizElementPayload = {
+        type: "quizz",
         title: "Quiz",
         quizCode: req.body.quizCode,
         elementQuiz: {
@@ -485,8 +570,8 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "POST":
       if (req.body.operation == "create") {
-        if (req.body.quizType == "multipleChoice") {
-          // await createMultipleChoiceQuiz()
+        if (req.body.quizType == "quizz") {
+          await createMultipleChoiceQuiz();
         }
         if (req.body.quizType == "shortAnswer") {
           await createShortAnswerQuiz();
