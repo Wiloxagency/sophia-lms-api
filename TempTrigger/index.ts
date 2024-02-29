@@ -8,6 +8,7 @@ import {
   getTopicCategoryNamesFromNumbers,
 } from "../TopicCategorizer/categorizer";
 import { createConnection } from "../shared/mongo";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 // const database = createConnection;
 
@@ -15,18 +16,8 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  // const db = await database();
-
-  // const Assets = db.collection("assets");
-
-  // let categoryNames = await getTopicCategoryNamesFromNumbers([15]);
-
-  // const matchingImages = await Assets.find({
-  //   type: "image",
-  //   categories: { $in: categoryNames },
-  // }).toArray();
-
-  // console.log(matchingImages);
+  
+  updateCourseTokens("01cbb7c9-915d-4cf4-9177-54460c745349", 1);
 
   context.res = {
     status: 200,

@@ -3,6 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { downloadQuiz } from "./download";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -45,6 +46,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         quizList.push({
           question: response.choices[0].message.content,
           source: paragraph.content,
@@ -126,6 +130,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         let firstStepParsing =
           response.choices[0].message.content.split("[")[1];
         let secondStepParsing = firstStepParsing.split("]")[0];
@@ -211,6 +218,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         let completionQuizParts = response.choices[0].message.content
           .split("Frase principal: ")
           .pop()
@@ -314,6 +324,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         // console.log('______________________________________________________')
         // console.log('OPENAI RESPONSE')
         // console.log(response.data.choices[0].message.content)
@@ -411,6 +424,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
@@ -444,6 +460,9 @@ const httpTrigger: AzureFunction = async function (
               // ¿La respuesta completa correctamente la actividad de completación?
             ],
           });
+
+          updateCourseTokens(req.body.courseCode, response2.usage.total_tokens);
+
           GPTResponses.push({
             result: response2.choices[0].message.content,
           });
@@ -501,6 +520,9 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
+
+        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
@@ -534,6 +556,9 @@ const httpTrigger: AzureFunction = async function (
               // ¿La respuesta completa correctamente la actividad de completación?
             ],
           });
+
+          updateCourseTokens(req.body.courseCode, response2.usage.total_tokens);
+
           // console.log(response2.choices[0].message.content)
           GPTResponses.push({
             result: response2.choices[0].message.content,

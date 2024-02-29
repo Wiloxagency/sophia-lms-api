@@ -10,6 +10,7 @@ import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -192,11 +193,15 @@ export async function createParagraphs(
       ],
     });
 
+    updateCourseTokens(payload.courseCode, response.usage.total_tokens);
+
     let data = response.choices[0].message.content.trim();
 
     const formattedData =
       formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
     const paragraphs = splitParagraphs(formattedData, true);
+
+    updateCourseTokens(payload.courseCode, response.usage.total_tokens);
 
     return { content: paragraphs, sectionIndex: index };
   } catch (error) {

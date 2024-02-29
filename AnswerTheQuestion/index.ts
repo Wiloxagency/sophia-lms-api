@@ -1,11 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import { createConnection } from "../shared/mongo";
-import OpenAI from 'openai';
+import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -83,6 +84,8 @@ const httpTrigger: AzureFunction = async function (
     });
 
     const extractedValue = response.choices[0].message.content;
+
+    updateCourseTokens(req.params.courseCode, response.usage.total_tokens);
 
     context.res = {
       status: 200,
