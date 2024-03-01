@@ -272,7 +272,7 @@ const httpTrigger: AzureFunction = async function (
               "Content-Type": "application/json",
             },
             //body: body[0]['sections'][section_number]
-            //  .elements[0].elementLesson.paragraphs,//aqui
+            //  .elements[0].elementLesson.paragraphs,//aqui 
             body:  {"paragraphs":body[0]['sections'][section_number].elements[0].elementLesson.paragraphs , "courseTheme": body[0].courseTheme, "colorTheme": body[0].colorTheme},
         
           };
