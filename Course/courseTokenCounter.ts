@@ -22,6 +22,10 @@ export async function updateCourseTokens(
     let completionTokensCost = completionTokens * OPENAI_OUTPUT_TOKEN_COST;
     let tokenCost = promptTokensCost + completionTokensCost;
 
+    // console.log(tokenCost)
+
+    // return
+
     const resp = Courses.findOneAndUpdate(
       { code: courseCode },
       {
