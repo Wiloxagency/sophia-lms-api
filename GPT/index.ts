@@ -27,7 +27,7 @@ const httpTrigger: AzureFunction = async function (
         ],
       });
 
-      updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -85,7 +85,7 @@ const httpTrigger: AzureFunction = async function (
         ],
       });
 
-      updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
       // console.log(response.data.choices[0].message.content)
       context.res = {

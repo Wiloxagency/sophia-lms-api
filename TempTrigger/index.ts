@@ -17,7 +17,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   
-  updateCourseTokens("01cbb7c9-915d-4cf4-9177-54460c745349", 1);
+  updateCourseTokens("01cbb7c9-915d-4cf4-9177-54460c745349", 1, 1);
 
   context.res = {
     status: 200,

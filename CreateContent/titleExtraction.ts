@@ -51,7 +51,7 @@ export async function extractTitle(
       presence_penalty: 0,
     });
 
-    updateCourseTokens(courseCode, titleAIObj.usage.total_tokens);
+    updateCourseTokens(courseCode, titleAIObj.usage.prompt_tokens, titleAIObj.usage.completion_tokens);
 
     const mainPhrase = titleAIObj.choices[0].message.content
       .replace(/[\r\n]/gm, "")

@@ -41,7 +41,7 @@ export async function getTopicCategories(
     ],
   });
 
-  updateCourseTokens(courseCode, response.usage.total_tokens);
+  updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
   const responseMessage = response.choices?.[0]?.message?.content || "";
   const categoriesRegex = /\d+/g;

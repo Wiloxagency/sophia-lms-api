@@ -47,7 +47,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         quizList.push({
           question: response.choices[0].message.content,
@@ -131,7 +131,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         let firstStepParsing =
           response.choices[0].message.content.split("[")[1];
@@ -219,7 +219,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         let completionQuizParts = response.choices[0].message.content
           .split("Frase principal: ")
@@ -325,7 +325,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         // console.log('______________________________________________________')
         // console.log('OPENAI RESPONSE')
@@ -425,7 +425,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
@@ -461,7 +461,7 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
 
-          updateCourseTokens(req.body.courseCode, response2.usage.total_tokens);
+          updateCourseTokens(req.body.courseCode, response2.usage.prompt_tokens, response2.usage.completion_tokens);
 
           GPTResponses.push({
             result: response2.choices[0].message.content,
@@ -521,7 +521,7 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.total_tokens);
+        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
@@ -557,7 +557,7 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
 
-          updateCourseTokens(req.body.courseCode, response2.usage.total_tokens);
+          updateCourseTokens(req.body.courseCode, response2.usage.prompt_tokens, response2.usage.completion_tokens);
 
           // console.log(response2.choices[0].message.content)
           GPTResponses.push({

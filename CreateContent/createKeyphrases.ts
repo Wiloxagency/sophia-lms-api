@@ -38,7 +38,7 @@ export async function createkeyphrases(
       presence_penalty: 1,
     });
 
-    updateCourseTokens(courseCode, response.usage.total_tokens);
+    updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     const keywords = response.choices[0].message.content
       .split(",")

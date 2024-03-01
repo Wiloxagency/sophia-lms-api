@@ -85,7 +85,7 @@ const httpTrigger: AzureFunction = async function (
 
     const extractedValue = response.choices[0].message.content;
 
-    updateCourseTokens(req.params.courseCode, response.usage.total_tokens);
+    updateCourseTokens(req.params.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     context.res = {
       status: 200,

@@ -193,15 +193,13 @@ export async function createParagraphs(
       ],
     });
 
-    updateCourseTokens(payload.courseCode, response.usage.total_tokens);
+    updateCourseTokens(payload.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     let data = response.choices[0].message.content.trim();
 
     const formattedData =
       formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
     const paragraphs = splitParagraphs(formattedData, true);
-
-    updateCourseTokens(payload.courseCode, response.usage.total_tokens);
 
     return { content: paragraphs, sectionIndex: index };
   } catch (error) {

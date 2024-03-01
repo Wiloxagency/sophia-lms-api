@@ -41,7 +41,7 @@ export async function createContentTable(
       ],
     });
 
-    updateCourseTokens(courseCode, response.usage.total_tokens);
+    updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     // console.info(response.choices[0].message.content.trim());
     let splittedcontentTable = response.choices[0].message.content
