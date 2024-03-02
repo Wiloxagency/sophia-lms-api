@@ -201,7 +201,7 @@ const httpTrigger: AzureFunction = async function (
   const getCourse = async (courseCode: string) => {
 
     console.log('query', req.headers)
-    var section_request = false
+    var section_request = false;
     var section_number = 0;
     if (req.headers.section) {
       section_number = parseInt(req.headers.section)
@@ -266,15 +266,20 @@ const httpTrigger: AzureFunction = async function (
         }
 
         if (section_request) {
+          const elements= [];
+
+          for (let index = 0; index < body[0]['sections'][section_number].elements.length; index++) {
+            if(body[0]['sections'][section_number].elements[index].type == "Lección Engine")
+              elements.push({ "elementCode": body[0]['sections'][section_number].elements[index].elementCode, "paragraphs":body[0]['sections'][section_number].elements[index].elementLesson.paragraphs});  
+          }
+
           context.res = {
             status: 200,
             headers: {
               "Content-Type": "application/json",
             },
-            //body: body[0]['sections'][section_number]
-            //  .elements[0].elementLesson.paragraphs,//aqui
-            body:  {"paragraphs":body[0]['sections'][section_number].elements[0].elementLesson.paragraphs , "courseTheme": body[0].courseTheme, "colorTheme": body[0].colorTheme},
-        
+            
+            body:  {"elements":elements, "courseTheme": body[0].courseTheme, "colorTheme": body[0].colorTheme},
           };
         } else {
           context.res = {
@@ -911,7 +916,7 @@ const httpTrigger: AzureFunction = async function (
         console.log('query', req.query)
         await getCourse(req.params.courseCode)
       }
-      console.log("Hello there")
+      //console.log("Hello there")
       //else {
       //   if (req.query.search) {
       //     await getCoursesBySearch(req.query)
