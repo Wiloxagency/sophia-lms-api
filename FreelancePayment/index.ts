@@ -6,6 +6,9 @@ import { saveLog } from "../shared/saveLog";
 const database = createConnection()
 import { MPcreateSubscriptionPlan, MPcreateSubscription } from "./mercadoPago";
 import { ObjectId } from "mongodb";
+import { getTokenFromReq } from "../FreelanceLogin/jwt";
+import { get } from "request-promise";
+import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 
 
 const payingApis = [
@@ -21,8 +24,48 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  console.log("--------------------------------")
+
+  var token: JwtPayload | null = null;
+
+  try {
+    token = getTokenFromReq(req)
+    console.log("Token: ", token)
+    
+  } catch (error) {
+    console.log("Error getting token: ", error.name)
+    if (error instanceof TokenExpiredError) {
+      context.res = {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "message": "Token expired"
+        }
+      }
+    } else {
+      context.res = {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "message": "Invalid token"
+        }
+      }
+    }
+    return;
+  }
+  const userId = token.user._id
+  console.log("userId", userId)
+  
   const db = await database
   const Plans = db.collection('freelancePlans')
+  const Users = db.collection('freelanceUser')
+
+  const user = await Users.findOne({ _id: new ObjectId(userId) })
+
 
   console.log(req.headers)
 
@@ -54,18 +97,13 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-  const createPlan = async (plan: any) => {
+  const createPayment = async (plan: any) => {
 
     try {
-      // store plan in mongoDB
-      // Plans.insertOne(plan);
+      const user = await Users.findOne({ _id: new ObjectId(plan.userId) })
+      console.log("User", user)
 
-      // create plan in mercadoPago context
-      const MPPlan = await MPcreateSubscriptionPlan(plan.price, plan.frequency, plan.frequencyType, plan.context)
-
-      console.log("MPPlan!!!", MPPlan)
-
-      if (!MPPlan) {
+      if (true) {
         context.res = {
           "status": 500,
           "headers": {
@@ -78,11 +116,10 @@ const httpTrigger: AzureFunction = async function (
         return;
       }
 
-      const MPPlanId = MPPlan.id
-      plan.paymentMethods.push({ name: "mercadoPago", planId: MPPlanId })
+      // plan.paymentMethods.push({ name: "mercadoPago", planId: MPPlanId })
 
-      console.log(plan)
-      Plans.insertOne(plan);
+      // console.log(plan)
+      // Plans.insertOne(plan);
 
     }
     catch (error) {
@@ -146,7 +183,7 @@ const httpTrigger: AzureFunction = async function (
       await getPlans();
       break;
     case "POST":
-      await createPlan(req.body.plan);
+      await createPayment(req.body);
       break;
     // case "PUT":
     //   await updateAllLanguages(req.body.newKey, req.body.newValue);
