@@ -1,78 +1,77 @@
-import { Configuration, OpenAIApi } from 'openai'
 import { contentTable } from "./prompts";
-import { saveLog } from '../shared/saveLog';
+import { saveLog } from "../shared/saveLog";
+import OpenAI from "openai";
 
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function createContentTable(
-    courseName: string, 
-    maxSections: number, 
-    languageName: string, 
-    courseCode: string,
-    courseDescription: string): Promise<string[]> {
+  courseName: string,
+  maxSections: number,
+  languageName: string,
+  courseCode: string,
+  courseDescription: string
+): Promise<string[]> {
+  const prompt = contentTable.prompt
+    .replace(/v{maxSections}/g, maxSections.toString())
+    .replace(/v{courseName}/g, courseName)
+    .replace(/v{languageName}/g, languageName)
+    .replace(/v{courseDescription}/g, courseDescription);
 
-    const openai = new OpenAIApi(configuration);
+  console.info("Prompt:", prompt);
 
-    const prompt = contentTable.prompt.
-        replace(/v{maxSections}/g, maxSections.toString()).
-        replace(/v{courseName}/g, courseName).
-        replace(/v{languageName}/g, languageName).
-        replace(/v{courseDescription}/g, courseDescription)
+  try {
+    // const response = await openai.createCompletion({
+    //     model: "text-davinci-003",
+    //     prompt: prompt,
+    //     temperature: 0.7,
+    //     max_tokens: 2500,
+    //     top_p: 1,
+    //     frequency_penalty: 0,
+    //     presence_penalty: 0,
+    // })
 
-    console.info("Prompt:", prompt)
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-0125-preview",
+      messages: [
+        {
+          role: "system",
+          content: contentTable.role,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+        {
+          role: "system",
+          content: contentTable.resp,
+        },
+      ],
+    });
 
-    try {
-        // const response = await openai.createCompletion({
-        //     model: "text-davinci-003",
-        //     prompt: prompt,
-        //     temperature: 0.7,
-        //     max_tokens: 2500,
-        //     top_p: 1,
-        //     frequency_penalty: 0,
-        //     presence_penalty: 0,
-        // })
+    console.info(response.choices[0].message.content.trim());
+    let splittedcontentTable = response.choices[0].message.content
+      .trim()
+      .replace(/\d{1,2}\./g, "")
+      .split("\n")
+      .map((item) => {
+        return item.trim();
+      })
+      .filter((item) => {
+        return item.length > 1;
+      });
 
-        const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: contentTable.role
-                },
-                {
-                    role: "user",
-                    content: prompt
-                },
-                {
-                    role: "system",
-                    content: contentTable.resp
-                }
-            ],
-            
+    console.info("splittedcontentTable:", splittedcontentTable);
 
-        })
-
-        console.info(response.data.choices[0].message.content.trim())
-        let splittedcontentTable = response.data.choices[0].message.content.trim().
-            replace(/\d{1,2}\./g, "").
-            split("\n").
-            map(item => {
-                return item.trim()
-            }).filter(item => {
-                return item.length > 1
-            }
-            )
-
-        console.info("splittedcontentTable:", splittedcontentTable)
-
-        return splittedcontentTable
-    } catch (error) {
-        await saveLog(`Error creating Content Table for course: ${courseCode}.`, "Error", "createContentTable()", "Courses/{courseCode}/CreateContent")
-        return undefined
-    }
-
-
-    
+    return splittedcontentTable;
+  } catch (error) {
+    await saveLog(
+      `Error creating Content Table for course: ${courseCode}.`,
+      "Error",
+      "createContentTable()",
+      "Courses/{courseCode}/CreateContent"
+    );
+    return undefined;
+  }
 }

@@ -1,20 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
-import { Configuration, OpenAIApi } from "openai";
 import { saveLog } from "../shared/saveLog";
 import { downloadQuiz } from "./download";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
 const database = createConnection();
-
-// OpenAI Credentials
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -32,8 +29,8 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -42,13 +39,14 @@ const httpTrigger: AzureFunction = async function (
             {
               role: "user",
               content:
-                "Redacta una pregunta basada en el siguiente párrafo: " +
+                // "Redacta una pregunta basada en el siguiente párrafo: " +
+                "Generate an open-ended question based on the information provided in the text. Ensure that the question can be answered using the given information. Respond in Spanish: " +
                 paragraph.content,
             },
           ],
         });
         quizList.push({
-          question: response.data.choices[0].message.content,
+          question: response.choices[0].message.content,
           source: paragraph.content,
         });
       }
@@ -70,7 +68,91 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         { $push: { [sectionElementsPath]: quizElementPayload } }
-      )
+      );
+      await updatePromise;
+      // console.log(response.data.choices[0].message.content)
+      context.res = {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: quizList,
+      };
+    } catch (error) {
+      // console.log(error)
+      await saveLog(
+        `Error creating a quizz for: ${req.body.courseCode}, error ${error.message}`,
+        "Error",
+        "createShortAnswerQuiz()",
+        "Quiz"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error",
+        },
+      };
+    }
+  };
+
+  const createMultipleChoiceQuiz = async () => {
+    try {
+      const db = await database;
+      const Courses = db.collection("course");
+      // console.log(req.body)
+      let coursePromise = Courses.findOne({ code: req.body.courseCode });
+      let course = await coursePromise;
+      let lessonFirst5Paragraphs = course.sections[
+        req.body.indexSection
+      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+      let quizList = [];
+      for (const paragraph of lessonFirst5Paragraphs) {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful assistant.",
+            },
+            {
+              role: "user",
+              content:
+                "Extract from the following text 4 options for a multiple choice test, only one of the options will be the correct answer. Deliver your response in Spanish in valid json format as an array of strings. The first string corresponds to the question, the second to the correct answer, the third, fourth and fifth to false answers: " +
+                paragraph.content,
+            },
+          ],
+        });
+        let firstStepParsing =
+          response.choices[0].message.content.split("[")[1];
+        let secondStepParsing = firstStepParsing.split("]")[0];
+        let thirdStepParsing = JSON.parse("[" + secondStepParsing + "]");
+
+        // console.log(thirdStepParsing);
+
+        quizList.push(thirdStepParsing);
+      }
+      let sectionElementsPath = `sections.${req.body.indexSection}.elements`;
+      let quizz_list = quizList;
+      let quizElementPayload = {
+        type: "quizz",
+        title: "Quiz",
+        quizCode: req.body.quizCode,
+        elementQuiz: {
+          quizz_list: quizz_list,
+          isAICreated: true,
+        },
+      };
+      // sectionElements.push(quizElementPayload);
+      // console.log(sectionElements)
+
+      const updatePromise = Courses.updateOne(
+        { code: req.body.courseCode },
+        { $push: { [sectionElementsPath]: quizElementPayload } }
+      );
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -113,8 +195,8 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -129,7 +211,7 @@ const httpTrigger: AzureFunction = async function (
             },
           ],
         });
-        let completionQuizParts = response.data.choices[0].message.content
+        let completionQuizParts = response.choices[0].message.content
           .split("Frase principal: ")
           .pop()
           .split("Palabra extraída: ");
@@ -147,7 +229,7 @@ const httpTrigger: AzureFunction = async function (
 
           if (completionQuizParts[0].toLowerCase().includes(keyword)) {
             quizList.push({
-              question: response.data.choices[0].message.content,
+              question: response.choices[0].message.content,
             });
           }
         } else {
@@ -174,7 +256,7 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $push: { [sectionElementsPath]: quizElementPayload }
+          $push: { [sectionElementsPath]: quizElementPayload },
         }
       );
       await updatePromise;
@@ -217,8 +299,8 @@ const httpTrigger: AzureFunction = async function (
       ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
       let quizList = [];
       for (const paragraph of lessonFirst5Paragraphs) {
-        const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -237,7 +319,7 @@ const httpTrigger: AzureFunction = async function (
         // console.log(response.data.choices[0].message.content)
         // console.log('______________________________________________________')
         // return
-        let trueOrFalseQuizParts = response.data.choices[0].message.content
+        let trueOrFalseQuizParts = response.choices[0].message.content
           .split("Frase verdadera: ")
           .pop()
           .split("Frase falsa: ");
@@ -275,9 +357,9 @@ const httpTrigger: AzureFunction = async function (
       const updatePromise = Courses.updateOne(
         { code: req.body.courseCode },
         {
-          $push: { [sectionElementsPath]: quizElementPayload }
+          $push: { [sectionElementsPath]: quizElementPayload },
         }
-      )
+      );
       await updatePromise;
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -316,8 +398,8 @@ const httpTrigger: AzureFunction = async function (
                 Mi respuesta:
                 ${quiz.studentFullResponse}
                 ¿Son el texto original y mi respuesta equivalentes? Ignora diferencias en letras mayúsculas o minúsculas. Responde usando sólo 2 letras: sí o no`;
-        const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -330,19 +412,17 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
         // console.log(response.data.choices[0].message.content)
-        if (
-          response.data.choices[0].message.content.toLowerCase().includes("s")
-        ) {
+        if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
           // console.log(response.data.choices[0].message.content)
           GPTResponses.push({ result: "Correcto" });
         } else if (
-          response.data.choices[0].message.content.toLowerCase().includes("n")
+          response.choices[0].message.content.toLowerCase().includes("n")
         ) {
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
-          const response2 = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
+          const response2 = await openai.chat.completions.create({
+            model: "gpt-4-0125-preview",
             messages: [
               {
                 role: "system",
@@ -354,7 +434,7 @@ const httpTrigger: AzureFunction = async function (
               },
               {
                 role: "assistant",
-                content: response.data.choices[0].message.content,
+                content: response.choices[0].message.content,
               },
               {
                 role: "user",
@@ -365,7 +445,7 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
           GPTResponses.push({
-            result: response2.data.choices[0].message.content,
+            result: response2.choices[0].message.content,
           });
         }
         // console.log(response.data.choices[0].message.content)
@@ -408,8 +488,8 @@ const httpTrigger: AzureFunction = async function (
                 Mi respuesta:
                 ${quiz.answer}
                 ¿Mi respuesta es correcta? Responde usando sólo 2 letras: sí o no`;
-        const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-0125-preview",
           messages: [
             {
               role: "system",
@@ -422,19 +502,17 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
         // console.log(response.data.choices[0].message.content)
-        if (
-          response.data.choices[0].message.content.toLowerCase().includes("s")
-        ) {
+        if (response.choices[0].message.content.toLowerCase().includes("s")) {
           // console.log('SÍ: ')
           // console.log(response.data.choices[0].message.content)
           GPTResponses.push({ result: "Correcto" });
         } else if (
-          response.data.choices[0].message.content.toLowerCase().includes("n")
+          response.choices[0].message.content.toLowerCase().includes("n")
         ) {
           // console.log('NO: ')
           // console.log(response.data.choices[0].message.content)
-          const response2 = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
+          const response2 = await openai.chat.completions.create({
+            model: "gpt-4-0125-preview",
             messages: [
               {
                 role: "system",
@@ -446,7 +524,7 @@ const httpTrigger: AzureFunction = async function (
               },
               {
                 role: "assistant",
-                content: response.data.choices[0].message.content,
+                content: response.choices[0].message.content,
               },
               {
                 role: "user",
@@ -456,9 +534,9 @@ const httpTrigger: AzureFunction = async function (
               // ¿La respuesta completa correctamente la actividad de completación?
             ],
           });
-          // console.log(response2.data.choices[0].message.content)
+          // console.log(response2.choices[0].message.content)
           GPTResponses.push({
-            result: response2.data.choices[0].message.content,
+            result: response2.choices[0].message.content,
           });
         }
         // console.log(GPTResponses)
@@ -492,8 +570,8 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "POST":
       if (req.body.operation == "create") {
-        if (req.body.quizType == "multipleChoice") {
-          // await createMultipleChoiceQuiz()
+        if (req.body.quizType == "quizz") {
+          await createMultipleChoiceQuiz();
         }
         if (req.body.quizType == "shortAnswer") {
           await createShortAnswerQuiz();

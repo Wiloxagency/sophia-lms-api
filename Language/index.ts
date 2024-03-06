@@ -1,18 +1,18 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-const { Configuration, OpenAIApi } = require("openai");
 import { isoLangPro } from "./isoLang";
 import { template } from "./template";
 import fs = require("fs");
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 interface Language {
   [key: string]: string;
 }
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const database = createConnection();
 
@@ -28,18 +28,25 @@ const httpTrigger: AzureFunction = async function (
     console.info("Prompt --> ", prompt);
 
     try {
-      const openai = new OpenAIApi(configuration);
-
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: prompt,
+      const response = await openai.chat.completions.create({
+        model: "gpt-4-0125-preview",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
         temperature: 0,
         max_tokens: 256,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
       });
-      const translation = response.data.choices[0].text;
+      const translation = response.choices[0].message.content;
       console.info("Start translation -->", translation, "End translation");
 
       //return "{'Original':" + translation + "}" // adicionado o retorno da tradução
