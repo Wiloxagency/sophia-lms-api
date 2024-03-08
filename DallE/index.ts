@@ -1,11 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import axios, { AxiosResponse } from "axios";
 import sharp = require("sharp");
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
+import parseMultipartFormData from "@anzp/azure-function-multipart";
+import type { ParsedField } from "@anzp/azure-function-multipart/dist/types/parsed-field.type";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -30,14 +31,22 @@ const httpTrigger: AzureFunction = async function (
         // prompt: "a white siamese cat",
         n: 1,
         size: "1792x1024",
+        response_format: "b64_json",
       });
+
+      const imageBuffer = Buffer.from(response.data[0].b64_json, "base64");
+
+      const processedSquareImage = await ProcessSquareImage(
+        imageBuffer,
+        courseCode
+      );
 
       context.res = {
         status: 201,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "image/webp",
         },
-        body: { response: response.data },
+        body: processedSquareImage,
       };
     } catch (error) {
       await saveLog(
@@ -58,33 +67,68 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const updateImage = async (
-    imageUrl: string,
-    courseCode: string,
-    sectionIndex: number,
-    elementIndex: number,
-    slideIndex?: number
-  ) => {
+  const updateImage = async () => {
     try {
-      const imageBufferInput = (
-        await axios({ url: imageUrl, responseType: "arraybuffer" })
-      ).data as Buffer;
-      const imageBufferOutput = await sharp(imageBufferInput).jpeg().toBuffer();
-      let processedSquareImage = await ProcessSquareImage(
-        imageBufferOutput,
-        courseCode
-      );
+      const { fields, files } = await parseMultipartFormData(req);
+
+      const { courseCode, sectionIndex, elementIndex, slideIndex } =
+        getFieldsAsObject(fields);
+      const image = files.find((file) => file.name === "image");
+
+      if (typeof courseCode !== "string") {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message:
+              '"courseCode" text field is missing or has an invalid value.',
+          },
+        };
+        return;
+      }
+
+      if (!image) {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: 'Form data is missing "image" file field.',
+          },
+        };
+        return;
+      }
+
+      const isImageFile = image.mimeType.startsWith("image/");
+      if (!isImageFile) {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: '"image" file field is not an image.',
+          },
+        };
+        return;
+      }
+
+      const shouldUpdateSlide =
+        typeof sectionIndex === "number" &&
+        typeof elementIndex === "number" &&
+        typeof slideIndex === "number";
+
       const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
       const containerClient = blobServiceClient.getContainerClient("images");
       const blobName = uuidv4() + ".jpeg";
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(
-        processedSquareImage,
-        processedSquareImage.length
-      );
-      if (req.body.indexSlide) {
+      await blockBlobClient.upload(image.bufferFile, image.bufferFile.length);
+      if (shouldUpdateSlide) {
         const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`;
         const resp = Courses.findOneAndUpdate(
           { code: courseCode },
@@ -94,7 +138,7 @@ const httpTrigger: AzureFunction = async function (
             },
           }
         );
-      } else if (req.body.indexSlide == undefined) {
+      } else {
         const resp = Courses.findOneAndUpdate(
           { code: courseCode },
           {
@@ -113,7 +157,7 @@ const httpTrigger: AzureFunction = async function (
       };
     } catch (error) {
       await saveLog(
-        `Error creating image with DallE for course: ${courseCode}, error: ${error.message} `,
+        `Error creating image with DallE for course, error: ${error.message} `,
         "Error",
         "updateImage()",
         "DallE"
@@ -140,8 +184,6 @@ const httpTrigger: AzureFunction = async function (
           position: "center",
           background: { r: 255, g: 0, b: 0, alpha: 0 },
         })
-        // .toFile('test.png')
-        .toFormat("png")
         .toBuffer();
       let backgroundImageBuffer = await sharp(imageBuffer)
         .blur(10)
@@ -151,15 +193,10 @@ const httpTrigger: AzureFunction = async function (
           fit: "cover",
           position: "center",
         })
-        // .toFile('test2.jpg')
         .toBuffer();
       let composite = await sharp(backgroundImageBuffer)
-        .composite([
-          {
-            input: foregroundImageBuffer,
-          },
-        ])
-        // .toFile('test4.jpg')
+        .composite([{ input: foregroundImageBuffer }])
+        .toFormat("webp")
         .toBuffer();
       return composite;
     } catch (error) {
@@ -178,18 +215,21 @@ const httpTrigger: AzureFunction = async function (
       break;
 
     case "PUT":
-      await updateImage(
-        req.body.imageUrl,
-        req.body.courseCode,
-        req.body.indexSection,
-        req.body.indexElement,
-        req.body.indexSlide
-      );
+      await updateImage();
       break;
 
     default:
       break;
   }
 };
+
+function getFieldsAsObject(fields: ParsedField[]) {
+  const fieldsObject: Record<string, unknown> = {};
+  for (const field of fields) {
+    fieldsObject[field.name] = field.value;
+  }
+
+  return fieldsObject;
+}
 
 export default httpTrigger;
