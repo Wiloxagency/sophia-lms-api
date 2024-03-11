@@ -24,7 +24,8 @@ const httpTrigger: AzureFunction = async function (
     const filteredImages = await findImagesFromAssets(
       req.query.topic,
       req.query.conversationContext,
-      25
+      25,
+      req.query.courseCode
     );
 
     context.res = {

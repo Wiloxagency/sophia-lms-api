@@ -93,7 +93,7 @@ export async function findImagesFromAssets(
   topic: string,
   conversationContext: string,
   quantity: number,
-  courseCode?: string
+  courseCode: string
 ): Promise<
   | {
       image: {};
@@ -110,7 +110,8 @@ export async function findImagesFromAssets(
 
   const getCategoriesResponse = await getTopicCategories(
     topic,
-    conversationContext
+    conversationContext,
+    courseCode
   );
 
   let categoryNames = await getTopicCategoryNamesFromNumbers(

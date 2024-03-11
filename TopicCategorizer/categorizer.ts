@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -24,7 +25,8 @@ export const topicCategories = [
 
 export async function getTopicCategories(
   topic: string,
-  conversationContext: string
+  conversationContext: string,
+  courseCode: string
 ) {
   const response = await openai.chat.completions.create({
     model: "gpt-4-0125-preview",
@@ -38,6 +40,8 @@ export async function getTopicCategories(
       },
     ],
   });
+
+  updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
   const responseMessage = response.choices?.[0]?.message?.content || "";
   const categoriesRegex = /\d+/g;

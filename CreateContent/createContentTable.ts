@@ -1,6 +1,7 @@
 import { contentTable } from "./prompts";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,16 +23,6 @@ export async function createContentTable(
   console.info("Prompt:", prompt);
 
   try {
-    // const response = await openai.createCompletion({
-    //     model: "text-davinci-003",
-    //     prompt: prompt,
-    //     temperature: 0.7,
-    //     max_tokens: 2500,
-    //     top_p: 1,
-    //     frequency_penalty: 0,
-    //     presence_penalty: 0,
-    // })
-
     const response = await openai.chat.completions.create({
       model: "gpt-4-0125-preview",
       messages: [
@@ -50,7 +41,9 @@ export async function createContentTable(
       ],
     });
 
-    console.info(response.choices[0].message.content.trim());
+    updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+
+    // console.info(response.choices[0].message.content.trim());
     let splittedcontentTable = response.choices[0].message.content
       .trim()
       .replace(/\d{1,2}\./g, "")

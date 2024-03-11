@@ -2,6 +2,7 @@ import { titleExtraction } from "./gpt3.prompt";
 import { saveLog } from "../shared/saveLog";
 import { searchImages, searchImagesGpt3 } from "./prompts";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -31,24 +32,6 @@ export async function extractTitle(
   // let mainPhrase: string = ""
 
   try {
-    // const response = await openai.createChatCompletion({
-    //     model: "",
-    //     messages: [
-    //         {
-    //             role: "system",
-    //             content: "Software developer"
-    //         },
-    //         {
-    //             role: "user",
-    //             content: prompt
-    //         }
-    //     ]
-
-    // })
-    // let data = response.data.choices[0].message.content
-    // console.info("gptSearchImages response -->",data)
-    // const obj = JSON.parse(data)
-
     const titleAIObj = await openai.chat.completions.create({
       model: "gpt-4-0125-preview",
       messages: [
@@ -59,7 +42,7 @@ export async function extractTitle(
         {
           role: "user",
           content: prompt,
-        }
+        },
       ],
       temperature: 0.2,
       max_tokens: 500,
@@ -67,6 +50,9 @@ export async function extractTitle(
       frequency_penalty: 0.5,
       presence_penalty: 0,
     });
+
+    updateCourseTokens(courseCode, titleAIObj.usage.prompt_tokens, titleAIObj.usage.completion_tokens);
+
     const mainPhrase = titleAIObj.choices[0].message.content
       .replace(/[\r\n]/gm, "")
       .trim();

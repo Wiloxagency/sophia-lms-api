@@ -11,21 +11,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   try {
-    // const response = await openai.createChatCompletion({
-    //     model: "gpt-4",
-    //     messages: [
-    //         {
-    //             role: "system",
-    //             content: 'You are a helpful assistant.'
-    //         },
-    //         {
-    //             role: "user",
-    //             content: req.body.prompt
-    //         }
-    //     ]
-    // })
-
-    console.info(req.body.prompt);
+    // console.info(req.body.prompt);
     const response = await openai.chat.completions.create({
       model: "gpt-4-0125-preview",
       messages: [

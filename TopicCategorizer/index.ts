@@ -15,17 +15,18 @@ const httpTrigger: AzureFunction = async function (
     let topic = req.body.topic;
     let conversationContext = req.body.context;
 
-    const getTopicCategoriesResponse = await getTopicCategories(
-      topic,
-      conversationContext
-    );
+    // const getTopicCategoriesResponse = await getTopicCategories(
+    //   topic,
+    //   conversationContext
+    // );
 
     context.res = {
       status: 200,
       headers: {
         "Content-Type": "application/json",
       },
-      body: getTopicCategoriesResponse,
+      body: 'getTopicCategoriesResponse',
+      // body: getTopicCategoriesResponse,
     };
   } catch (error) {
     await saveLog(

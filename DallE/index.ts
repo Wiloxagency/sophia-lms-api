@@ -37,7 +37,7 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: { response: response.data },
+        body: { response: response },
       };
     } catch (error) {
       await saveLog(

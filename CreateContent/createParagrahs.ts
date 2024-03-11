@@ -10,6 +10,7 @@ import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -191,6 +192,8 @@ export async function createParagraphs(
         },
       ],
     });
+
+    updateCourseTokens(payload.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     let data = response.choices[0].message.content.trim();
 

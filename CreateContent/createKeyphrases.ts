@@ -1,3 +1,4 @@
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { saveLog } from "../shared/saveLog";
 import { keyphrases } from "./prompts";
 import OpenAI from "openai";
@@ -28,7 +29,7 @@ export async function createkeyphrases(
         {
           role: "user",
           content: prompt,
-        }
+        },
       ],
       temperature: 0,
       max_tokens: 250,
@@ -36,6 +37,8 @@ export async function createkeyphrases(
       frequency_penalty: 1,
       presence_penalty: 1,
     });
+
+    updateCourseTokens(courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
     const keywords = response.choices[0].message.content
       .split(",")

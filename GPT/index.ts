@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,6 +26,9 @@ const httpTrigger: AzureFunction = async function (
           },
         ],
       });
+
+      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+
       // console.log(response.data.choices[0].message.content)
       context.res = {
         status: 200,
@@ -80,6 +84,9 @@ const httpTrigger: AzureFunction = async function (
           },
         ],
       });
+
+      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+
       // console.log(response.data.choices[0].message.content)
       context.res = {
         status: 200,
