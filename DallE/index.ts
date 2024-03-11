@@ -1,9 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import axios, { AxiosResponse } from "axios";
 import sharp = require("sharp");
-import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
-import { v4 as uuidv4 } from "uuid";
-import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
 
@@ -11,17 +7,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const AZURE_STORAGE_CONNECTION_STRING =
-  process.env.AZURE_STORAGE_CONNECTION_STRING;
-const database = createConnection();
-
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const db = await database;
-  const Courses = db.collection("course");
-
   const createImages = async (courseCode: string) => {
     try {
       const response = await openai.images.generate({
@@ -30,14 +19,22 @@ const httpTrigger: AzureFunction = async function (
         // prompt: "a white siamese cat",
         n: 1,
         size: "1792x1024",
+        response_format: "b64_json",
       });
+
+      const imageBuffer = Buffer.from(response.data[0].b64_json, "base64");
+
+      const processedSquareImage = await ProcessSquareImage(
+        imageBuffer,
+        courseCode
+      );
 
       context.res = {
         status: 201,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "image/webp",
         },
-        body: { response: response },
+        body: processedSquareImage,
       };
     } catch (error) {
       await saveLog(
@@ -58,78 +55,6 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const updateImage = async (
-    imageUrl: string,
-    courseCode: string,
-    sectionIndex: number,
-    elementIndex: number,
-    slideIndex?: number
-  ) => {
-    try {
-      const imageBufferInput = (
-        await axios({ url: imageUrl, responseType: "arraybuffer" })
-      ).data as Buffer;
-      const imageBufferOutput = await sharp(imageBufferInput).jpeg().toBuffer();
-      let processedSquareImage = await ProcessSquareImage(
-        imageBufferOutput,
-        courseCode
-      );
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
-        AZURE_STORAGE_CONNECTION_STRING
-      );
-      const containerClient = blobServiceClient.getContainerClient("images");
-      const blobName = uuidv4() + ".jpeg";
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(
-        processedSquareImage,
-        processedSquareImage.length
-      );
-      if (req.body.indexSlide) {
-        const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`;
-        const resp = Courses.findOneAndUpdate(
-          { code: courseCode },
-          {
-            $set: {
-              [imageField]: blockBlobClient.url,
-            },
-          }
-        );
-      } else if (req.body.indexSlide == undefined) {
-        const resp = Courses.findOneAndUpdate(
-          { code: courseCode },
-          {
-            $set: {
-              "details.cover": blockBlobClient.url,
-            },
-          }
-        );
-      }
-      context.res = {
-        status: 201,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: { imageUrl: blockBlobClient.url },
-      };
-    } catch (error) {
-      await saveLog(
-        `Error creating image with DallE for course: ${courseCode}, error: ${error.message} `,
-        "Error",
-        "updateImage()",
-        "DallE"
-      );
-      context.res = {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          message: "Error updating image",
-        },
-      };
-    }
-  };
-
   async function ProcessSquareImage(imageBuffer: Buffer, courseCode: string) {
     try {
       let foregroundImageBuffer = await sharp(imageBuffer)
@@ -140,8 +65,6 @@ const httpTrigger: AzureFunction = async function (
           position: "center",
           background: { r: 255, g: 0, b: 0, alpha: 0 },
         })
-        // .toFile('test.png')
-        .toFormat("png")
         .toBuffer();
       let backgroundImageBuffer = await sharp(imageBuffer)
         .blur(10)
@@ -151,15 +74,10 @@ const httpTrigger: AzureFunction = async function (
           fit: "cover",
           position: "center",
         })
-        // .toFile('test2.jpg')
         .toBuffer();
       let composite = await sharp(backgroundImageBuffer)
-        .composite([
-          {
-            input: foregroundImageBuffer,
-          },
-        ])
-        // .toFile('test4.jpg')
+        .composite([{ input: foregroundImageBuffer }])
+        .toFormat("webp")
         .toBuffer();
       return composite;
     } catch (error) {
@@ -175,16 +93,6 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "POST":
       await createImages(req.body.courseCode);
-      break;
-
-    case "PUT":
-      await updateImage(
-        req.body.imageUrl,
-        req.body.courseCode,
-        req.body.indexSection,
-        req.body.indexElement,
-        req.body.indexSlide
-      );
       break;
 
     default:
