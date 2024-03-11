@@ -779,28 +779,29 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-      console.log("THIS RUNS");
+
       const { fields, files } = await parseMultipartFormData(req);
-      console.log("THIS RUNS 2");
-      const responseMessage = {
-        fields,
-        files,
-      };
-      const courseCode = responseMessage.fields[0].value;
-      const output = responseMessage.files[0].bufferFile as Buffer;
-      const compressedOutput = await sharp(output)
+      const courseCode = fields[0].value;
+      const imageFile = files[0];
+
+      const compressedImageBuffer = await sharp(imageFile.bufferFile)
         .resize(1200, 675)
-        .jpeg()
+        .toFormat("webp")
         .toBuffer();
+
       const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
       const containerClient = blobServiceClient.getContainerClient("images");
       const blockBlobClient = containerClient.getBlockBlobClient(
-        responseMessage.files[0].filename
+        imageFile.filename
       );
-      await blockBlobClient.upload(compressedOutput, compressedOutput.length);
-      let key = "details.cover";
+      await blockBlobClient.upload(
+        compressedImageBuffer,
+        compressedImageBuffer.length
+      );
+
+      const key = "details.cover";
       await Courses.updateOne(
         { code: courseCode },
         {
@@ -809,6 +810,11 @@ const httpTrigger: AzureFunction = async function (
           },
         }
       );
+      context.res = {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+        body: { imageUrl: blockBlobClient.url },
+      };
     } catch (error) {
       await saveLog(
         `Error uploading course cover. ` + error.message,
@@ -826,7 +832,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  }
+  };
 
   switch (req.method) {
     case "POST":

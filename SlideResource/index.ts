@@ -137,99 +137,103 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
-    const uploadResource = async (req: HttpRequest) => {
+  const uploadResource = async (req: HttpRequest) => {
+    try {
+      const { fields, files } = await parseMultipartFormData(req);
+      const courseCode = fields[0].value;
+      const sectionIndex = fields[1].value;
+      const elementIndex = fields[2].value;
+      const slideIndex = fields[3].value;
+      const resourceType = fields[4].value;
 
-        try {
+      const imageOrVideoFile = files[0];
 
-            const { fields, files } = await parseMultipartFormData(req)
-            const responseMessage = {
-                fields,
-                files,
-            }
-            const courseCode = responseMessage.fields[0].value
-            const sectionIndex = responseMessage.fields[1].value
-            const elementIndex = responseMessage.fields[2].value
-            const slideIndex = responseMessage.fields[3].value
-            const resourceType = responseMessage.fields[4].value
+      const blobServiceClient = BlobServiceClient.fromConnectionString(
+        AZURE_STORAGE_CONNECTION_STRING
+      );
+      let blobName = uuidv4();
+      let containerClient: ContainerClient;
+      let fieldKeyToUpdate: string;
+      let bufferToUpload: Buffer;
 
-            const resourceBuffer = responseMessage.files[0].bufferFile as Buffer
-            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-            let blobName = uuidv4()
-            let containerClient: ContainerClient
-            let setKey: string
-            let resourceField: string
-            let output: Buffer
-            switch (resourceType) {
-                case 'video':
-                    containerClient = blobServiceClient.getContainerClient("videos")
-                    setKey = "videoUrl"
-                    blobName += ".mp4"
-                    output = resourceBuffer
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
-                    break;
-                case 'image':
-                    output = await sharp(resourceBuffer)
-                        .resize(1200, 675)
-                        .jpeg()
-                        .toBuffer();
-                    containerClient = blobServiceClient.getContainerClient("images")
-                    blobName += ".jpeg"
-                    setKey = "imgUrl"
-                    resourceField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`
-                    break;
+      if (resourceType !== "video" && resourceType !== "image") {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "Invalid `resourceType`",
+          },
+        };
+        return;
+      }
 
-                default:
-                    context.res = {
-                        "status": 204,
-                        "headers": {
-                            "Content-Type": "application/json"
-                        }
-                    }
-                    break;
-            }
+      if (resourceType === "video") {
+        containerClient = blobServiceClient.getContainerClient("videos");
+        blobName += ".mp4";
+        bufferToUpload = imageOrVideoFile.bufferFile;
+        fieldKeyToUpdate = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`;
+      } else {
+        bufferToUpload = await sharp(imageOrVideoFile.bufferFile)
+          .resize(1200, 675)
+          .toFormat("webp")
+          .toBuffer();
+        containerClient = blobServiceClient.getContainerClient("images");
+        blobName += ".webp";
+        fieldKeyToUpdate = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`;
+      }
 
-            const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-            await blockBlobClient.upload(output, output.length);
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
 
-            const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
-                $set: {
-                    [resourceField]: blockBlobClient.url
-                }
-            })
-
-            if (resourceType == 'image') {
-                let videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`
-                const updateResponse = Courses.findOneAndUpdate({ code: courseCode }, {
-                    $set: {
-                        [videoUrlField]: ''
-                    }
-                })
-            }
-
-            context.res = {
-                "status": 201,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": { "url": blockBlobClient.url }
-            }
-
-
-        } catch (error) {
-            await saveLog(`Error updating slide resource, error ${error.message}`, "Error", "uploadResource()", "SlideResource")
-
-            context.res = {
-                "status": 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "message": "Error updating slide resource"
-                }
-            }
-
+      await Courses.findOneAndUpdate(
+        { code: courseCode },
+        {
+          $set: {
+            [fieldKeyToUpdate]: blockBlobClient.url,
+          },
         }
+      );
+
+      if (resourceType === "image") {
+        const videoUrlField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo.url`;
+        await Courses.findOneAndUpdate(
+          { code: courseCode },
+          {
+            $set: {
+              [videoUrlField]: "",
+            },
+          }
+        );
+      }
+
+      context.res = {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: { url: blockBlobClient.url },
+      };
+    } catch (error) {
+      await saveLog(
+        `Error updating slide resource, error ${error.message}`,
+        "Error",
+        "uploadResource()",
+        "SlideResource"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error updating slide resource",
+        },
+      };
     }
+  };
 
     switch (req.method) {
         case "POST":
