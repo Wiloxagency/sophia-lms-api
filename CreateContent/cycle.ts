@@ -40,18 +40,19 @@ export async function fetchAndParsePexelsImagesAndReturnOne(
       return photo.src.large;
     });
   }
-  console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
-  console.log("Index slide: " + indexSlide);
-  console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
+  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
+  // console.log("Index slide: " + indexSlide);
+  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
 
-  if (indexSlide == 79) {
+  if (indexSlide == parsedPexelImages.length -1) {
+    // console.log('REACHED LAST IMAGE.')
     let pexelsResponse2;
     let parsedResults;
     pexelsResponse2 = await returnPexelsImages(courseName);
     parsedResults = pexelsResponse2.photos.map((photo) => {
       return photo.src.large;
     });
-    parsedPexelImages.concat(parsedResults);
+    parsedPexelImages = parsedPexelImages.concat(parsedResults);
   }
 
   //   console.log(parsedResults);
