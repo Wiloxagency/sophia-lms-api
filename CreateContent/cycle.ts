@@ -35,14 +35,14 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     }
   | {
       thumb: {
-        url: "";
-        width: 0;
-        height: 0;
+        url: string;
+        width: number;
+        height: number;
       };
       finalVideo: {
-        url: "";
-        width: 0;
-        height: 0;
+        url: string;
+        width: number;
+        height: number;
       };
     }
 > {
@@ -81,7 +81,12 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   //   console.log(parsedResults);
 
-  return true
+  console.log(
+    "parsed pexels videos video url: ",
+    parsedPexelVideos[indexSlide]
+  );
+
+  return indexSlide % 2 == 0
     ? {
         image: {},
         thumb: {},
@@ -100,7 +105,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: 0,
         },
         finalVideo: {
-          url: "",
+          url: parsedPexelVideos[indexSlide],
           width: 0,
           height: 0,
         },
@@ -134,8 +139,6 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
   resultsCache = resultsCache.map((video) => {
     return video.link;
   });
-
-  parsedPexelVideos = parsedPexelVideos.concat(resultsCache);
 }
 
 function wait(seconds: number) {
@@ -343,12 +346,21 @@ export async function createContentCycle(
           //     course.code
           //   );
 
-          if (totalParagraphsCounter / 2 == 0) {
+          // 👇🏻ADD IMAGE/VIDEO TO SLIDE 🖼️📽️
+          if (totalParagraphsCounter % 2 == 0) {
+            // IS IMAGE 🖼️
             const currentImageData =
               await fetchAndParsePexelsImagesAndVideosAndReturnOne(
                 course.details.title,
                 totalParagraphsCounter
               );
+
+            // CREATE EMPTY VIDEO STRUCTURE
+            currentParagrah["videoData"] = {
+              thumb: { url: "", width: 0, height: 0 },
+              finalVideo: { url: "", width: 0, height: 0 },
+            };
+
             console.info(
               `Image for section ${sectionCounter + 1}/${
                 course.sections.length
@@ -358,11 +370,22 @@ export async function createContentCycle(
             );
             currentParagrah["imageData"] = currentImageData;
           } else {
+            // IS VIDEO 📽️
             const currentVideoData =
               await fetchAndParsePexelsImagesAndVideosAndReturnOne(
                 course.details.title,
                 totalParagraphsCounter
               );
+
+            // CREATE EMPTY IMAGE STRUCTURE
+            currentParagrah["imageData"] = {
+              image: {},
+              thumb: {},
+              finalImage: {},
+              imagesIds: "",
+              urlBing: "",
+            };
+
             console.info(
               `Video for section ${sectionCounter + 1}/${
                 course.sections.length
@@ -397,12 +420,6 @@ export async function createContentCycle(
             );
           };
           await createKeyPhrasesFn(0);
-
-          //create an empty video structure too
-          currentParagrah["videoData"] = {
-            thumb: { url: "", width: 0, height: 0 },
-            finalVideo: { url: "", width: 0, height: 0 },
-          };
 
           paragraphCounter++;
           totalParagraphsCounter++;
