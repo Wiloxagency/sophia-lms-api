@@ -15,12 +15,14 @@ import { updateCourseDuration } from "../shared/updateCourseDuration";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages";
+import { returnPexelsVideos } from "../PexelsVideos";
 
 const database = createConnection();
 
 let parsedPexelImages = [];
+let parsedPexelVideos = [];
 
-export async function fetchAndParsePexelsImagesAndReturnOne(
+export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
   indexSlide: number
 ): Promise<
@@ -33,23 +35,32 @@ export async function fetchAndParsePexelsImagesAndReturnOne(
     }
   | string[]
 > {
-  let pexelsResponse;
+  let pexelsImagesResponse;
   if (parsedPexelImages.length == 0) {
-    pexelsResponse = await returnPexelsImages(courseName);
-    parsedPexelImages = pexelsResponse.photos.map((photo) => {
+    pexelsImagesResponse = await returnPexelsImages(courseName);
+    parsedPexelImages = pexelsImagesResponse.photos.map((photo) => {
       return photo.src.large;
     });
   }
+
+  let pexelsVideosResponse;
+  if (parsedPexelVideos.length == 0) {
+    pexelsVideosResponse = await returnPexelsVideos(courseName)
+    parsedPexelVideos = pexelsVideosResponse.videos.map((video) => {
+      return video.video_files
+    })
+  }
+
   // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
   // console.log("Index slide: " + indexSlide);
   // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
 
-  if (indexSlide == parsedPexelImages.length -1) {
+  if (indexSlide == parsedPexelImages.length - 1) {
     // console.log('REACHED LAST IMAGE.')
-    let pexelsResponse2;
+    let pexelsImagesResponse2;
     let parsedResults;
-    pexelsResponse2 = await returnPexelsImages(courseName);
-    parsedResults = pexelsResponse2.photos.map((photo) => {
+    pexelsImagesResponse2 = await returnPexelsImages(courseName);
+    parsedResults = pexelsImagesResponse2.photos.map((photo) => {
       return photo.src.large;
     });
     parsedPexelImages = parsedPexelImages.concat(parsedResults);
@@ -275,10 +286,11 @@ export async function createContentCycle(
           //     course.code
           //   );
 
-          const currentImageData = await fetchAndParsePexelsImagesAndReturnOne(
-            course.details.title,
-            totalParagraphsCounter
-          );
+          const currentImageData =
+            await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+              course.details.title,
+              totalParagraphsCounter
+            );
 
           console.info(
             `Image for section ${sectionCounter + 1}/${
