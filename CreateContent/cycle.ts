@@ -14,8 +14,8 @@ import { createSrt } from "./createSrt";
 import { updateCourseDuration } from "../shared/updateCourseDuration";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
-import { returnPexelsImages } from "../PexelsImages";
-import { returnPexelsVideos } from "../PexelsVideos";
+import { returnPexelsImages } from "../PexelsImages/shared";
+import { returnPexelsVideos } from "../PexelsVideos/shared";
 
 const database = createConnection();
 
@@ -33,7 +33,18 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
       imagesIds: string[];
       urlBing: string;
     }
-  | string[]
+  | {
+      thumb: {
+        url: "";
+        width: 0;
+        height: 0;
+      };
+      finalVideo: {
+        url: "";
+        width: 0;
+        height: 0;
+      };
+    }
 > {
   let pexelsImagesResponse;
   if (parsedPexelImages.length == 0) {
@@ -45,40 +56,86 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   let pexelsVideosResponse;
   if (parsedPexelVideos.length == 0) {
-    pexelsVideosResponse = await returnPexelsVideos(courseName)
-    parsedPexelVideos = pexelsVideosResponse.videos.map((video) => {
-      return video.video_files
-    })
+    pexelsVideosResponse = await returnPexelsVideos(courseName);
+    await processPexelsVideosResponse(pexelsVideosResponse);
   }
 
   // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
   // console.log("Index slide: " + indexSlide);
   // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
 
-  if (indexSlide == parsedPexelImages.length - 1) {
-    // console.log('REACHED LAST IMAGE.')
+  if (indexSlide == parsedPexelImages.length + parsedPexelVideos.length - 1) {
+    // console.log('REACHED LAST RESOURCE.')
     let pexelsImagesResponse2;
-    let parsedResults;
+    let parsedImagesResults;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
-    parsedResults = pexelsImagesResponse2.photos.map((photo) => {
+    parsedImagesResults = pexelsImagesResponse2.photos.map((photo) => {
       return photo.src.large;
     });
-    parsedPexelImages = parsedPexelImages.concat(parsedResults);
+    parsedPexelImages = parsedPexelImages.concat(parsedImagesResults);
+
+    let pexelsVideosResponse2;
+    pexelsVideosResponse2 = await returnPexelsVideos(courseName);
+    await processPexelsVideosResponse(pexelsVideosResponse2);
   }
 
   //   console.log(parsedResults);
 
-  return {
-    image: {},
-    thumb: {},
-    finalImage: {
-      url: parsedPexelImages[indexSlide],
-      width: "",
-      height: "",
-    },
-    imagesIds: [],
-    urlBing: "",
-  };
+  return true
+    ? {
+        image: {},
+        thumb: {},
+        finalImage: {
+          url: parsedPexelImages[indexSlide],
+          width: "",
+          height: "",
+        },
+        imagesIds: [],
+        urlBing: "",
+      }
+    : {
+        thumb: {
+          url: "",
+          width: 0,
+          height: 0,
+        },
+        finalVideo: {
+          url: "",
+          width: 0,
+          height: 0,
+        },
+      };
+}
+
+async function processPexelsVideosResponse(pexelsVideosResponse) {
+  let resultsCache = [];
+
+  for (const video of pexelsVideosResponse.videos) {
+    let filteredVideos = video.video_files.filter((videoFile) => {
+      return videoFile.quality == "hd";
+    });
+
+    if (filteredVideos.length > 1) {
+      // console.log("Multiple HD videos detected. Choosing highest quality one");
+
+      if (
+        filteredVideos[0].height + filteredVideos[0].width >
+        filteredVideos[1].height + filteredVideos[1].width
+      ) {
+        resultsCache.push(filteredVideos[0]);
+      } else {
+        resultsCache.push(filteredVideos[1]);
+      }
+    } else {
+      resultsCache.push(filteredVideos[0]);
+    }
+  }
+
+  resultsCache = resultsCache.map((video) => {
+    return video.link;
+  });
+
+  parsedPexelVideos = parsedPexelVideos.concat(resultsCache);
 }
 
 function wait(seconds: number) {
@@ -286,20 +343,35 @@ export async function createContentCycle(
           //     course.code
           //   );
 
-          const currentImageData =
-            await fetchAndParsePexelsImagesAndVideosAndReturnOne(
-              course.details.title,
-              totalParagraphsCounter
+          if (totalParagraphsCounter / 2 == 0) {
+            const currentImageData =
+              await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+                course.details.title,
+                totalParagraphsCounter
+              );
+            console.info(
+              `Image for section ${sectionCounter + 1}/${
+                course.sections.length
+              }, Lesson ${lessonCounter + 1}, paragraph ${
+                paragraphCounter + 1
+              }/${currentParagraphs.content.length} created`
             );
-
-          console.info(
-            `Image for section ${sectionCounter + 1}/${
-              course.sections.length
-            }, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${
-              currentParagraphs.content.length
-            } created`
-          );
-          currentParagrah["imageData"] = currentImageData;
+            currentParagrah["imageData"] = currentImageData;
+          } else {
+            const currentVideoData =
+              await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+                course.details.title,
+                totalParagraphsCounter
+              );
+            console.info(
+              `Video for section ${sectionCounter + 1}/${
+                course.sections.length
+              }, Lesson ${lessonCounter + 1}, paragraph ${
+                paragraphCounter + 1
+              }/${currentParagraphs.content.length} created`
+            );
+            currentParagrah["videoData"] = currentVideoData;
+          }
 
           const createKeyPhrasesFn = async (tries: number) => {
             let keyPhrases = await createkeyphrases(
