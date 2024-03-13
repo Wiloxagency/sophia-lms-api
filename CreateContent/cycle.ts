@@ -91,11 +91,11 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     currentVideoCounter++;
   }
 
-  console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-  console.log("INDEX SLIDE: ", indexSlide);
-  console.log("CURRENT IMAGE COUNTER: ", currentImageCounter);
-  console.log("CURRENT VIDEO COUNTER: ", currentVideoCounter);
-  console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+  // console.log("INDEX SLIDE: ", indexSlide);
+  // console.log("CURRENT IMAGE COUNTER: ", currentImageCounter);
+  // console.log("CURRENT VIDEO COUNTER: ", currentVideoCounter);
+  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
   // if (isEvenNumber) {
   //   console.log(parsedPexelImages[currentImageCounter]);
