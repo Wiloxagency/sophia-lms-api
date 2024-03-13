@@ -381,10 +381,6 @@ export async function createContentCycle(
 
             currentImageCounter++;
 
-            console.log("UPDATED IMAGE COUNTER: ", currentImageCounter);
-
-            console.log(currentImageData);
-
             // CREATE EMPTY VIDEO STRUCTURE
             currentParagrah["videoData"] = {
               thumb: { url: "", width: 0, height: 0 },
@@ -410,9 +406,6 @@ export async function createContentCycle(
               );
 
             currentVideoCounter++;
-
-            console.log("UPDATED VIDEO COUNTER: ", currentVideoCounter);
-            console.log(currentVideoData);
 
             // CREATE EMPTY IMAGE STRUCTURE
             currentParagrah["imageData"] = {
