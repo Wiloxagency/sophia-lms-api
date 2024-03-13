@@ -24,7 +24,9 @@ let parsedPexelVideos = [];
 
 export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
-  indexSlide: number
+  indexSlide: number,
+  currentImageCounter: number,
+  currentVideoCounter: number
 ): Promise<
   | {
       image: {};
@@ -65,7 +67,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
 
   if (indexSlide == parsedPexelImages.length + parsedPexelVideos.length - 1) {
-    // console.log('REACHED LAST RESOURCE.')
+    console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
     let parsedImagesResults;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
@@ -79,19 +81,34 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     await processPexelsVideosResponse(pexelsVideosResponse2);
   }
 
-  //   console.log(parsedResults);
+  let isEvenNumber = indexSlide % 2 == 0 ? true : false;
 
-  console.log(
-    "parsed pexels videos video url: ",
-    parsedPexelVideos[indexSlide]
-  );
+  if (isEvenNumber) {
+    console.log("currentImageCounter: ", currentImageCounter);
+    currentImageCounter++;
+  } else {
+    console.log("currentVideoCounter: ", currentVideoCounter);
+    currentVideoCounter++;
+  }
 
-  return indexSlide % 2 == 0
+  console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+  console.log("INDEX SLIDE: ", indexSlide);
+  console.log("CURRENT IMAGE COUNTER: ", currentImageCounter);
+  console.log("CURRENT VIDEO COUNTER: ", currentVideoCounter);
+  console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+
+  // if (isEvenNumber) {
+  //   console.log(parsedPexelImages[currentImageCounter]);
+  // } else {
+  //   console.log(parsedPexelVideos[currentVideoCounter]);
+  // }
+
+  return isEvenNumber
     ? {
         image: {},
         thumb: {},
         finalImage: {
-          url: parsedPexelImages[indexSlide],
+          url: parsedPexelImages[currentImageCounter],
           width: "",
           height: "",
         },
@@ -105,7 +122,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: 0,
         },
         finalVideo: {
-          url: parsedPexelVideos[indexSlide],
+          url: parsedPexelVideos[currentVideoCounter],
           width: 0,
           height: 0,
         },
@@ -113,7 +130,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 }
 
 async function processPexelsVideosResponse(pexelsVideosResponse) {
-  let resultsCache = [];
+  let videoResultsCache = [];
 
   for (const video of pexelsVideosResponse.videos) {
     let filteredVideos = video.video_files.filter((videoFile) => {
@@ -127,18 +144,20 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
         filteredVideos[0].height + filteredVideos[0].width >
         filteredVideos[1].height + filteredVideos[1].width
       ) {
-        resultsCache.push(filteredVideos[0]);
+        videoResultsCache.push(filteredVideos[0]);
       } else {
-        resultsCache.push(filteredVideos[1]);
+        videoResultsCache.push(filteredVideos[1]);
       }
     } else {
-      resultsCache.push(filteredVideos[0]);
+      videoResultsCache.push(filteredVideos[0]);
     }
   }
 
-  resultsCache = resultsCache.map((video) => {
+  videoResultsCache = videoResultsCache.map((video) => {
     return video.link;
   });
+
+  parsedPexelVideos = parsedPexelVideos.concat(videoResultsCache);
 }
 
 function wait(seconds: number) {
@@ -175,6 +194,8 @@ export async function createContentCycle(
   const Courses = db.collection("course");
   const startCreation = new Date();
   let totalParagraphsCounter = 0;
+  let currentImageCounter = 0;
+  let currentVideoCounter = 0;
   if (!(course.type && course.ty == "resume")) {
     await Courses.findOneAndUpdate(
       { code: course.code },
@@ -347,13 +368,22 @@ export async function createContentCycle(
           //   );
 
           // 👇🏻ADD IMAGE/VIDEO TO SLIDE 🖼️📽️
+
           if (totalParagraphsCounter % 2 == 0) {
             // IS IMAGE 🖼️
             const currentImageData =
               await fetchAndParsePexelsImagesAndVideosAndReturnOne(
                 course.details.title,
-                totalParagraphsCounter
+                totalParagraphsCounter,
+                currentImageCounter,
+                -1
               );
+
+            currentImageCounter++;
+
+            console.log("UPDATED IMAGE COUNTER: ", currentImageCounter);
+
+            console.log(currentImageData);
 
             // CREATE EMPTY VIDEO STRUCTURE
             currentParagrah["videoData"] = {
@@ -361,21 +391,28 @@ export async function createContentCycle(
               finalVideo: { url: "", width: 0, height: 0 },
             };
 
-            console.info(
-              `Image for section ${sectionCounter + 1}/${
-                course.sections.length
-              }, Lesson ${lessonCounter + 1}, paragraph ${
-                paragraphCounter + 1
-              }/${currentParagraphs.content.length} created`
-            );
+            // console.info(
+            //   `Image for section ${sectionCounter + 1}/${
+            //     course.sections.length
+            //   }, Lesson ${lessonCounter + 1}, paragraph ${
+            //     paragraphCounter + 1
+            //   }/${currentParagraphs.content.length} created`
+            // );
             currentParagrah["imageData"] = currentImageData;
           } else {
             // IS VIDEO 📽️
             const currentVideoData =
               await fetchAndParsePexelsImagesAndVideosAndReturnOne(
                 course.details.title,
-                totalParagraphsCounter
+                totalParagraphsCounter,
+                -1,
+                currentVideoCounter
               );
+
+            currentVideoCounter++;
+
+            console.log("UPDATED VIDEO COUNTER: ", currentVideoCounter);
+            console.log(currentVideoData);
 
             // CREATE EMPTY IMAGE STRUCTURE
             currentParagrah["imageData"] = {
@@ -386,13 +423,13 @@ export async function createContentCycle(
               urlBing: "",
             };
 
-            console.info(
-              `Video for section ${sectionCounter + 1}/${
-                course.sections.length
-              }, Lesson ${lessonCounter + 1}, paragraph ${
-                paragraphCounter + 1
-              }/${currentParagraphs.content.length} created`
-            );
+            // console.info(
+            //   `Video for section ${sectionCounter + 1}/${
+            //     course.sections.length
+            //   }, Lesson ${lessonCounter + 1}, paragraph ${
+            //     paragraphCounter + 1
+            //   }/${currentParagraphs.content.length} created`
+            // );
             currentParagrah["videoData"] = currentVideoData;
           }
 
