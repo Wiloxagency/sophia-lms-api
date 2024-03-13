@@ -230,7 +230,7 @@ export async function createContentCycle(
       languageName: course.languageName,
       courseCode: course.code,
     };
-    console.info("payload 54", payload);
+    // console.info("payload 54", payload);
 
     // Create Content
     const contentCycle = async (sectionCounter: number) => {
@@ -297,13 +297,13 @@ export async function createContentCycle(
             currentParagrah =
               course.sections[currentAudio.sectionIndex].elements[lessonCounter]
                 .elementLesson.paragraphs[currentAudio.paragraphIndex];
-            console.info(
-              `Audio for section ${sectionCounter + 1}/${
-                course.sections.length
-              }, Lesson ${lessonCounter + 1}, paragraph ${
-                paragraphCounter + 1
-              }/${currentParagraphs.content.length} created`
-            );
+            // console.info(
+            //   `Audio for section ${sectionCounter + 1}/${
+            //     course.sections.length
+            //   }, Lesson ${lessonCounter + 1}, paragraph ${
+            //     paragraphCounter + 1
+            //   }/${currentParagraphs.content.length} created`
+            // );
             currentParagrah["audioUrl"] = currentAudio.url;
             // srt creation
 
@@ -319,7 +319,7 @@ export async function createContentCycle(
               await returnLanguageAndLocaleFromLanguage(course.language)
             );
 
-            currentParagrah["srt"] = azureSpeechToText;
+            // currentParagrah["srt"] = azureSpeechToText;
           };
           await createAudioFn(0);
           saveCourseCreationLog(course.code, course.details.title);
@@ -350,13 +350,13 @@ export async function createContentCycle(
           };
           await extractTitleFn(0);
 
-          console.info(
-            `Title for section ${sectionCounter + 1}/${
-              course.sections.length
-            }, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${
-              currentParagraphs.content.length
-            } Extracted `
-          );
+          // console.info(
+          //   `Title for section ${sectionCounter + 1}/${
+          //     course.sections.length
+          //   }, Lesson ${lessonCounter + 1}, paragraph ${paragraphCounter + 1}/${
+          //     currentParagraphs.content.length
+          //   } Extracted `
+          // );
           currentParagrah["titleAI"] = extractedTitle.title;
 
           // const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
@@ -441,13 +441,13 @@ export async function createContentCycle(
               }
             }
             currentParagrah["keyPhrases"] = keyPhrases;
-            console.info(
-              `KeyPhrases for section ${sectionCounter + 1}/${
-                course.sections.length
-              }, Lesson ${lessonCounter + 1}, paragraph ${
-                paragraphCounter + 1
-              }/${currentParagraphs.content.length} created`
-            );
+            // console.info(
+            //   `KeyPhrases for section ${sectionCounter + 1}/${
+            //     course.sections.length
+            //   }, Lesson ${lessonCounter + 1}, paragraph ${
+            //     paragraphCounter + 1
+            //   }/${currentParagraphs.content.length} created`
+            // );
           };
           await createKeyPhrasesFn(0);
 
