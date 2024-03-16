@@ -1,7 +1,6 @@
 import { createAudio } from "./createAudios";
 import { createConnection } from "../shared/mongo";
 import { createParagraphs } from "./createParagrahs";
-import { findImages, findImagesFromAssets } from "./findImages";
 import { paragraphCreation } from "../interfaces/paragraph";
 import {
   deleteCourseCreationLog,
