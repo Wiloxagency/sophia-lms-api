@@ -7,7 +7,10 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   try {
-    let responseImages = await returnPexelsImages(req.body.query);
+    let responseImages = await returnPexelsImages(
+      req.body.query,
+      req.body.isOrientationLandscape
+    );
 
     context.res = {
       status: 200,
