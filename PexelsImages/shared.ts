@@ -12,7 +12,7 @@ export async function returnPexelsImages(query: string) {
   let responseImages = await pexelsClient.photos.search({
     query,
     per_page: 80,
-    orientation: "landscape",
+    // orientation: "landscape",
   });
   return responseImages;
 }
