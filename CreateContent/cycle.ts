@@ -62,10 +62,6 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     await processPexelsVideosResponse(pexelsVideosResponse);
   }
 
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
-  // console.log("Index slide: " + indexSlide);
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
-
   if (indexSlide == parsedPexelImages.length + parsedPexelVideos.length - 1) {
     console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
@@ -236,6 +232,7 @@ export async function createContentCycle(
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
         let currentParagraphs: any;
+
         if (
           course.sections[sectionCounter].elements[lessonCounter].elementLesson
             .paragraphs.length == 0
@@ -266,11 +263,33 @@ export async function createContentCycle(
             }
           );
         }
+
+        let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+        await Courses.findOneAndUpdate(
+          { code: course.code },
+          {
+            $set: {
+              [currentParagraphArrayPath]:
+                course.sections[sectionCounter].elements[lessonCounter]
+                  .elementLesson.paragraphs,
+            },
+          }
+        );
+
         // Create Audios & find images
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
+          let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
+          let currentParagraphAudioUrlPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.audioUrl`;
+          let currentParagraphTitleAIPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.titleAI`;
+          let currentParagraphImageDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.imageData`;
+          let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
+          let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
+
           const paragraphContent = currentParagraphs.content[paragraphCounter];
           // Start creating an audio for a paragraph
+
           const createAudioFn = async (tries: number) => {
             const currentAudio = await createAudio(
               paragraphContent,
@@ -305,6 +324,15 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["audioUrl"] = currentAudio.url;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphAudioUrlPath]: currentAudio.url,
+                },
+              }
+            );
             // srt creation
 
             // const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
@@ -359,6 +387,15 @@ export async function createContentCycle(
           // );
           currentParagrah["titleAI"] = extractedTitle.title;
 
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphTitleAIPath]: extractedTitle.title,
+              },
+            }
+          );
+
           // const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
           //   const currentImageData = await findImagesFromAssets(
           //     paragraphContent,
@@ -395,6 +432,16 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["imageData"] = currentImageData;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphImageDataPath]: currentImageData,
+                  [currentParagraphVideoDataPath]: currentParagrah["videoData"],
+                },
+              }
+            );
           } else {
             // IS VIDEO 📽️
             const currentVideoData =
@@ -424,6 +471,16 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["videoData"] = currentVideoData;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphVideoDataPath]: currentVideoData,
+                  [currentParagraphImageDataPath]: currentParagrah["videoData"],
+                },
+              }
+            );
           }
 
           const createKeyPhrasesFn = async (tries: number) => {
@@ -441,6 +498,16 @@ export async function createContentCycle(
               }
             }
             currentParagrah["keyPhrases"] = keyPhrases;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphKeyPhrasesPath]: keyPhrases,
+                },
+              }
+            );
+
             // console.info(
             //   `KeyPhrases for section ${sectionCounter + 1}/${
             //     course.sections.length
@@ -471,12 +538,12 @@ export async function createContentCycle(
 
               // Save course (in the future be necessary to check if content was 100% fine generated)
 
-              await Courses.findOneAndUpdate(
-                { code: course.code },
-                {
-                  $set: { sections: course.sections },
-                }
-              );
+              // await Courses.findOneAndUpdate(
+              //   { code: course.code },
+              //   {
+              //     $set: { sections: course.sections },
+              //   }
+              // );
               const endCreation = new Date();
               const totalCreationTime = Math.abs(
                 Math.round(
@@ -492,12 +559,12 @@ export async function createContentCycle(
               deleteCourseCreationLog(course.code);
               updateCourseDuration(course.code);
             } else {
-              await Courses.findOneAndUpdate(
-                { code: course.code },
-                {
-                  $set: { sections: course.sections },
-                }
-              );
+              // await Courses.findOneAndUpdate(
+              //   { code: course.code },
+              //   {
+              //     $set: { sections: course.sections },
+              //   }
+              // );
               updateCourseDuration(course.code);
               if (
                 lessonCounter <
