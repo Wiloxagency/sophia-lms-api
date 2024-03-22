@@ -19,15 +19,15 @@ import { returnPexelsVideos } from "../PexelsVideos/shared";
 
 const database = createConnection();
 
+let previousCourseName: string;
+
 let parsedPexelsImages: {
   url: string;
-  originalWidth: number;
-  originalHeight: number;
   resizedWidth: number;
   resizedHeight: number;
 }[] = [];
 
-let parsedPexelVideos = [];
+let parsedPexelsVideos: { url: string; height: number; width: number }[] = [];
 
 async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
@@ -55,45 +55,54 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
       };
     }
 > {
+  if (previousCourseName != courseName) {
+    parsedPexelsImages = [];
+    parsedPexelsVideos = [];
+  }
+
   let pexelsImagesResponse;
   if (parsedPexelsImages.length == 0) {
     pexelsImagesResponse = await returnPexelsImages(courseName);
-    parsedPexelsImages = pexelsImagesResponse.photos.map(async (photo) => {
-      const returnNewImageSizesResponse = await returnNewImageSizes(
-        photo.height,
-        photo.width
-      );
+    parsedPexelsImages = await Promise.all(
+      pexelsImagesResponse.photos.map(async (photo) => {
+        const returnNewImageSizesResponse = await returnImageSizes(
+          photo.height,
+          photo.width
+        );
 
-      return {
-        src: photo.src.large,
-        resizedHeight: returnNewImageSizesResponse.resizedHeight,
-        resizedWidth: returnNewImageSizesResponse.resizedWidth,
-      };
-    });
+        return {
+          url: photo.src.large,
+          resizedHeight: returnNewImageSizesResponse.resizedHeight,
+          resizedWidth: returnNewImageSizesResponse.resizedWidth,
+        };
+      })
+    );
   }
 
   let pexelsVideosResponse;
-  if (parsedPexelVideos.length == 0) {
+  if (parsedPexelsVideos.length == 0) {
     pexelsVideosResponse = await returnPexelsVideos(courseName);
     await processPexelsVideosResponse(pexelsVideosResponse);
   }
 
-  if (indexSlide == parsedPexelsImages.length + parsedPexelVideos.length - 1) {
+  if (indexSlide == parsedPexelsImages.length + parsedPexelsVideos.length - 1) {
     console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
     let parsedPexelsImages2;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
-    parsedPexelsImages2 = pexelsImagesResponse2.photos.map(async (photo) => {
-      const returnNewImageSizesResponse2 = await returnNewImageSizes(
-        photo.height,
-        photo.width
-      );
-      return {
-        src: photo.src.large,
-        resizedHeight: returnNewImageSizesResponse2.resizedHeight,
-        resizedWidth: returnNewImageSizesResponse2.resizedWidth,
-      };
-    });
+    parsedPexelsImages2 = await Promise.all(
+      pexelsImagesResponse2.photos.map(async (photo) => {
+        const returnNewImageSizesResponse2 = await returnImageSizes(
+          photo.height,
+          photo.width
+        );
+        return {
+          url: photo.src.large,
+          resizedHeight: returnNewImageSizesResponse2.resizedHeight,
+          resizedWidth: returnNewImageSizesResponse2.resizedWidth,
+        };
+      })
+    );
     parsedPexelsImages = parsedPexelsImages.concat(parsedPexelsImages2);
 
     let pexelsVideosResponse2;
@@ -104,18 +113,12 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   let isEvenNumber = indexSlide % 2 == 0 ? true : false;
 
   if (isEvenNumber) {
-    console.log("currentImageCounter: ", currentImageCounter);
+    // console.log("currentImageCounter: ", currentImageCounter);
     currentImageCounter++;
   } else {
-    console.log("currentVideoCounter: ", currentVideoCounter);
+    // console.log("currentVideoCounter: ", currentVideoCounter);
     currentVideoCounter++;
   }
-
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-  // console.log("INDEX SLIDE: ", indexSlide);
-  // console.log("CURRENT IMAGE COUNTER: ", currentImageCounter);
-  // console.log("CURRENT VIDEO COUNTER: ", currentVideoCounter);
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
   // if (isEvenNumber) {
   //   console.log(parsedPexelImages[currentImageCounter]);
@@ -142,14 +145,14 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: 0,
         },
         finalVideo: {
-          url: parsedPexelVideos[currentVideoCounter],
-          width: 0,
-          height: 0,
+          url: parsedPexelsVideos[currentVideoCounter].url,
+          height: parsedPexelsVideos[currentVideoCounter].height,
+          width: parsedPexelsVideos[currentVideoCounter].width,
         },
       };
 }
 
-async function returnNewImageSizes(
+async function returnImageSizes(
   height: number,
   width: number
 ): Promise<{
@@ -197,11 +200,15 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
     }
   }
 
-  videoResultsCache = videoResultsCache.map((video) => {
-    return video.link;
+  videoResultsCache = videoResultsCache.map((video, index) => {
+    // console.log(video)
+    // console.log(video.link)
+    console.log(index);
+    if (video != undefined)
+      return { url: video.link, height: video.height, width: video.width };
   });
 
-  parsedPexelVideos = parsedPexelVideos.concat(videoResultsCache);
+  parsedPexelsVideos = parsedPexelsVideos.concat(videoResultsCache);
 }
 
 function wait(seconds: number) {
@@ -606,6 +613,7 @@ export async function createContentCycle(
               );
               deleteCourseCreationLog(course.code);
               updateCourseDuration(course.code);
+              parsedPexelsImages = [];
             } else {
               // await Courses.findOneAndUpdate(
               //   { code: course.code },
