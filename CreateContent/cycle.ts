@@ -19,10 +19,17 @@ import { returnPexelsVideos } from "../PexelsVideos/shared";
 
 const database = createConnection();
 
-let parsedPexelImages = [];
+let parsedPexelsImages: {
+  url: string;
+  originalWidth: number;
+  originalHeight: number;
+  resizedWidth: number;
+  resizedHeight: number;
+}[] = [];
+
 let parsedPexelVideos = [];
 
-export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
+async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
   indexSlide: number,
   currentImageCounter: number,
@@ -49,10 +56,19 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     }
 > {
   let pexelsImagesResponse;
-  if (parsedPexelImages.length == 0) {
+  if (parsedPexelsImages.length == 0) {
     pexelsImagesResponse = await returnPexelsImages(courseName);
-    parsedPexelImages = pexelsImagesResponse.photos.map((photo) => {
-      return photo.src.large;
+    parsedPexelsImages = pexelsImagesResponse.photos.map(async (photo) => {
+      const returnNewImageSizesResponse = await returnNewImageSizes(
+        photo.height,
+        photo.width
+      );
+
+      return {
+        src: photo.src.large,
+        resizedHeight: returnNewImageSizesResponse.resizedHeight,
+        resizedWidth: returnNewImageSizesResponse.resizedWidth,
+      };
     });
   }
 
@@ -62,15 +78,23 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     await processPexelsVideosResponse(pexelsVideosResponse);
   }
 
-  if (indexSlide == parsedPexelImages.length + parsedPexelVideos.length - 1) {
+  if (indexSlide == parsedPexelsImages.length + parsedPexelVideos.length - 1) {
     console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
-    let parsedImagesResults;
+    let parsedPexelsImages2;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
-    parsedImagesResults = pexelsImagesResponse2.photos.map((photo) => {
-      return photo.src.large;
+    parsedPexelsImages2 = pexelsImagesResponse2.photos.map(async (photo) => {
+      const returnNewImageSizesResponse2 = await returnNewImageSizes(
+        photo.height,
+        photo.width
+      );
+      return {
+        src: photo.src.large,
+        resizedHeight: returnNewImageSizesResponse2.resizedHeight,
+        resizedWidth: returnNewImageSizesResponse2.resizedWidth,
+      };
     });
-    parsedPexelImages = parsedPexelImages.concat(parsedImagesResults);
+    parsedPexelsImages = parsedPexelsImages.concat(parsedPexelsImages2);
 
     let pexelsVideosResponse2;
     pexelsVideosResponse2 = await returnPexelsVideos(courseName);
@@ -104,9 +128,9 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
         image: {},
         thumb: {},
         finalImage: {
-          url: parsedPexelImages[currentImageCounter],
-          width: "",
-          height: "",
+          url: parsedPexelsImages[currentImageCounter].url,
+          width: parsedPexelsImages[currentImageCounter].resizedWidth,
+          height: parsedPexelsImages[currentImageCounter].resizedHeight,
         },
         imagesIds: [],
         urlBing: "",
@@ -123,6 +147,30 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: 0,
         },
       };
+}
+
+async function returnNewImageSizes(
+  height: number,
+  width: number
+): Promise<{
+  resizedHeight: number;
+  resizedWidth: number;
+}> {
+  let resizedHeight;
+  let resizedWidth;
+  if (width > height) {
+    // console.log("IMAGE IS LANDSCAPE");
+    resizedWidth = 940;
+    resizedHeight = (940 * height) / width;
+  } else if (width < height) {
+    // console.log("IMAGE IS PORTRAIT");
+    resizedHeight = 650;
+    resizedWidth = (650 * width) / height;
+  } else {
+    resizedHeight = 650;
+    resizedWidth = 650;
+  }
+  return { resizedHeight: resizedHeight, resizedWidth: resizedWidth };
 }
 
 async function processPexelsVideosResponse(pexelsVideosResponse) {
