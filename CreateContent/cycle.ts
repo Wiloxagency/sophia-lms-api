@@ -18,10 +18,17 @@ import { returnPexelsVideos } from "../PexelsVideos/shared";
 
 const database = createConnection();
 
-let parsedPexelImages = [];
-let parsedPexelVideos = [];
+let previousCourseName: string;
 
-export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
+let parsedPexelsImages: {
+  url: string;
+  resizedWidth: number;
+  resizedHeight: number;
+}[] = [];
+
+let parsedPexelsVideos: { url: string; height: number; width: number }[] = [];
+
+async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
   indexSlide: number,
   currentImageCounter: number,
@@ -47,33 +54,55 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
       };
     }
 > {
+  if (previousCourseName != courseName) {
+    parsedPexelsImages = [];
+    parsedPexelsVideos = [];
+  }
+
   let pexelsImagesResponse;
-  if (parsedPexelImages.length == 0) {
+  if (parsedPexelsImages.length == 0) {
     pexelsImagesResponse = await returnPexelsImages(courseName);
-    parsedPexelImages = pexelsImagesResponse.photos.map((photo) => {
-      return photo.src.large;
-    });
+    parsedPexelsImages = await Promise.all(
+      pexelsImagesResponse.photos.map(async (photo) => {
+        const returnNewImageSizesResponse = await returnImageSizes(
+          photo.height,
+          photo.width
+        );
+
+        return {
+          url: photo.src.large,
+          resizedHeight: returnNewImageSizesResponse.resizedHeight,
+          resizedWidth: returnNewImageSizesResponse.resizedWidth,
+        };
+      })
+    );
   }
 
   let pexelsVideosResponse;
-  if (parsedPexelVideos.length == 0) {
+  if (parsedPexelsVideos.length == 0) {
     pexelsVideosResponse = await returnPexelsVideos(courseName);
     await processPexelsVideosResponse(pexelsVideosResponse);
   }
 
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
-  // console.log("Index slide: " + indexSlide);
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
-
-  if (indexSlide == parsedPexelImages.length + parsedPexelVideos.length - 1) {
+  if (indexSlide == parsedPexelsImages.length + parsedPexelsVideos.length - 1) {
     console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
-    let parsedImagesResults;
+    let parsedPexelsImages2;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
-    parsedImagesResults = pexelsImagesResponse2.photos.map((photo) => {
-      return photo.src.large;
-    });
-    parsedPexelImages = parsedPexelImages.concat(parsedImagesResults);
+    parsedPexelsImages2 = await Promise.all(
+      pexelsImagesResponse2.photos.map(async (photo) => {
+        const returnNewImageSizesResponse2 = await returnImageSizes(
+          photo.height,
+          photo.width
+        );
+        return {
+          url: photo.src.large,
+          resizedHeight: returnNewImageSizesResponse2.resizedHeight,
+          resizedWidth: returnNewImageSizesResponse2.resizedWidth,
+        };
+      })
+    );
+    parsedPexelsImages = parsedPexelsImages.concat(parsedPexelsImages2);
 
     let pexelsVideosResponse2;
     pexelsVideosResponse2 = await returnPexelsVideos(courseName);
@@ -83,18 +112,12 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   let isEvenNumber = indexSlide % 2 == 0 ? true : false;
 
   if (isEvenNumber) {
-    console.log("currentImageCounter: ", currentImageCounter);
+    // console.log("currentImageCounter: ", currentImageCounter);
     currentImageCounter++;
   } else {
-    console.log("currentVideoCounter: ", currentVideoCounter);
+    // console.log("currentVideoCounter: ", currentVideoCounter);
     currentVideoCounter++;
   }
-
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-  // console.log("INDEX SLIDE: ", indexSlide);
-  // console.log("CURRENT IMAGE COUNTER: ", currentImageCounter);
-  // console.log("CURRENT VIDEO COUNTER: ", currentVideoCounter);
-  // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
   // if (isEvenNumber) {
   //   console.log(parsedPexelImages[currentImageCounter]);
@@ -107,9 +130,9 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
         image: {},
         thumb: {},
         finalImage: {
-          url: parsedPexelImages[currentImageCounter],
-          width: "",
-          height: "",
+          url: parsedPexelsImages[currentImageCounter].url,
+          width: parsedPexelsImages[currentImageCounter].resizedWidth,
+          height: parsedPexelsImages[currentImageCounter].resizedHeight,
         },
         imagesIds: [],
         urlBing: "",
@@ -121,11 +144,35 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: 0,
         },
         finalVideo: {
-          url: parsedPexelVideos[currentVideoCounter],
-          width: 0,
-          height: 0,
+          url: parsedPexelsVideos[currentVideoCounter].url,
+          height: parsedPexelsVideos[currentVideoCounter].height,
+          width: parsedPexelsVideos[currentVideoCounter].width,
         },
       };
+}
+
+async function returnImageSizes(
+  height: number,
+  width: number
+): Promise<{
+  resizedHeight: number;
+  resizedWidth: number;
+}> {
+  let resizedHeight;
+  let resizedWidth;
+  if (width > height) {
+    // console.log("IMAGE IS LANDSCAPE");
+    resizedWidth = 940;
+    resizedHeight = (940 * height) / width;
+  } else if (width < height) {
+    // console.log("IMAGE IS PORTRAIT");
+    resizedHeight = 650;
+    resizedWidth = (650 * width) / height;
+  } else {
+    resizedHeight = 650;
+    resizedWidth = 650;
+  }
+  return { resizedHeight: resizedHeight, resizedWidth: resizedWidth };
 }
 
 async function processPexelsVideosResponse(pexelsVideosResponse) {
@@ -152,11 +199,15 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
     }
   }
 
-  videoResultsCache = videoResultsCache.map((video) => {
-    return video.link;
+  videoResultsCache = videoResultsCache.map((video, index) => {
+    // console.log(video)
+    // console.log(video.link)
+    console.log(index);
+    if (video != undefined)
+      return { url: video.link, height: video.height, width: video.width };
   });
 
-  parsedPexelVideos = parsedPexelVideos.concat(videoResultsCache);
+  parsedPexelsVideos = parsedPexelsVideos.concat(videoResultsCache);
 }
 
 function wait(seconds: number) {
@@ -235,6 +286,7 @@ export async function createContentCycle(
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
         let currentParagraphs: any;
+
         if (
           course.sections[sectionCounter].elements[lessonCounter].elementLesson
             .paragraphs.length == 0
@@ -265,11 +317,33 @@ export async function createContentCycle(
             }
           );
         }
+
+        let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+        await Courses.findOneAndUpdate(
+          { code: course.code },
+          {
+            $set: {
+              [currentParagraphArrayPath]:
+                course.sections[sectionCounter].elements[lessonCounter]
+                  .elementLesson.paragraphs,
+            },
+          }
+        );
+
         // Create Audios & find images
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
+          let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
+          let currentParagraphAudioUrlPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.audioUrl`;
+          let currentParagraphTitleAIPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.titleAI`;
+          let currentParagraphImageDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.imageData`;
+          let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
+          let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
+
           const paragraphContent = currentParagraphs.content[paragraphCounter];
           // Start creating an audio for a paragraph
+
           const createAudioFn = async (tries: number) => {
             const currentAudio = await createAudio(
               paragraphContent,
@@ -304,6 +378,15 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["audioUrl"] = currentAudio.url;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphAudioUrlPath]: currentAudio.url,
+                },
+              }
+            );
             // srt creation
 
             // const currentSrt = await createSrt(currentAudio.url, paragraphContent, course.code)
@@ -358,6 +441,15 @@ export async function createContentCycle(
           // );
           currentParagrah["titleAI"] = extractedTitle.title;
 
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphTitleAIPath]: extractedTitle.title,
+              },
+            }
+          );
+
           // const currentImageData = await findImages(paragraphContent, extractedTitle.title, payload.text, course.details.title, "wide", course.languageName, [], course.code)
           //   const currentImageData = await findImagesFromAssets(
           //     paragraphContent,
@@ -394,6 +486,16 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["imageData"] = currentImageData;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphImageDataPath]: currentImageData,
+                  [currentParagraphVideoDataPath]: currentParagrah["videoData"],
+                },
+              }
+            );
           } else {
             // IS VIDEO 📽️
             const currentVideoData =
@@ -423,6 +525,16 @@ export async function createContentCycle(
             //   }/${currentParagraphs.content.length} created`
             // );
             currentParagrah["videoData"] = currentVideoData;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphVideoDataPath]: currentVideoData,
+                  [currentParagraphImageDataPath]: currentParagrah["videoData"],
+                },
+              }
+            );
           }
 
           const createKeyPhrasesFn = async (tries: number) => {
@@ -440,6 +552,16 @@ export async function createContentCycle(
               }
             }
             currentParagrah["keyPhrases"] = keyPhrases;
+
+            await Courses.findOneAndUpdate(
+              { code: course.code },
+              {
+                $set: {
+                  [currentParagraphKeyPhrasesPath]: keyPhrases,
+                },
+              }
+            );
+
             // console.info(
             //   `KeyPhrases for section ${sectionCounter + 1}/${
             //     course.sections.length
@@ -470,12 +592,12 @@ export async function createContentCycle(
 
               // Save course (in the future be necessary to check if content was 100% fine generated)
 
-              await Courses.findOneAndUpdate(
-                { code: course.code },
-                {
-                  $set: { sections: course.sections },
-                }
-              );
+              // await Courses.findOneAndUpdate(
+              //   { code: course.code },
+              //   {
+              //     $set: { sections: course.sections },
+              //   }
+              // );
               const endCreation = new Date();
               const totalCreationTime = Math.abs(
                 Math.round(
@@ -490,13 +612,14 @@ export async function createContentCycle(
               );
               deleteCourseCreationLog(course.code);
               updateCourseDuration(course.code);
+              parsedPexelsImages = [];
             } else {
-              await Courses.findOneAndUpdate(
-                { code: course.code },
-                {
-                  $set: { sections: course.sections },
-                }
-              );
+              // await Courses.findOneAndUpdate(
+              //   { code: course.code },
+              //   {
+              //     $set: { sections: course.sections },
+              //   }
+              // );
               updateCourseDuration(course.code);
               if (
                 lessonCounter <

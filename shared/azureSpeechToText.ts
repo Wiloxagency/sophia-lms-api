@@ -94,13 +94,13 @@ export async function updateSlideAfterTranscriptionJob(
       }
     );
 
-    console.log("TRANSCRIPTION RESULTS: ");
-    console.log(
-      transcriptionJobUrl,
-      transcriptionJobStatus,
-      transcriptionResult
-    );
-    console.log(updateSlideResponse);
+    // console.log("TRANSCRIPTION RESULTS: ");
+    // console.log(
+    //   transcriptionJobUrl,
+    //   transcriptionJobStatus,
+    //   transcriptionResult
+    // );
+    // console.log(updateSlideResponse);
   } catch (error) {
     console.error(error);
   }
