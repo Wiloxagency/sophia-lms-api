@@ -65,3 +65,61 @@ export async function translateQuery(receivedQuery: string): Promise<any> {
     return { error };
   }
 }
+
+export async function translateToLanguage(
+  receivedQuery: string,
+  targetLanguage: string
+): Promise<any> {
+
+  let payload = {
+    baseURL: endpoint,
+    url: "/translate",
+    method: "post",
+    headers: {
+      "Ocp-Apim-Subscription-Key": key,
+      // location required if you're using a multi-service or regional (not global) resource.
+      "Ocp-Apim-Subscription-Region": location,
+      "Content-type": "application/json",
+      "X-ClientTraceId": uuidv4().toString(),
+    },
+    params: {
+      "api-version": "3.0",
+      to: targetLanguage.split("-")[0],
+    },
+    data: [
+      {
+        text: receivedQuery,
+      },
+    ],
+    responseType: "json",
+  };
+
+  try {
+    const axiosResponse = await axios(payload);
+
+    // console.log(JSON.stringify(axiosResponse.data, null, 4));
+
+    let translatedQuery = axiosResponse.data[0].translations[0].text;
+    // console.log(translatedQuery)
+    return translatedQuery;
+
+    // let translatedQuery
+
+    // .then(function (response) {
+    //     // console.log(JSON.stringify(response.data, null, 4))
+    //     // console.log(JSON.stringify(response.data[0].translations[0].text))
+    //     let translatedQuery = JSON.stringify(response.data[0].translations[0].text)
+    //     console.log(translatedQuery)
+    //     return { translatedQuery }
+    // })
+  } catch (error) {
+    await saveLog(
+      `Error traslating a query, error ${error.message}`,
+      "Error",
+      "translateQuery()",
+      "N/A"
+    );
+
+    return { error };
+  }
+}

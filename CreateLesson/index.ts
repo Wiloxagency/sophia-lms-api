@@ -10,6 +10,7 @@ import { saveLog } from "../shared/saveLog";
 import { v4 as uuidv4 } from "uuid";
 import { updateCourseDuration } from "../shared/updateCourseDuration";
 import { returnPexelsImages } from "../PexelsImages/shared";
+import { translateToLanguage } from "../shared/translator";
 
 const database = createConnection();
 
@@ -87,6 +88,7 @@ const httpTrigger: AzureFunction = async function (
       audioScript: paragraphContent,
       audioUrl: "",
       titleAI: "",
+      translatedTitleAi: "",
       imageData: {},
       keyPhrases: [],
     };
@@ -119,7 +121,15 @@ const httpTrigger: AzureFunction = async function (
         currentParagraphs.content.length
       } Extracted `
     );
+
     currentParagrah.titleAI = extractedTitle.title;
+
+    const translatedTitleAi = await translateToLanguage(
+      extractedTitle.title,
+      payload.language
+    );
+
+    currentParagrah.translatedTitleAi = translatedTitleAi;
 
     const currentImageData = {
       image: {},

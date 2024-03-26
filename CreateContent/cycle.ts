@@ -15,6 +15,7 @@ import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
+import { translateQuery, translateToLanguage } from "../shared/translator";
 
 const database = createConnection();
 
@@ -299,7 +300,7 @@ export async function createContentCycle(
             lessonCounter
           ].elementLesson.paragraphs = currentParagraphs.content.map(
             (text: string) => {
-              return { content: text, audioScript: text };
+              return { content: cleanText(text), audioScript: cleanText(text) };
             }
           );
         } else {
@@ -337,6 +338,7 @@ export async function createContentCycle(
           let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
           let currentParagraphAudioUrlPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.audioUrl`;
           let currentParagraphTitleAIPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.titleAI`;
+          let currentParagraphTranslatedTitleAIPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.translatedTitleAI`;
           let currentParagraphImageDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.imageData`;
           let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
           let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
@@ -441,11 +443,17 @@ export async function createContentCycle(
           // );
           currentParagrah["titleAI"] = extractedTitle.title;
 
+          const translatedTitleAi = await translateToLanguage(
+            extractedTitle.title,
+            course.language
+          );
+
           await Courses.findOneAndUpdate(
             { code: course.code },
             {
               $set: {
                 [currentParagraphTitleAIPath]: extractedTitle.title,
+                [currentParagraphTranslatedTitleAIPath]: translatedTitleAi,
               },
             }
           );
