@@ -24,6 +24,7 @@ const httpTrigger: AzureFunction = async function (
         requestConfiguration
       )
       .then(async (result) => {
+        console.log(result.data.documents);
         return result;
       });
     if (body) {

@@ -29,7 +29,7 @@ let parsedPexelsImages: {
 
 let parsedPexelsVideos: { url: string; height: number; width: number }[] = [];
 
-async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
+export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
   indexSlide: number,
   currentImageCounter: number,
@@ -113,11 +113,11 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   let isEvenNumber = indexSlide % 2 == 0 ? true : false;
 
   if (isEvenNumber) {
-    // console.log("currentImageCounter: ", currentImageCounter);
-    currentImageCounter++;
-  } else {
-    // console.log("currentVideoCounter: ", currentVideoCounter);
     currentVideoCounter++;
+    // console.log("currentImageCounter: ", currentImageCounter);
+  } else {
+    currentImageCounter++;
+    // console.log("currentVideoCounter: ", currentVideoCounter);
   }
 
   // if (isEvenNumber) {
@@ -128,17 +128,6 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   return isEvenNumber
     ? {
-        image: {},
-        thumb: {},
-        finalImage: {
-          url: parsedPexelsImages[currentImageCounter].url,
-          width: parsedPexelsImages[currentImageCounter].resizedWidth,
-          height: parsedPexelsImages[currentImageCounter].resizedHeight,
-        },
-        imagesIds: [],
-        urlBing: "",
-      }
-    : {
         thumb: {
           url: "",
           width: 0,
@@ -149,6 +138,17 @@ async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
           height: parsedPexelsVideos[currentVideoCounter].height,
           width: parsedPexelsVideos[currentVideoCounter].width,
         },
+      }
+    : {
+        image: {},
+        thumb: {},
+        finalImage: {
+          url: parsedPexelsImages[currentImageCounter].url,
+          width: parsedPexelsImages[currentImageCounter].resizedWidth,
+          height: parsedPexelsImages[currentImageCounter].resizedHeight,
+        },
+        imagesIds: [],
+        urlBing: "",
       };
 }
 
@@ -203,7 +203,6 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
   videoResultsCache = videoResultsCache.map((video, index) => {
     // console.log(video)
     // console.log(video.link)
-    console.log(index);
     if (video != undefined)
       return { url: video.link, height: video.height, width: video.width };
   });
@@ -292,7 +291,7 @@ export async function createContentCycle(
           course.sections[sectionCounter].elements[lessonCounter].elementLesson
             .paragraphs.length == 0
         ) {
-          console.warn("creating paragraphs");
+          // console.warn("creating paragraphs");
           payload.text = course.sections[sectionCounter].title;
           payload.index = sectionCounter;
           currentParagraphs = await createParagraphs(payload);
@@ -335,6 +334,10 @@ export async function createContentCycle(
         // Create Audios & find images
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
+          console.log(
+            `STARTED MEDIA CYCLE FOR LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
+          );
+
           let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
           let currentParagraphAudioUrlPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.audioUrl`;
           let currentParagraphTitleAIPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.titleAI`;
@@ -448,12 +451,19 @@ export async function createContentCycle(
             course.language
           );
 
+          const noQuotesTranslatedTitleAi = translatedTitleAi.replace(
+            /['"]+/g,
+            ""
+          );
+          const noQuotesTitleAi = extractedTitle.title.replace(/['"]+/g, "");
+
           await Courses.findOneAndUpdate(
             { code: course.code },
             {
               $set: {
-                [currentParagraphTitleAIPath]: extractedTitle.title,
-                [currentParagraphTranslatedTitleAIPath]: translatedTitleAi,
+                [currentParagraphTitleAIPath]: noQuotesTitleAi,
+                [currentParagraphTranslatedTitleAIPath]:
+                  noQuotesTranslatedTitleAi,
               },
             }
           );
@@ -468,7 +478,7 @@ export async function createContentCycle(
 
           // 👇🏻ADD IMAGE/VIDEO TO SLIDE 🖼️📽️
 
-          if (totalParagraphsCounter % 2 == 0) {
+          if (!(totalParagraphsCounter % 2 == 0)) {
             // IS IMAGE 🖼️
             const currentImageData =
               await fetchAndParsePexelsImagesAndVideosAndReturnOne(
