@@ -80,8 +80,8 @@ async function translateCourse(req) {
                         courseClone.sections[indexSection].elements[indexElement].elementLesson
                             .paragraphs[indexParagraph].keyPhrases = []
 
-                        courseClone.sections[indexSection].elements[indexElement].elementLesson
-                            .paragraphs[indexParagraph].splitAudioScript = []
+                        // courseClone.sections[indexSection].elements[indexElement].elementLesson
+                        //     .paragraphs[indexParagraph].splitAudioScript = []
 
                         const createAudioFn = async (tries: number) => {
                             const currentAudio = await createAudio(translatedParagraphContent, courseClone.voice, courseClone.language, courseClone.code, indexSection, indexElement, indexParagraph)

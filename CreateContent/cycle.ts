@@ -222,7 +222,9 @@ function cleanText(text: string): string {
     .replace(/\n\s*\n/g, "\n")
     .replace(/  +/g, " ")
     .replace(/^ +/gm, "")
-    .replace(/(?<=[a-z])\s?\n/, ". ");
+    .replace(/(?<=[a-z])\s?\n/, ". ")
+    .replace(/\*/g, "")
+    .replace(/\#/g, "");
 }
 
 export async function createContentCycle(

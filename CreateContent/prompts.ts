@@ -27,19 +27,22 @@ export const contentTable = {
 // Content generation - ChatGPT-3.5-turbo
 export const contentGeneration = {
     "role": "You are an expert in the area of content development",
-    "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject."
+    // "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject."
+    "prompt": "Considering the context of the course \"v{courseName}\", create an extensive content in v{languageName} explaining the subject \"v{text}\", the paragraphs must be relevant and the information must be exclusively from that subject. Don't use any symbols or markup in your response. Don't use asterisks, quotes or hashtags."
 }
 
 // Introduction generation - ChatGPT-3.5-turbo
 export const introductionGeneration = {
     "role": "You are an expert in the area of content development",
-    "prompt": "Create a general introduction in v{languageName} for a course called \"v{courseName}\".The introduction should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
+    // "prompt": "Create a general introduction in v{languageName} for a course called \"v{courseName}\".The introduction should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
+    "prompt": "Create a general introduction in v{languageName} for a course called \"v{courseName}\".The introduction should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}. Don't use any symbols or markup in your response. Don't use asterisks, quotes or hashtags."
 }
 
 // Conclusion generation - ChatGPT-3.5-turbo
 export const conclusionGeneration = {
     "role": "You are an expert in the area of content development",
-    "prompt": "Create a general conclusion in v{languageName} for a course called \"v{courseName}\".The conclusion should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
+    // "prompt": "Create a general conclusion in v{languageName} for a course called \"v{courseName}\".The conclusion should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}"
+    "prompt": "Create a general conclusion in v{languageName} for a course called \"v{courseName}\".The conclusion should be structured into several paragraphs. The course contains the following topics: v{promptCourseStructure}. Remove any symbols or markup in your response. Don't use asterisks, quotes or hashtags."
 }
 
 // Keyphrases extractor - GPT-3
