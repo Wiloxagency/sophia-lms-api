@@ -21,10 +21,23 @@ async function returnArrayOfRelevantParagraphs(
 ): Promise<string[]> {
   let concatenatedLessonParagraphs = "";
 
-  for (const paragraph of course.sections[indexSection].elements[indexElement]
-    .elementLesson.paragraphs) {
-    concatenatedLessonParagraphs =
-      concatenatedLessonParagraphs + paragraph.content + "\n";
+  if ((indexElement = -1)) {
+    // THIS MEANS ALL LESSON INSIDE SECTION MUST BE USED
+
+    for (const lesson of course.sections[indexSection].elements) {
+      if (lesson.type == "Lección Engine") {
+        for (const paragraph of lesson.elementLesson.paragraphs) {
+          concatenatedLessonParagraphs =
+            concatenatedLessonParagraphs + paragraph.content + "\n";
+        }
+      }
+    }
+  } else {
+    for (const paragraph of course.sections[indexSection].elements[indexElement]
+      .elementLesson.paragraphs) {
+      concatenatedLessonParagraphs =
+        concatenatedLessonParagraphs + paragraph.content + "\n";
+    }
   }
 
   // console.log(concatenatedLessonParagraphs);
@@ -112,6 +125,7 @@ const httpTrigger: AzureFunction = async function (
         elementQuiz: {
           quizz_list: quizz_list,
           isAICreated: true,
+          isSectionQuiz: req.body.indexElement == -1 ? true : false,
         },
       };
       // sectionElements.push(quizElementPayload);
@@ -206,6 +220,7 @@ const httpTrigger: AzureFunction = async function (
         elementQuiz: {
           quizz_list: quizz_list,
           isAICreated: true,
+          isSectionQuiz: req.body.indexElement == -1 ? true : false,
         },
       };
       // sectionElements.push(quizElementPayload);
@@ -321,6 +336,7 @@ const httpTrigger: AzureFunction = async function (
         elementQuiz: {
           quizz_list: quizz_list,
           isAICreated: true,
+          isSectionQuiz: req.body.indexElement == -1 ? true : false,
         },
       };
       // sectionElements.push(quizElementPayload);
@@ -371,7 +387,7 @@ const httpTrigger: AzureFunction = async function (
         req.body.indexSection,
         req.body.indexElement
       );
-      
+
       let quizList = [];
       for (const paragraph of arrayOfRelevantParagraphs) {
         const response = await openai.chat.completions.create({
@@ -432,6 +448,7 @@ const httpTrigger: AzureFunction = async function (
         elementQuiz: {
           quizz_list: quizz_list,
           isAICreated: true,
+          isSectionQuiz: req.body.indexElement == -1 ? true : false,
         },
       };
       // sectionElements.push(quizElementPayload)
