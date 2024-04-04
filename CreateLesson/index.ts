@@ -255,7 +255,7 @@ const httpTrigger: AzureFunction = async function (
                   {
                     $set: {
                       [currentParagraphVideoDataPath]: currentVideoData,
-                      [currentParagraphImageDataPath]: currentParagrah["videoData"],
+                      [currentParagraphImageDataPath]: currentParagrah["imageData"],
                     },
                   }
                 );
