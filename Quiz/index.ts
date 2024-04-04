@@ -14,6 +14,47 @@ const AZURE_STORAGE_CONNECTION_STRING =
 
 const database = createConnection();
 
+async function returnArrayOfRelevantParagraphs(
+  course: any,
+  indexSection: number,
+  indexElement: number
+): Promise<string[]> {
+  let concatenatedLessonParagraphs = "";
+
+  for (const paragraph of course.sections[indexSection].elements[indexElement]
+    .elementLesson.paragraphs) {
+    concatenatedLessonParagraphs =
+      concatenatedLessonParagraphs + paragraph.content + "\n";
+  }
+
+  // console.log(concatenatedLessonParagraphs);
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4-0125-preview",
+    messages: [
+      {
+        role: "system",
+        content: "You are a helpful assistant.",
+      },
+      {
+        role: "user",
+        content:
+          "Extrae del texto los párrafos más relevantes y devuélvelos como un arreglo de strings en formato JSON válido. Do not wrap the json code in JSON markers. Texto: " +
+          concatenatedLessonParagraphs,
+        // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
+      },
+    ],
+  });
+
+  updateCourseTokens(
+    course.code,
+    response.usage.prompt_tokens,
+    response.usage.completion_tokens
+  );
+
+  return JSON.parse(response.choices[0].message.content);
+}
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -22,14 +63,17 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-      // console.log(req.body)
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
-      let lessonFirst5Paragraphs = course.sections[
-        req.body.indexSection
-      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+
+      const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
+        course,
+        req.body.indexSection,
+        req.body.indexElement
+      );
+
       let quizList = [];
-      for (const paragraph of lessonFirst5Paragraphs) {
+      for (const paragraph of arrayOfRelevantParagraphs) {
         const response = await openai.chat.completions.create({
           model: "gpt-4-0125-preview",
           messages: [
@@ -42,16 +86,20 @@ const httpTrigger: AzureFunction = async function (
               content:
                 // "Redacta una pregunta basada en el siguiente párrafo: " +
                 "Generate an open-ended question based on the information provided in the text. Ensure that the question can be answered using the given information. Respond in Spanish: " +
-                paragraph.content,
+                paragraph,
             },
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         quizList.push({
           question: response.choices[0].message.content,
-          source: paragraph.content,
+          source: paragraph,
         });
       }
       // console.log(quizList)
@@ -107,14 +155,17 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-      // console.log(req.body)
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
-      let lessonFirst5Paragraphs = course.sections[
-        req.body.indexSection
-      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+
+      const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
+        course,
+        req.body.indexSection,
+        req.body.indexElement
+      );
+
       let quizList = [];
-      for (const paragraph of lessonFirst5Paragraphs) {
+      for (const paragraph of arrayOfRelevantParagraphs) {
         const response = await openai.chat.completions.create({
           model: "gpt-4-0125-preview",
           messages: [
@@ -126,12 +177,16 @@ const httpTrigger: AzureFunction = async function (
               role: "user",
               content:
                 "Extract from the following text 4 options for a multiple choice test, only one of the options will be the correct answer. Deliver your response in Spanish in valid json format as an array of strings. The first string corresponds to the question, the second to the correct answer, the third, fourth and fifth to false answers: " +
-                paragraph.content,
+                paragraph,
             },
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         let firstStepParsing =
           response.choices[0].message.content.split("[")[1];
@@ -194,14 +249,17 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-      // console.log(req.body)
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
-      let lessonFirst5Paragraphs = course.sections[
-        req.body.indexSection
-      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+
+      const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
+        course,
+        req.body.indexSection,
+        req.body.indexElement
+      );
+
       let quizList = [];
-      for (const paragraph of lessonFirst5Paragraphs) {
+      for (const paragraph of arrayOfRelevantParagraphs) {
         const response = await openai.chat.completions.create({
           model: "gpt-4-0125-preview",
           messages: [
@@ -213,13 +271,17 @@ const httpTrigger: AzureFunction = async function (
               role: "user",
               content:
                 "Redacta la frase principal del texto suministrado. De esta frase deberás extraer la palabra principal. Tu respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " +
-                paragraph.content,
+                paragraph,
               // content: "Extrae la frase principal de un texto que te suministraré al final de estas especificaciones, para ser usada como una actividad de completación. La completación debe ocurrir en la palabra principal de la frase principal extraída. Solo debe haber una completación. La respuesta debe ser concisa y debe seguir el siguiente formato: Frase principal: Palabra extraída: El texto suministrado es: " + paragraph.content
             },
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         let completionQuizParts = response.choices[0].message.content
           .split("Frase principal: ")
@@ -245,7 +307,7 @@ const httpTrigger: AzureFunction = async function (
         } else {
           console.log("OPENAI DID NOT RETURN A PROPERLY FORMATTED RESPONSE");
           console.log("OPENAI RESPONSE:");
-          console.log("response.data.choices[0].message.content");
+          console.log(response.choices[0].message.content);
         }
       }
       // console.log(quizList)
@@ -301,14 +363,17 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-      // console.log(req.body)
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
-      let lessonFirst5Paragraphs = course.sections[
-        req.body.indexSection
-      ].elements[req.body.indexElement].elementLesson.paragraphs.slice(0, 5);
+
+      const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
+        course,
+        req.body.indexSection,
+        req.body.indexElement
+      );
+      
       let quizList = [];
-      for (const paragraph of lessonFirst5Paragraphs) {
+      for (const paragraph of arrayOfRelevantParagraphs) {
         const response = await openai.chat.completions.create({
           model: "gpt-4-0125-preview",
           messages: [
@@ -320,12 +385,16 @@ const httpTrigger: AzureFunction = async function (
               role: "user",
               content:
                 "Redacta la frase principal del texto suministrado. De esta frase deberás crear dos versiones. La primera versión será una afirmación verdadera. La segunda versión será un afirmación falsa. Tu respuesta debe ser concisa y debe seguir el siguiente formato: Frase verdadera: Frase falsa: El texto suministrado es: " +
-                paragraph.content,
+                paragraph,
             },
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         // console.log('______________________________________________________')
         // console.log('OPENAI RESPONSE')
@@ -342,13 +411,13 @@ const httpTrigger: AzureFunction = async function (
           quizList.push({
             true: trueOrFalseQuizParts[0],
             false: trueOrFalseQuizParts[1],
-            source: paragraph.content,
+            source: paragraph,
           });
         } else {
           console.log("______________________________________________________");
           console.log("OPENAI DID NOT RETURN A PROPERLY FORMATTED RESPONSE");
           console.log("OPENAI RESPONSE:");
-          console.log("response.data.choices[0].message.content");
+          console.log(response.choices[0].message.content);
           console.log("______________________________________________________");
         }
       }
@@ -425,7 +494,11 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
@@ -461,7 +534,11 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
 
-          updateCourseTokens(req.body.courseCode, response2.usage.prompt_tokens, response2.usage.completion_tokens);
+          updateCourseTokens(
+            req.body.courseCode,
+            response2.usage.prompt_tokens,
+            response2.usage.completion_tokens
+          );
 
           GPTResponses.push({
             result: response2.choices[0].message.content,
@@ -521,7 +598,11 @@ const httpTrigger: AzureFunction = async function (
           ],
         });
 
-        updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+        updateCourseTokens(
+          req.body.courseCode,
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens
+        );
 
         // console.log(response.data.choices[0].message.content)
         if (response.choices[0].message.content.toLowerCase().includes("s")) {
@@ -557,7 +638,11 @@ const httpTrigger: AzureFunction = async function (
             ],
           });
 
-          updateCourseTokens(req.body.courseCode, response2.usage.prompt_tokens, response2.usage.completion_tokens);
+          updateCourseTokens(
+            req.body.courseCode,
+            response2.usage.prompt_tokens,
+            response2.usage.completion_tokens
+          );
 
           // console.log(response2.choices[0].message.content)
           GPTResponses.push({
