@@ -65,7 +65,12 @@ async function returnArrayOfRelevantParagraphs(
     response.usage.completion_tokens
   );
 
-  return JSON.parse(response.choices[0].message.content);
+  return JSON.parse(
+    response.choices[0].message.content
+      .replace("```json", "")
+      .replace("```", "")
+      .trim()
+  );
 }
 
 const httpTrigger: AzureFunction = async function (
