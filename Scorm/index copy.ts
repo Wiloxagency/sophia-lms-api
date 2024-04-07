@@ -44,9 +44,7 @@ const httpTrigger: AzureFunction = async function (
     elementIndex: number;
     lessonCounter: number;
     courseCode: string;
-  })
-  
-  {
+  }): Promise<string | null> {
     const title = scormPayload.courseTitle;
     errorLine = 35;
     const organization_default =
@@ -76,15 +74,93 @@ const httpTrigger: AzureFunction = async function (
     </organizations>
           `;
 
+    const resources = {
+      resource: {
+        "@identifier": "resource_1",
+        "@type": "webcontent",
+        "@scormtype": "sco",
+        "@href": "index.html",
+        file: {},
+      },
+    };
+    // faz o loop nos parágrafos e adiciona o caminho dos arquivos no manifest
+    const paragraphs = scormPayload.lesson.elementLesson.paragraphs;
+    errorLine = 74;
+    // Verificar se há parágrafos disponíveis
+    if (paragraphs.length === 0) {
+      return null;
+    }
+    const audioHrefList = [];
+    const imageHrefList = [];
 
+    paragraphs.forEach((paragraph: any) => {
+      const audioUrl = paragraph.audioUrl;
+      const imageData = paragraph.imageData.finalImage ? paragraph.imageData.finalImage.url : ""
+      const videoUrl  = paragraph.videoData.finalVideo ? paragraph.videoData.finalVideo.url : ""
 
+      if (imageData === "" && videoUrl === "") {
+        return;
+      }
+
+      if (audioUrl === "") {
+        return;
+      }
+
+      // Audio process
+      const audioHref = audioUrl.substring(audioUrl.indexOf("/speeches") + 1);
+      const newAudioFile = {
+        "@href": "./" + audioHref,
+      };
+      const audioFileCount = Object.keys(resources.resource.file).length;
+      resources.resource.file[`file_${audioFileCount}`] = newAudioFile;
+      audioHrefList.push("./" + audioHref);
+
+      // Images process
+      //if (imageData !== "") {
+      const imageHref = imageData.substring(imageData.indexOf("/images") + 1);
+      const newImageFile = {
+        "@href": "./" + imageHref,
+      };
+      const imageFileCount = Object.keys(resources.resource.file).length;
+      resources.resource.file[`file_${imageFileCount}`] = newImageFile;
+      imageHrefList.push("./" + imageHref);
+      //}
+    });
+
+    const newJsFile = {
+      "@href": "./js/engine.js",
+    };
+    const jsFileCount = Object.keys(resources.resource.file).length;
+    resources.resource.file[`file_${jsFileCount}`] = newJsFile;
+    errorLine = 109;
+    const newJsonFile = {
+      paragraphs: paragraphs.map((paragraph: any, index: number) => ({
+        ...paragraph,
+        audioUrl: audioHrefList[index],
+        imageData: {
+          ...paragraph.imageData,
+          finalImage: {
+            ...paragraph.imageData.finalImage,
+            url: imageHrefList[index],
+          },
+        },
+      })),
+    };
+
+    const jsonContent = JSON.stringify(newJsonFile);
+    const jsonFilePath = `./assets/lesson.json`;
+    errorLine = 129;
+    const addLessonManifest = { "@href": jsonFilePath };
+    const jsJsonCountLesson = Object.keys(resources.resource.file).length;
+    resources.resource.file[`file_${jsJsonCountLesson}`] = addLessonManifest;
 
     const xmlString = `
 <resources>
   <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="index.html">
 
-  <file href="./js/engine.js" />
-  <file href="./assets/lesson.json" />
+    ${Object.keys(resources.resource.file)
+      .map((key) => `<file href="${resources.resource.file[key]["@href"]}" />`)
+      .join("\n  ")}
 
   </resource>
 </resources>
@@ -121,37 +197,105 @@ const httpTrigger: AzureFunction = async function (
         <link rel="stylesheet" type="text/css" href="./assets/style.css" />
         <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
         <link rel="icon" href="./assets/fav.png">
-
-        <style>
-
-            .iframe-container {
-                width: 100%; /* Make iframe container take up full width of parent */
-                height: 100%; /* Make iframe container take up full height of parent */
-                position: absolute; /* Position iframe absolutely within parent container */
-                top: 0; /* Position from the top of parent container */
-                left: 0; /* Position from the left of parent container */
-                border: none; /* Remove border from iframe */
-            }
-        </style>
-
     </head>
     
     <body>
     
     
         <div id="main-text-container">
-            <div class="iframe-container">
-                <iframe src= "https://green-desert-0198e860f.5.azurestaticapps.net/player?courseId=${scormPayload.courseCode}&lessonId=${scormPayload.lesson.elementCode}&slideIndex=0" frameborder="0" scrolling="no" style = "width: 100%;height: 100%;" ></iframe>
+    
+            <div id="slideBg"> </div>
+    
+            <div id="textBackground" style="position:absolute;z-index: 100"></div>
+    
+            <div style="position:absolute;z-index: 101;bottom: 30px;">
+    
+                <div id="kinetic-3">
+    
+                    <div id="textContainer">
+    
+                        <div class="line1">
+                            <div id="container30" #container30></div>
+                        </div>
+                        <div class="line2">
+                            <div id="container31" #container31></div>
+                        </div>
+                        <div class="line3">
+                            <div id="container32" #container32></div>
+                        </div>
+    
+                    </div>
+    
+                </div>
             </div>
+    
+            <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
+            <!-- <img id="play-buttom" src="./assets/play.png" alt="Play"> -->
+    
+            <div class="slidePreviewControls unselectable">
+                <span id="playButton" style="cursor: pointer;" >⏯️</span>
+                <span id="reloadButton" style="cursor: pointer;">🔄️</span>
+                <!-- <span>🔊</span> -->
+                <span id="soundButton" style="cursor: pointer;">🔈</span>
+                <span id="subtitlesButton" style="filter: grayscale(1); cursor: pointer;">🔤
+                </span>
+            </div>
+    
+            <div id="subtitles"></div>
         </div>
-      
+    
+    
+    
+        <script src="./scripts/gsap.min.js"></script>
+        <script src="./scripts/SplitText.min.js"></script>
+        <script src="./js/engine.js" type="module"></script>
     
     </body>
     
     </html>`;
     zipLesson.addFile("index.html", Buffer.from(contentIndex));
     errorLine = 219;
+    // faz o loop nos parágrafos e adiciona os arquivos nas pastas
+    for (let i = 0; i < paragraphs.length; i++) {
+      const audioFile = paragraphs[i].audioUrl;
 
+      const imageFile = paragraphs[i].imageData.finalImage ? paragraphs[i].imageData.finalImage.url : ""
+      const videoFile = paragraphs[i].videoData.finalVideo ? paragraphs[i].videoData.finalVideo.url : ""
+
+      errorLine = 226;
+
+
+      if (imageFile === "" && videoFile === "") {
+        continue;
+      }
+
+      if (audioFile === "") {
+        continue;
+      }
+      // Audio process
+      const urlAudio = audioFile.substring(audioFile.indexOf("/speeches") + 1);
+      const responseAudio = await fetch(audioFile);
+      if (!responseAudio.ok) {
+        throw new Error("Failed to fetch audio");
+      }
+      const fileContentAudio = await responseAudio.buffer();
+      zipLesson.addFile(urlAudio, Buffer.from(fileContentAudio));
+
+      // Images process
+      if (imageFile !== "") {
+        const urlImage = imageFile.substring(imageFile.indexOf("/images") + 1);
+        const responseImage = await fetch(imageFile);
+        if (!responseImage.ok) {
+          throw new Error("Failed to fetch audio or image file.");
+        }
+
+        const fileContentImage = await responseImage.buffer();
+        zipLesson.addFile(urlImage, Buffer.from(fileContentImage));
+      }
+
+      zipLesson.addFile(jsonFilePath, Buffer.from(jsonContent));
+    }
+    errorLine = 241;
     const zipBufferCourse = zipLesson.toBuffer();
 
     if (zipBufferCourse) {
@@ -160,7 +304,7 @@ const httpTrigger: AzureFunction = async function (
         containerClient.getBlockBlobClient(LessonBlobName);
       await blockBlobClient.upload(zipBufferCourse, zipBufferCourse.length);
     }
-  } // end craete scorm
+  }
 
   let numberLessons = 0;
   let numberRecourses = 0;

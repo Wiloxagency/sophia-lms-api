@@ -9,6 +9,19 @@
     <link rel="stylesheet" type="text/css" href="./assets/style.css" />
     <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
     <link rel="icon" href="./assets/fav.png">
+
+    <style>
+
+        .iframe-container {
+            width: 100%; /* Make iframe container take up full width of parent */
+            height: 100%; /* Make iframe container take up full height of parent */
+            position: absolute; /* Position iframe absolutely within parent container */
+            top: 0; /* Position from the top of parent container */
+            left: 0; /* Position from the left of parent container */
+            border: none; /* Remove border from iframe */
+        }
+    </style>
+
 </head>
 
 <body>
@@ -16,50 +29,12 @@
 
     <div id="main-text-container" style="width: 100vw; max-height: 100vh; aspect-ratio: 16/9;" >
 
-        <div id="slideBg"> </div>
-
-        <div id="textBackground" style="position:absolute;z-index: 100"></div>
-
-        <div style="position:absolute;z-index: 101;bottom: 30px;">
-
-            <div id="kinetic-3">
-
-                <div id="textContainer">
-
-                    <div class="line1">
-                        <div id="container30" #container30></div>
-                    </div>
-                    <div class="line2">
-                        <div id="container31" #container31></div>
-                    </div>
-                    <div class="line3">
-                        <div id="container32" #container32></div>
-                    </div>
-
-                </div>
-
-            </div>
+        <div class="iframe-container">
+            <iframe id= "mainIFrame" src="https://green-desert-0198e860f.5.azurestaticapps.net/player?courseId=c4ca8e6e-c9e0-4daa-8370-600102a7aa21&lessonId=f28094f3-435c-4ec3-906f-b0b121967735&slideIndex=0" frameborder="0" scrolling="no" style = "width: 100%;height: 100%;" ></iframe>
         </div>
 
-        <img style="z-index: 102" id="logo" src="./assets/logo-edutecno-2.png" alt="Logo">
-        <!-- <img id="play-buttom" src="./assets/play.png" alt="Play"> -->
-
-        <div class="slidePreviewControls unselectable">
-            <span id="playButton" style="cursor: pointer;" >⏯️</span>
-            <span id="reloadButton" style="cursor: pointer;">🔄️</span>
-            <!-- <span>🔊</span> -->
-            <span id="soundButton" style="cursor: pointer;">🔈</span>
-            <span id="subtitlesButton" style="filter: grayscale(1); cursor: pointer;">🔤
-            </span>
-        </div>
-
-        <div id="subtitles"></div>
     </div>
 
-
-
-    <script src="./scripts/gsap.min.js"></script>
-    <script src="./scripts/SplitText.min.js"></script>
     <script src="./js/engine.js" type="module"></script>
 
 </body>
