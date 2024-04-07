@@ -551,7 +551,7 @@ export async function createContentCycle(
               {
                 $set: {
                   [currentParagraphVideoDataPath]: currentVideoData,
-                  [currentParagraphImageDataPath]: currentParagrah["videoData"],
+                  [currentParagraphImageDataPath]: currentParagrah["imageData"],
                 },
               }
             );
