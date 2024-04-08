@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
+import { cleanText } from "../CreateContent/cycle";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,7 +28,11 @@ const httpTrigger: AzureFunction = async function (
         ],
       });
 
-      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+      updateCourseTokens(
+        req.body.courseCode,
+        response.usage.prompt_tokens,
+        response.usage.completion_tokens
+      );
 
       // console.log(response.data.choices[0].message.content)
       context.res = {
@@ -76,7 +81,7 @@ const httpTrigger: AzureFunction = async function (
           {
             role: "user",
             content:
-              "Create a short description for a course teaching the content of the text. The descrition should be in Spanish.",
+              "Create a short description for a course teaching the content of the text. The descrition should be in Spanish.  Don't use any symbols or markup in your response. Don't use asterisks, quotes or hashtags.",
           },
           {
             role: "assistant",
@@ -85,7 +90,13 @@ const httpTrigger: AzureFunction = async function (
         ],
       });
 
-      updateCourseTokens(req.body.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+      updateCourseTokens(
+        req.body.courseCode,
+        response.usage.prompt_tokens,
+        response.usage.completion_tokens
+      );
+
+      let cleanResponse = cleanText(response.choices[0].message.content);
 
       // console.log(response.data.choices[0].message.content)
       context.res = {

@@ -216,7 +216,7 @@ function wait(seconds: number) {
   });
 }
 
-function cleanText(text: string): string {
+export function cleanText(text: string): string {
   return text
     .trimStart()
     .replace(/\n\s*\n/g, "\n")
@@ -224,7 +224,8 @@ function cleanText(text: string): string {
     .replace(/^ +/gm, "")
     .replace(/(?<=[a-z])\s?\n/, ". ")
     .replace(/\*/g, "")
-    .replace(/\#/g, "");
+    .replace(/\#/g, "")
+    .replace(/"/g, "");
 }
 
 export async function createContentCycle(
