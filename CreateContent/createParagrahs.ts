@@ -197,10 +197,14 @@ export async function createParagraphs(
 
     let data = response.choices[0].message.content.trim();
 
-    const formattedData =
-      formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
-    const paragraphs = splitParagraphs(formattedData, true);
+    // const formattedData =
+    //   formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
+    // const paragraphs = splitParagraphs(formattedData, true);
 
+    
+    const formattedData =
+       data.charAt(0).toUpperCase() + data.slice(1);
+    const paragraphs = splitParagraphs(formattedData, true);
     return { content: paragraphs, sectionIndex: index };
   } catch (error) {
     await saveLog(
