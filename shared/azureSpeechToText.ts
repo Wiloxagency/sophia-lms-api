@@ -41,7 +41,6 @@ export async function createTranscriptionJob(
   axios
     .request(config)
     .then((response) => {
-      // checkTranscriptionJobStatus(response.data.self)
       updateSlideAfterTranscriptionJob(
         courseCode,
         indexSection,
@@ -76,14 +75,14 @@ export async function updateSlideAfterTranscriptionJob(
     const db = await database;
     const Courses = db.collection("course");
 
-    const slidePath = `sections.${indexSection}.elements.${indexElement}.elementLesson.paragraphs.${indexParagraph}.srt`;
+    const slideSrtPath = `sections.${indexSection}.elements.${indexElement}.elementLesson.paragraphs.${indexParagraph}.srt`;
 
-    const transcriptionJobUrlPath = slidePath + ".transcriptionJobUrl";
-    const transcriptionJobStatusPath = slidePath + ".transcriptionJobStatus";
+    const transcriptionJobUrlPath = slideSrtPath + ".transcriptionJobUrl";
+    const transcriptionJobStatusPath = slideSrtPath + ".transcriptionJobStatus";
 
-    const transcriptionResultPath = slidePath + ".transcriptionResult";
+    const transcriptionResultPath = slideSrtPath + ".transcriptionResult";
 
-    const updateSlideResponse = await Courses.updateOne(
+    const updateSlideResponse = await Courses.findOneAndUpdate(
       { code: courseCode },
       {
         $set: {

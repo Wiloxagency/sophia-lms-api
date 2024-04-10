@@ -15,7 +15,6 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-
   const createCourse = async () => {
     const createdCourses = parseInt(req.body.createdCourses);
 
@@ -85,7 +84,7 @@ const httpTrigger: AzureFunction = async function (
       const body = await resp;
 
       if (req.query.updateCourseDuration) {
-        updateCourseDuration(courseCode)
+        updateCourseDuration(courseCode);
       }
 
       if (body) {
@@ -132,7 +131,6 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-
   const addCourseElement = async (courseCode: string) => {
     try {
       const db = await database;
@@ -143,16 +141,19 @@ const httpTrigger: AzureFunction = async function (
       // console.log(req.body)
       // return
 
-      const resp = Courses.updateOne({ code: courseCode }, { $push: req.body });
-      const body = await resp;
-      updateCourseDuration(courseCode)
-      if (body) {
+      const updateOneResponse = await Courses.updateOne(
+        { code: courseCode },
+        { $push: { [elementPath]: req.body.courseElement } }
+      );
+
+      updateCourseDuration(courseCode);
+      if (updateOneResponse) {
         context.res = {
           status: 201,
           headers: {
             "Content-Type": "application/json",
           },
-          body: body,
+          body: updateOneResponse,
         };
       } else {
         await saveLog(
@@ -269,7 +270,7 @@ const httpTrigger: AzureFunction = async function (
 
   const getCoursesBySearch = async (query: any) => {
     try {
-      console.log(new Date())
+      console.log(new Date());
       const db = await database;
       const collection = db.collection("course");
 
@@ -338,33 +339,30 @@ const httpTrigger: AzureFunction = async function (
           { $match: Object.assign(queryStatus, queryData, querySearch) },
           {
             $facet: {
-              "Courses":
-                [
-                  { $sort: { _id: -1 } },
-                  { $skip: skipNum },
-                  { $limit: limitNum },
-                ],
-              "Count":
-                [
-                  {
-                    $group: {
-                      _id: null,
-                      "Total": { $sum: 1 }
-                    }
-                  }
-                ]
-            }
+              Courses: [
+                { $sort: { _id: -1 } },
+                { $skip: skipNum },
+                { $limit: limitNum },
+              ],
+              Count: [
+                {
+                  $group: {
+                    _id: null,
+                    Total: { $sum: 1 },
+                  },
+                },
+              ],
+            },
           },
           {
             $addFields: {
-              Count: "$Count.Total"
-            }
+              Count: "$Count.Total",
+            },
           },
           {
-            $unwind: "$Count"
-          }
-        ]
-        )
+            $unwind: "$Count",
+          },
+        ])
         .toArray();
 
       // const result = {
@@ -373,14 +371,14 @@ const httpTrigger: AzureFunction = async function (
       // };
 
       if (body) {
-        console.log(new Date())
+        console.log(new Date());
 
         context.res = {
           status: 200,
           headers: {
             "Content-Type": "application/json",
           },
-          body: body[0]  || { Courses: [], Count: 0 },
+          body: body[0] || { Courses: [], Count: 0 },
         };
       } else {
         context.res = {
@@ -410,31 +408,33 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  }
+  };
 
   const getAuthorCourses = async () => {
     try {
       const db = await database;
-      const courses = db.collection("course")
-      const query = { author_code: req.query.authorCode }
+      const courses = db.collection("course");
+      const query = { author_code: req.query.authorCode };
       const project = {
         projection: {
           _id: 0,
-          "code": 1,
+          code: 1,
           "details.title": 1,
           "details.summary": 1,
           "details.cover": 1,
-          "dateCreated": 1,
-          "createdBy": 1,
-          "approvalStatus": 1,
-          "duration": 1
-        }
-      }
-      console.log('Before query: ', new Date())
-      const findResponse = await courses.find(query, project).sort({ "dateCreated": -1 })
+          dateCreated: 1,
+          createdBy: 1,
+          approvalStatus: 1,
+          duration: 1,
+        },
+      };
+      console.log("Before query: ", new Date());
+      const findResponse = await courses
+        .find(query, project)
+        .sort({ dateCreated: -1 })
         // .explain()
-        .toArray()
-      console.log('After query: ', new Date())
+        .toArray();
+      console.log("After query: ", new Date());
       if (findResponse) {
         context.res = {
           status: 200,
@@ -471,12 +471,12 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  }
+  };
 
   const getOrganizationCourses = async () => {
     try {
       const db = await database;
-      const courses = db.collection("course")
+      const courses = db.collection("course");
       // const query = { organizationCode: req.query.organizationCode, approvalStatus: req.query.approvalStatus }
       // const project = {
       //   projection: {
@@ -496,61 +496,60 @@ const httpTrigger: AzureFunction = async function (
       //   .toArray()
       // console.log('After query: ', new Date())
 
-      console.log('Before aggregation: ', new Date())
-      const aggregationResponse = await courses.aggregate([
-        {
-          $match: {
-            organizationCode: req.query.organizationCode,
-            approvalStatus: req.query.approvalStatus
-          }
-        },
-        {
-          $project: {
-            "_id": 0,
-            "code": 1,
-            "details.title": 1,
-            "details.summary": 1,
-            "details.cover": 1,
-            "dateCreated": 1,
-            "createdBy": 1,
-            "approvalStatus": 1,
-            "duration": 1
-          }
-        },
-        {
-          $sort: {
-            dateCreated: -1
-          }
-        },
-        {
-          $facet: {
-            "Courses":
-              [
+      console.log("Before aggregation: ", new Date());
+      const aggregationResponse = await courses
+        .aggregate([
+          {
+            $match: {
+              organizationCode: req.query.organizationCode,
+              approvalStatus: req.query.approvalStatus,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              code: 1,
+              "details.title": 1,
+              "details.summary": 1,
+              "details.cover": 1,
+              dateCreated: 1,
+              createdBy: 1,
+              approvalStatus: 1,
+              duration: 1,
+            },
+          },
+          {
+            $sort: {
+              dateCreated: -1,
+            },
+          },
+          {
+            $facet: {
+              Courses: [
                 { $skip: parseInt(req.query.skip) || 0 },
                 { $limit: parseInt(req.query.items_by_page) || 20 },
               ],
-            "Count":
-              [
+              Count: [
                 {
                   $group: {
                     _id: null,
-                    "Total": { $sum: 1 }
-                  }
-                }
-              ]
-          }
-        },
-        {
-          $addFields: {
-            Count: "$Count.Total"
-          }
-        },
-        {
-          $unwind: "$Count"
-        }
-      ])
-        .toArray()
-      console.log('After aggregation: ', new Date())
+                    Total: { $sum: 1 },
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              Count: "$Count.Total",
+            },
+          },
+          {
+            $unwind: "$Count",
+          },
+        ])
+        .toArray();
+      console.log("After aggregation: ", new Date());
 
       if (aggregationResponse) {
         context.res = {
@@ -588,36 +587,37 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  }
+  };
 
   const getStudentCourses = async () => {
     try {
-      const db = await database
-      const Users = db.collection('user')
-      const Courses = db.collection('course')
-      console.log(new Date())
-      const fetchedUser = await Users.findOne({ code: req.query.studentCode })
-      let courseCodes = fetchedUser.groups.map((group: any) => { return group.courseCode })
+      const db = await database;
+      const Users = db.collection("user");
+      const Courses = db.collection("course");
+      console.log(new Date());
+      const fetchedUser = await Users.findOne({ code: req.query.studentCode });
+      let courseCodes = fetchedUser.groups.map((group: any) => {
+        return group.courseCode;
+      });
       // console.log(courseCodes)
       const userCourses = await Courses.find(
         {
-          approvalStatus: 'Approved',
-          code:
-          {
-            $in: courseCodes
-          }
+          approvalStatus: "Approved",
+          code: {
+            $in: courseCodes,
+          },
         },
         {
-          projection:
-          {
-            "_id": 0,
-            "code": 1,
+          projection: {
+            _id: 0,
+            code: 1,
             "details.title": 1,
             "details.summary": 1,
             "details.cover": 1,
-            "duration": 1
-          }
-        }).toArray()
+            duration: 1,
+          },
+        }
+      ).toArray();
 
       // console.log(userCourses)
 
@@ -670,43 +670,53 @@ const httpTrigger: AzureFunction = async function (
       //   ]
       // ).toArray()
 
-      console.log('Last one', new Date())
+      console.log("Last one", new Date());
 
       if (userCourses) {
         context.res = {
-          "status": 200,
-          "headers": {
-            "Content-Type": "application/json"
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
           },
-          "body": userCourses
-        }
+          body: userCourses,
+        };
       } else {
-        await saveLog(`Error getting courses by user code for user: ${req.query.studentCode}`, "Error", "getStudentCourses()", "Course/")
+        await saveLog(
+          `Error getting courses by user code for user: ${req.query.studentCode}`,
+          "Error",
+          "getStudentCourses()",
+          "Course/"
+        );
 
         context.res = {
-          "status": 500,
-          "headers": {
-            "Content-Type": "application/json"
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
           },
-          "body": {
-            "message": "Error getting courses by user code"
-          }
-        }
+          body: {
+            message: "Error getting courses by user code",
+          },
+        };
       }
     } catch (error) {
-      await saveLog(`Error getting courses by user code for user: ${req.query.studentCode}, error ${error.message}`, "Error", "getStudentCourses()", "Course/")
+      await saveLog(
+        `Error getting courses by user code for user: ${req.query.studentCode}, error ${error.message}`,
+        "Error",
+        "getStudentCourses()",
+        "Course/"
+      );
 
       context.res = {
-        "status": 500,
-        "headers": {
-          "Content-Type": "application/json"
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
         },
-        "body": {
-          "message": "Error getting courses by user code"
-        }
-      }
+        body: {
+          message: "Error getting courses by user code",
+        },
+      };
     }
-  }
+  };
 
   const deleteCourse = async () => {
     try {
@@ -758,7 +768,7 @@ const httpTrigger: AzureFunction = async function (
     } catch (error) {
       await saveLog(
         `Error deleting course by code: ${req.body.course.code}` +
-        error.message,
+          error.message,
         "Error",
         "deleteCourse()",
         "Courses/{courseCode?}"
@@ -773,7 +783,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  }
+  };
 
   const uploadCourseCover = async (req: HttpRequest) => {
     try {
@@ -860,24 +870,24 @@ const httpTrigger: AzureFunction = async function (
         await getCourse(req.params.courseCode);
         break;
       }
-  
+
       if (req.query.search) {
         await getCoursesBySearch(req.query);
         break;
       }
-  
+
       if (req.query.studentCode) {
         await getStudentCourses();
         break;
       }
-  
+
       if (req.query.authorCode) {
         await getAuthorCourses();
         break;
       }
-  
+
       if (req.query.organizationCode) {
-        console.info("organizationCode", req.query.organizationCode)
+        console.info("organizationCode", req.query.organizationCode);
         await getOrganizationCourses();
         break;
       }
@@ -889,4 +899,4 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-export default httpTrigger
+export default httpTrigger;
