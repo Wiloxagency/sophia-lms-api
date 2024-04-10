@@ -81,25 +81,24 @@ export async function updateSlideAfterTranscriptionJob(
     const transcriptionJobStatusPath = slideSrtPath + ".transcriptionJobStatus";
 
     const transcriptionResultPath = slideSrtPath + ".transcriptionResult";
-    
 
-    // const updateSlideResponse = await Courses.findOneAndUpdate(
-    //   { code: courseCode },
-    //   {
-    //     $set: {
-    //       [transcriptionJobUrlPath]: transcriptionJobUrl,
-    //       [transcriptionJobStatusPath]: transcriptionJobStatus,
-    //       [transcriptionResultPath]: transcriptionResult,
-    //     },
-    //   }
-    // );
-
-    console.log("TRANSCRIPTION RESULTS: ");
-    console.log(
-      transcriptionJobUrl,
-      transcriptionJobStatus,
-      transcriptionResult
+    const updateSlideResponse = await Courses.findOneAndUpdate(
+      { code: courseCode },
+      {
+        $set: {
+          [transcriptionJobUrlPath]: transcriptionJobUrl,
+          [transcriptionJobStatusPath]: transcriptionJobStatus,
+          [transcriptionResultPath]: transcriptionResult,
+        },
+      }
     );
+
+    // console.log("TRANSCRIPTION RESULTS: ");
+    // console.log(
+    //   transcriptionJobUrl,
+    //   transcriptionJobStatus,
+    //   transcriptionResult
+    // );
     // console.log(updateSlideResponse);
   } catch (error) {
     console.error(error);
