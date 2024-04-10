@@ -11,6 +11,7 @@ import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
+import { cleanText } from "./cycle";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -193,7 +194,11 @@ export async function createParagraphs(
       ],
     });
 
-    updateCourseTokens(payload.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+    updateCourseTokens(
+      payload.courseCode,
+      response.usage.prompt_tokens,
+      response.usage.completion_tokens
+    );
 
     let data = response.choices[0].message.content.trim();
 
@@ -201,11 +206,14 @@ export async function createParagraphs(
     //   formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
     // const paragraphs = splitParagraphs(formattedData, true);
 
-    
-    const formattedData =
-       data.charAt(0).toUpperCase() + data.slice(1);
+    const formattedData = data.charAt(0).toUpperCase() + data.slice(1);
     const paragraphs = splitParagraphs(formattedData, true);
-    return { content: paragraphs, sectionIndex: index };
+
+    const cleanParagraphs = paragraphs.map((paragraph) => {
+      return cleanText(paragraph);
+    });
+
+    return { content: cleanParagraphs, sectionIndex: index };
   } catch (error) {
     await saveLog(
       `Error creating Paragraph for course: ${payload.courseCode}.`,
