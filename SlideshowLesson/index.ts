@@ -304,7 +304,11 @@ async function saveSlidesToSlideshowLesson(
         },
       },
     },
-    { arrayFilters: [{ "element.type": "Lección Engine" }] }
+    {
+      arrayFilters: [
+        { "element.type": "Lección Engine", "element.elementCode": lessonId },
+      ],
+    }
   );
 }
 
@@ -326,6 +330,7 @@ async function markSlideshowLessonSlidesAsOutdated(
       arrayFilters: [
         {
           "element.type": "Lección Engine",
+          "element.elementCode": lessonId,
           "element.elementLesson.slideshow": { $exists: true },
         },
       ],
