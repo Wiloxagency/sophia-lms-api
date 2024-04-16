@@ -191,7 +191,10 @@ async function PUT(context: Context, req: HttpRequest) {
   context.res = { status: 204 };
 }
 
-/** Marks the slides of a slideshow lesson as outdated. */
+/**
+ * Marks the slides of one or all slideshow lessons of a course as outdated,
+ * depending on the request.
+ */
 async function PATCH(context: Context, req: HttpRequest) {
   const courseId = req.body.courseId as string | undefined;
   const lessonId = req.body.lessonId as string | undefined;
@@ -204,15 +207,32 @@ async function PATCH(context: Context, req: HttpRequest) {
     };
     return;
   }
+
   if (!lessonId) {
-    context.res = {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-      body: { error: "`lessonId` is required." },
-    };
+    await handleMarkSlidesOfAllSlideshowLessonsAsOutdated({
+      context,
+      courseId,
+    });
     return;
   }
 
+  await handleMarkSlideshowLessonSlidesAsOutdated({
+    context,
+    courseId,
+    lessonId,
+  });
+}
+
+/** Marks the slides of a slideshow lesson as outdated. */
+async function handleMarkSlideshowLessonSlidesAsOutdated({
+  context,
+  courseId,
+  lessonId,
+}: {
+  context: Context;
+  courseId: string;
+  lessonId: string;
+}) {
   let result;
   try {
     result = await markSlideshowLessonSlidesAsOutdated(courseId, lessonId);
@@ -239,6 +259,47 @@ async function PATCH(context: Context, req: HttpRequest) {
       status: 404,
       headers: { "Content-Type": "application/json" },
       body: { error: "Slideshow lesson not found." },
+    };
+    return;
+  }
+
+  context.res = { status: 204 };
+}
+// TODO: Test if this updates all the lessons of a course or just the first one
+/** Marks the slides of all slideshow lessons of a course as outdated. */
+async function handleMarkSlidesOfAllSlideshowLessonsAsOutdated({
+  context,
+  courseId,
+}: {
+  context: Context;
+  courseId: string;
+}) {
+  let result;
+  try {
+    result = await markSlidesOfAllSlideshowLessonsAsOutdated(courseId);
+  } catch (error) {
+    await saveLog(
+      `Could not mark the slides of all slideshow lessons of a course as outdated on the database. Error: ${error}`,
+      "Error",
+      "markSlidesOfAllSlideshowLessonsAsOutdated()",
+      "/SlideshowLesson"
+    );
+    context.res = {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+      body: {
+        error:
+          "Could not mark the slides of all slideshow lessons of a course as outdated for unknown reasons.",
+      },
+    };
+    return;
+  }
+
+  if (result.matchedCount === 0) {
+    context.res = {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+      body: { error: "Course not found." },
     };
     return;
   }
@@ -331,6 +392,28 @@ async function markSlideshowLessonSlidesAsOutdated(
         {
           "element.type": "Lección Engine",
           "element.elementCode": lessonId,
+          "element.elementLesson.slideshow": { $exists: true },
+        },
+      ],
+    }
+  );
+}
+
+async function markSlidesOfAllSlideshowLessonsAsOutdated(courseId: string) {
+  const courseCollection = (await database).collection("course");
+
+  return await courseCollection.updateOne(
+    { code: courseId, "sections.elements.type": "Lección Engine" },
+    {
+      $set: {
+        "sections.$[].elements.$[element].elementLesson.slideshow.isOutdated":
+          true,
+      },
+    },
+    {
+      arrayFilters: [
+        {
+          "element.type": "Lección Engine",
           "element.elementLesson.slideshow": { $exists: true },
         },
       ],
