@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Lesson 1</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/fonts.css" />
+    <link rel="icon" href="./assets/fav.png">
+
+    <style>
+
+        .iframe-container {
+            width: 100%; /* Make iframe container take up full width of parent */
+            height: 100%; /* Make iframe container take up full height of parent */
+            position: absolute; /* Position iframe absolutely within parent container */
+            top: 0; /* Position from the top of parent container */
+            left: 0; /* Position from the left of parent container */
+            border: none; /* Remove border from iframe */
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div id="main-text-container" style="width: 100vw; max-height: 100vh; aspect-ratio: 16/9;" >
+
+        <div class="iframe-container">
+            <iframe id= "mainIFrame" src="https://green-desert-0198e860f.5.azurestaticapps.net/player?courseId=c4ca8e6e-c9e0-4daa-8370-600102a7aa21&lessonId=f28094f3-435c-4ec3-906f-b0b121967735&slideIndex=0" frameborder="0" scrolling="no" style = "width: 100%;height: 100%;" ></iframe>
+        </div>
+
+    </div>
+
+    <script src="./js/engine.js" type="module"></script>
+
+</body>
+
+</html>

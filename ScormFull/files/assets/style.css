@@ -1,0 +1,145 @@
+html,
+body {
+    background-color: black;
+    color: white;
+    font-family: "Roboto", sans-serif;
+    width: 100vw;
+    height: 100vh;
+    margin: unset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#main-text-container {
+    position: relative;
+    overflow: hidden;
+    background-color: teal;
+    width: 100vw;
+    max-height: 100vh;
+    aspect-ratio: 16 / 9;
+}
+
+#textBackground {
+    background-color: #7294d46b;
+    position: absolute;
+    border: 1px solid white;
+}
+
+#kinetic-3 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 400px;
+    height: 170px;
+    /* margin-top        : 260px; */
+    margin-left: 30px;
+    white-space: nowrap;
+    font-family: "Azo Sans";
+    font-weight: 500;
+    line-height: 1;
+}
+
+.line1,
+.line2,
+.line3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1%;
+}
+
+.line1 {
+    justify-content: end;
+}
+
+.line2 {
+    justify-content: center;
+}
+
+.line3 {
+    justify-content: start;
+}
+
+#logo {
+    position: absolute;
+    max-width: 12%;
+    right: 6px;
+}
+
+#play-buttom {
+    z-index: 103;
+    position: absolute;
+    width: 100px;
+    top: calc(50% - 50px);
+    left: calc(50% - 50px);
+    opacity: 0.7;
+}
+
+.videoElement {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#subtitles {
+    width: 84%;
+    height: 44px;
+    position: absolute;
+    z-index: 888;
+    left: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    bottom: 7px;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 14px;
+    border-radius: 28px;
+    padding: 5px 21px;
+    box-sizing: content-box;
+    opacity: 0;
+}
+
+.slidePreviewControls {
+    display: flex;
+    justify-content: space-evenly;
+    margin: 0 auto;
+    padding: 5px;
+    background-color: white;
+    color: rgba(0, 0, 0, 0.77);
+    width: 210px;
+    border-radius: 21px;
+    /* opacity: 0; */
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: 0.7s;
+    z-index: 891;
+    font-size: 16px;
+    box-shadow: 3px 3px 7px #00000070;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Safari */
+    -khtml-user-select: none;
+    /* Konqueror HTML */
+    -moz-user-select: none;
+    /* Old versions of Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+    user-select: none;
+    /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+}
+
+#main-text-container .slidePreviewControls {
+    opacity: 0;
+    /* visibility: hiden; */
+}
+
+#main-text-container:hover .slidePreviewControls {
+    opacity: 1;
+}
