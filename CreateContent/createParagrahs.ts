@@ -206,8 +206,9 @@ export async function createParagraphs(
     //   formattedText + ": " + data.charAt(0).toUpperCase() + data.slice(1);
     // const paragraphs = splitParagraphs(formattedData, true);
 
-    const formattedData = data.charAt(0).toUpperCase() + data.slice(1);
-    const paragraphs = splitParagraphs(formattedData, true);
+  const formattedData =
+    data.charAt(0).toUpperCase() + data.slice(1);
+  const paragraphs = splitParagraphs(formattedData, true);
 
     const cleanParagraphs = paragraphs.map((paragraph) => {
       return cleanText(paragraph);
