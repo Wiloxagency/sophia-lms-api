@@ -1,5 +1,9 @@
 import type { Context, HttpRequest } from "@azure/functions";
 
+import type {
+  SlideshowLessonWithExternalInfoFromDatabase,
+  SlideshowLessonWithExternalInfoResponse,
+} from "./types";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 
@@ -103,7 +107,7 @@ async function GET(context: Context, req: HttpRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
       body: {
-        slides: slideshowLesson.elementLesson.slideshow.slides,
+        slides: slideshowLesson.elementLesson.slideshow!.slides,
         backgroundMusicUrl: slideshowLesson.backgroundMusicUrl,
         organizationLogoUrl,
       },
@@ -111,18 +115,20 @@ async function GET(context: Context, req: HttpRequest) {
     return;
   }
 
-  // Removing properties that are not needed for the response
-  delete slideshowLesson.elementLesson.slideshow;
-  delete slideshowLesson.organizationCode;
-  delete slideshowLesson.shouldUseOrganizationLogo;
+  // Only setting the properties that are needed for the response
+  const slideshowLessonResponse = {
+    courseCover: slideshowLesson.courseCover,
+    sectionTitle: slideshowLesson.sectionTitle,
+    colorThemeName: slideshowLesson.colorThemeName,
+    backgroundMusicUrl: slideshowLesson.backgroundMusicUrl,
+    elementLesson: { paragraphs: slideshowLesson.elementLesson.paragraphs },
+    organizationLogoUrl: organizationLogoUrl,
+  } satisfies SlideshowLessonWithExternalInfoResponse;
 
   context.res = {
     status: 200,
     headers: { "Content-Type": "application/json" },
-    body: {
-      ...slideshowLesson,
-      organizationLogoUrl,
-    },
+    body: slideshowLessonResponse,
   };
 }
 
@@ -345,7 +351,9 @@ async function fetchSlideshowLesson(courseId: string, lessonId: string) {
     },
   ]);
 
-  return (await aggregation.toArray())[0];
+  return (await aggregation.toArray())[0] as
+    | SlideshowLessonWithExternalInfoFromDatabase
+    | undefined;
 }
 
 async function saveSlidesToSlideshowLesson(
