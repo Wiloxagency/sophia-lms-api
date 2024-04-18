@@ -1,5 +1,6 @@
 import type { Context, HttpRequest } from "@azure/functions";
 
+import { addIndexesToSlides, createMutableDeepCopy } from "./utils";
 import type {
   SlideshowLessonWithExternalInfoFromDatabase,
   SlideshowLessonWithExternalInfoResponse,
@@ -97,17 +98,35 @@ async function GET(context: Context, req: HttpRequest) {
     organizationLogoUrl ||= null;
   }
 
+  // Creating a mutable deep copy of the slideshow object
+  const slideshow = slideshowLesson.elementLesson.slideshow
+    ? createMutableDeepCopy(slideshowLesson.elementLesson.slideshow)
+    : undefined;
+  const hasUpToDateSlides = slideshow !== undefined && !slideshow.isOutdated;
+
+  if (hasUpToDateSlides) {
+    // Not all slides should have indexes, but some of them should
+    const slidesHaveIndexes = slideshow.slides.some(
+      (slide) => slide.lessonParagraphIndex !== undefined
+    );
+
+    // If the slides don't have indexes, then try adding them
+    if (!slidesHaveIndexes) {
+      addIndexesToSlides(
+        slideshowLesson.elementLesson.paragraphs,
+        slideshow.slides
+      );
+    }
+  }
+
   /* If the slideshow has slides that are up to date, return them alongside
   other needed properties */
-  const hasUpToDateSlides =
-    slideshowLesson.elementLesson.slideshow &&
-    !slideshowLesson.elementLesson.slideshow.isOutdated;
   if (hasUpToDateSlides) {
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
       body: {
-        slides: slideshowLesson.elementLesson.slideshow!.slides,
+        slides: slideshow.slides,
         backgroundMusicUrl: slideshowLesson.backgroundMusicUrl,
         organizationLogoUrl,
       },
