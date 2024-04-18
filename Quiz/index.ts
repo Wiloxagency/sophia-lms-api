@@ -21,7 +21,7 @@ async function returnArrayOfRelevantParagraphs(
 ): Promise<string[]> {
   let concatenatedLessonParagraphs = "";
 
-  if ((indexElement = -1)) {
+  if ((indexElement == -1)) {
     // THIS MEANS ALL LESSON INSIDE SECTION MUST BE USED
 
     for (const lesson of course.sections[indexSection].elements) {
