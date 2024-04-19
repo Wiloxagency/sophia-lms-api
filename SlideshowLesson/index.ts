@@ -136,6 +136,7 @@ async function GET(context: Context, req: HttpRequest) {
 
   // Only setting the properties that are needed for the response
   const slideshowLessonResponse = {
+    elementCode: slideshowLesson.elementCode,
     courseCover: slideshowLesson.courseCover,
     sectionTitle: slideshowLesson.sectionTitle,
     colorThemeName: slideshowLesson.colorThemeName,

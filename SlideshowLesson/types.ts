@@ -67,6 +67,7 @@ export type Slide = {
 /** This type does not represent the whole object, but only the properties that
 are directly used in the functions of this API route. */
 export type SlideshowLesson = ReadonlyDeep<{
+  elementCode: string;
   elementLesson: {
     paragraphs: LessonParagraph[];
     slideshow?: {
