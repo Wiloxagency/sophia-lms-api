@@ -212,12 +212,9 @@ const httpTrigger: AzureFunction = async function (
         },
         {
           $addFields: {
-            createdBy: "$createdBy.name",
-          },
-        },
-        {
-          $unwind: {
-            path: "$createdBy",
+            createdBy: {
+              $ifNull: [{ $first: "$createdBy.name" }, "unknown"],
+            },
           },
         },
       ]);
