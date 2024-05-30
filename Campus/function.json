@@ -1,0 +1,23 @@
+{
+  "bindings": [
+    {
+      "authLevel": "admin",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": [
+        "get",
+        "post",
+        "put",
+        "delete"
+      ],
+      "route": "Campus"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/Campus/index.js"
+}
