@@ -6,12 +6,8 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "post",
-        "put",
-        "delete"
-
-      ],
-      "route": "Freelance"
+        "post"
+      ]
     },
     {
       "type": "http",
@@ -19,5 +15,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/FreelanceRegister/index.js"
+  "scriptFile": "../dist/FreelanceLogin/index.js"
 }

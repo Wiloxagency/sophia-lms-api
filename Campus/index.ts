@@ -133,9 +133,7 @@ const httpTrigger: AzureFunction = async function (
 
       const body = await resp.toArray();
 
-      //const campuses = body[0];
-
-      if (body != null) {
+      if (body[0]) {
 
         context.res = {
           status: 200,
