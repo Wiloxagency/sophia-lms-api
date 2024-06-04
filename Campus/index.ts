@@ -1,8 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
-import { saveLog } from "../shared/saveLog";
-import parseMultipartFormData from "@anzp/azure-function-multipart";
-import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 
 const AZURE_STORAGE_CONNECTION_STRING =
@@ -21,7 +18,7 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Campuses = db.collection("campus");
       const campus = req.body;
-      //campus.dataCreated = new Date();
+      campus["dataCreated"] = new Date();
 
       //validar si existe codigo
       const exist = await Campuses.findOne({ code: req.headers.campuscode });
@@ -42,6 +39,7 @@ const httpTrigger: AzureFunction = async function (
         const body = await resp;
 
         if (body) {
+          updateFreelanceFromCampus(req.headers.email,req.headers.campuscode);
           context.res = {
             status: 201,
             headers: {
@@ -321,6 +319,51 @@ const httpTrigger: AzureFunction = async function (
 
     default:
       break;
+  }
+};
+
+async function updateFreelanceFromCampus (email:string, code:string) {
+ 
+  const document = {"codeCampus": code}
+  try {
+    const db = await database;
+    const Users = db.collection("freelanceUser");
+    const resp = Users.findOneAndUpdate(
+      { email: email },
+      { $set: document }
+    );
+
+    const body = await resp;
+
+    if (body) {
+      return { 
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body
+      };
+    } else {
+      return { 
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Error updating user freelance by email",
+        }
+      };
+    }
+  } catch (error) {
+    return { 
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        message: "Error updating user freelance by email",
+      }
+    };
   }
 };
 
