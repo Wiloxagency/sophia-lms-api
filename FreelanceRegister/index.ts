@@ -1,8 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
-import { userAggregation } from "../User/aggregation";
+//import { userAggregation } from "../User/aggregation";
 import bcrypt = require("bcryptjs");
-import { saveLog } from "../shared/saveLog";
 const database = createConnection()
 import { MongoClient } from "mongodb";
 import { v4 as uuidv4 } from 'uuid';
