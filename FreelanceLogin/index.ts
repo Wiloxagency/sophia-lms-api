@@ -1,17 +1,17 @@
-import { createToken, verifyToken } from "./jwt"; 
+import { createToken, verifyToken } from "./jwt";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 //import { userAggregation } from "../User/aggregation";
 import bcrypt = require("bcryptjs");
 
-const database = createConnection()
+const database = createConnection();
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
-): Promise<void>  {
+): Promise<void> {
 
-  if (!req.body || !req.body.email || !req.body.password ) {
+  if (!req.body || !req.body.email || !req.body.password) {
     context.res = {
       status: 400,
       headers: {
@@ -47,17 +47,33 @@ const httpTrigger: AzureFunction = async function (
         //const resp = Users.aggregate(
         //  userAggregation( {"code": body.code}, {})
         //)
-        //const body2 = await resp.toArray()
+        //const body2 = await body.toArray()
         //delete body2[0].password
-        context.res = {
-          "status": 200,
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "body": {
-            user: body,
-            //token: createToken(body)//error
+        const responseCampus = await getCampusByAuthorCode(body.code);
+
+        if(responseCampus.status == 200){
+          context.res = {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              user: body,
+              campus: responseCampus.body
+              //token: createToken(body)//error
+            }
           }
+        }else{
+          context.res = {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              user: body
+            }
+          }
+
         }
       }
 
@@ -85,3 +101,45 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger
+
+async function getCampusByAuthorCode(code: string) {
+
+  const document = { "campus": code }
+  try {
+    const db = await database;
+    const Campuses = db.collection("campus");
+
+    const resp = Campuses.aggregate([
+      {
+        $match: {
+          author_code: code,
+        },
+      }
+    ]);
+
+    const body = await resp.toArray();
+
+    if (body[0]) {
+
+      return {
+        status: 200,
+        body: body[0],
+      };
+
+    } else {
+      return {
+        status: 500,
+        body: {
+          message: "Error getting campus by code",
+        },
+      };
+    }
+  } catch (error) {
+    return {
+      status: 500,
+      body: {
+        message: "Error getting campus by code",
+      },
+    };
+  }
+};
