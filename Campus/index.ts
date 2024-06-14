@@ -117,15 +117,25 @@ const httpTrigger: AzureFunction = async function (
 
   const getCampus = async () => {
 
+    var query: { author_code?: string; code?: string; };
+
+    if (req.headers.authorcode) {
+      query = {
+        author_code: req.headers.authorcode
+      }
+    } else {
+      query = {
+        code: req.headers.campuscode
+      }
+    }
+
     try {
       const db = await database;
       const Campuses = db.collection("campus");
 
       const resp = Campuses.aggregate([
         {
-          $match: {
-            author_code: req.query.authorCode,
-          },
+          $match: query
         }
       ]);
 
@@ -309,11 +319,11 @@ const httpTrigger: AzureFunction = async function (
       break;
 
     case "GET":
-      if (req.query.courses == "true") {
-        await getCoursesInstructor();
-      } else {
+     // if (req.query.courses == "true") {
+      //  await getCoursesInstructor();
+      //} else {
         await getCampus();
-      }
+      //}
 
       break;
 

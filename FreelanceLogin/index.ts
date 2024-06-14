@@ -103,8 +103,6 @@ const httpTrigger: AzureFunction = async function (
 export default httpTrigger
 
 async function getCampusByAuthorCode(code: string) {
-
-  const document = { "campus": code }
   try {
     const db = await database;
     const Campuses = db.collection("campus");
@@ -120,7 +118,6 @@ async function getCampusByAuthorCode(code: string) {
     const body = await resp.toArray();
 
     if (body[0]) {
-
       return {
         status: 200,
         body: body[0],
