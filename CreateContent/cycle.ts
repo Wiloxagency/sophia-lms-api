@@ -249,7 +249,7 @@ export async function createContentCycle(
   let totalParagraphsCounter = 0;
   let currentImageCounter = 0;
   let currentVideoCounter = 0;
-  if (!(course.type && course.ty == "resume")) {
+  if (!(course.type && course.type == "resume")) {
     await Courses.findOneAndUpdate(
       { code: course.code },
       {

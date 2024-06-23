@@ -21,7 +21,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
         let timestampPlus5Minutes = new Date(courseUnderConstruction.timestamp.getTime() + 2 * 60000)
 
         if (currentDate > (timestampPlus5Minutes)) {
-            // console.log("IT'S BEEN MORE THANT 2 MINUTES SINCE LAST UPDATE")
+            console.log("IT'S BEEN MORE THANT 2 MINUTES SINCE LAST UPDATE")
             const Courses = db.collection('course')
             const currentCourse = await Courses.findOne({ "code": courseUnderConstruction.courseCode })
 
