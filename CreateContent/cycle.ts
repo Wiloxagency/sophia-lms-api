@@ -231,7 +231,8 @@ export function cleanText(text: string): string {
 export async function createContentCycle(
   course: any,
   sectionIndex: number,
-  lessonIndex: number
+  lessonIndex: number,
+  paragraErrorphIndex?: number
 ) {
   let payload: paragraphCreation;
   if (!(course.sections && course.sections.length > 0)) {

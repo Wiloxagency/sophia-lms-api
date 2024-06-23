@@ -3,6 +3,27 @@ import { createConnection } from "../shared/mongo"
 import { saveLog } from "../shared/saveLog";
 import { createContentCycle } from "../CreateContent/cycle";
 
+
+function compareArrayStructures(arrays: any[][], arrayMaster: any[]): number {
+    // Helper function to get the structure of an array
+    function getStructure(array: any[]): string {
+        return JSON.stringify(array.map(item => typeof item));
+    }
+
+    // Get the structure of the master array
+    const masterStructure = getStructure(arrayMaster);
+
+    // Iterate over all arrays and compare their structure to the master structure
+    for (let i = 0; i < arrays.length; i++) {
+        if (getStructure(arrays[i]) !== masterStructure) {
+            return i;
+        }
+    }
+
+    // If all arrays have the same structure, return -1
+    return -1;
+}
+
 const database = createConnection()
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
     var timeStamp = new Date().toISOString();
@@ -35,6 +56,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                 saveLog(`Reinitializing course creation: ${courseUnderConstruction.courseCode}`, "Warning", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
 
 
+                // TODO --> Verificar si los párrafos tienen la estructura correcta, caso contrareio enviar el índice del párrafo también en createContentCycle
                 for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
                     const elements = currentCourse.sections[sectionIndex].elements
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
