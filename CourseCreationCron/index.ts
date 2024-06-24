@@ -4,23 +4,35 @@ import { saveLog } from "../shared/saveLog";
 import { createContentCycle } from "../CreateContent/cycle";
 
 
-function compareArrayStructures(arrays: any[][], arrayMaster: any[]): number {
-    // Helper function to get the structure of an array
-    function getStructure(array: any[]): string {
-        return JSON.stringify(array.map(item => typeof item));
+function compareObjectStructures(objects: any[]): number {
+    const objMaster: any =
+    {
+        "content": "",
+        "audioScript": "",
+        "audioUrl": "",
+        "srt": {},
+        "titleAI": "",
+        "translatedTitleAI": "",
+        "imageData": {},
+        "videoData": {},
+        "keyPhrases": []
+    }
+    // Helper function to get the structure of an object
+    function getStructure(object: any): string {
+        return JSON.stringify(Object.keys(object).sort().map(key => ({ key, type: typeof object[key] })));
     }
 
-    // Get the structure of the master array
-    const masterStructure = getStructure(arrayMaster);
+    // Get the structure of the master object
+    const masterStructure = getStructure(objMaster);
 
-    // Iterate over all arrays and compare their structure to the master structure
-    for (let i = 0; i < arrays.length; i++) {
-        if (getStructure(arrays[i]) !== masterStructure) {
+    // Iterate over all objects and compare their structure to the master structure
+    for (let i = 0; i < objects.length; i++) {
+        if (getStructure(objects[i]) !== masterStructure) {
             return i;
         }
     }
 
-    // If all arrays have the same structure, return -1
+    // If all objects have the same structure, return -1
     return -1;
 }
 
@@ -59,14 +71,24 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                 // TODO --> Verificar si los párrafos tienen la estructura correcta, caso contrareio enviar el índice del párrafo también en createContentCycle
                 for (let sectionIndex = 0; sectionIndex < currentCourse.sections.length; sectionIndex++) {
                     const elements = currentCourse.sections[sectionIndex].elements
+
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
                         if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) ||
                             (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
                             await createContentCycle(currentCourse, sectionIndex, elementIndex)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
                             break
+                        } else if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0) {
+                            let paragraphIndex = compareObjectStructures(elements[elementIndex].elementLesson.paragraphs)
+                            if (paragraphIndex >= 0) {
+                                await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
+                                saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+                                break
+                            }
+
                         }
                     }
+
                 }
             } catch (error) {
                 await saveLog(`Error resuming course: ${courseUnderConstruction.courseCode}, error: ${error.message}`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")

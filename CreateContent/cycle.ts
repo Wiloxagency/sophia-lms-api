@@ -324,16 +324,20 @@ export async function createContentCycle(
 
         let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
 
-        await Courses.findOneAndUpdate(
-          { code: course.code },
-          {
-            $set: {
-              [currentParagraphArrayPath]:
-                course.sections[sectionCounter].elements[lessonCounter]
-                  .elementLesson.paragraphs,
-            },
-          }
-        );
+        if (!(paragraErrorphIndex && paragraErrorphIndex >= 0)) {
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphArrayPath]:
+                  course.sections[sectionCounter].elements[lessonCounter]
+                    .elementLesson.paragraphs,
+              },
+            }
+          );
+        }
+
+          
 
         // Create Audios & find images
         var currentParagrah: any;
@@ -656,7 +660,9 @@ export async function createContentCycle(
             await multimediaCycle(paragraphCounter);
           }
         };
-        await multimediaCycle(0);
+        if (paragraErrorphIndex && paragraErrorphIndex >= 0) {
+          await multimediaCycle(paragraErrorphIndex);
+        } else await multimediaCycle(0);
         // if (course.sections[sectionCounter].elements.length > (lessonCounter+1)) {
         //     await lessonCycle(lessonCounter+1)
         // }
