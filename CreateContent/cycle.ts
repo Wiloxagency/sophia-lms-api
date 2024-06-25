@@ -36,24 +36,24 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   currentVideoCounter: number
 ): Promise<
   | {
-      image: {};
-      thumb: {};
-      finalImage: {};
-      imagesIds: string[];
-      urlBing: string;
-    }
+    image: {};
+    thumb: {};
+    finalImage: {};
+    imagesIds: string[];
+    urlBing: string;
+  }
   | {
-      thumb: {
-        url: string;
-        width: number;
-        height: number;
-      };
-      finalVideo: {
-        url: string;
-        width: number;
-        height: number;
-      };
-    }
+    thumb: {
+      url: string;
+      width: number;
+      height: number;
+    };
+    finalVideo: {
+      url: string;
+      width: number;
+      height: number;
+    };
+  }
 > {
   if (previousCourseName != courseName) {
     parsedPexelsImages = [];
@@ -128,28 +128,28 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   return isEvenNumber
     ? {
-        thumb: {
-          url: "",
-          width: 0,
-          height: 0,
-        },
-        finalVideo: {
-          url: parsedPexelsVideos[currentVideoCounter].url,
-          height: parsedPexelsVideos[currentVideoCounter].height,
-          width: parsedPexelsVideos[currentVideoCounter].width,
-        },
-      }
+      thumb: {
+        url: "",
+        width: 0,
+        height: 0,
+      },
+      finalVideo: {
+        url: parsedPexelsVideos[currentVideoCounter].url,
+        height: parsedPexelsVideos[currentVideoCounter].height,
+        width: parsedPexelsVideos[currentVideoCounter].width,
+      },
+    }
     : {
-        image: {},
-        thumb: {},
-        finalImage: {
-          url: parsedPexelsImages[currentImageCounter].url,
-          width: parsedPexelsImages[currentImageCounter].resizedWidth,
-          height: parsedPexelsImages[currentImageCounter].resizedHeight,
-        },
-        imagesIds: [],
-        urlBing: "",
-      };
+      image: {},
+      thumb: {},
+      finalImage: {
+        url: parsedPexelsImages[currentImageCounter].url,
+        width: parsedPexelsImages[currentImageCounter].resizedWidth,
+        height: parsedPexelsImages[currentImageCounter].resizedHeight,
+      },
+      imagesIds: [],
+      urlBing: "",
+    };
 }
 
 async function returnImageSizes(
@@ -290,41 +290,43 @@ export async function createContentCycle(
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
         let currentParagraphs: any;
-
-        if (
-          course.sections[sectionCounter].elements[lessonCounter].elementLesson
-            .paragraphs.length == 0
-        ) {
-          // console.warn("creating paragraphs");
-          payload.text = course.sections[sectionCounter].title;
-          payload.index = sectionCounter;
-          currentParagraphs = await createParagraphs(payload);
-          course.sections[currentParagraphs.sectionIndex].elements[
-            lessonCounter
-          ].elementLesson.paragraphs = currentParagraphs.content.map(
-            (text: string) => {
-              return { content: cleanText(text), audioScript: cleanText(text) };
-            }
-          );
-        } else {
-          currentParagraphs = {
-            content:
-              course.sections[sectionCounter].elements[lessonCounter]
-                .elementLesson.paragraphs,
-            sectionIndex: sectionCounter,
-          };
-          course.sections[currentParagraphs.sectionIndex].elements[
-            lessonCounter
-          ].elementLesson.paragraphs = currentParagraphs.content.map(
-            (text: string) => {
-              return { content: cleanText(text), audioScript: cleanText(text) };
-            }
-          );
-        }
-
-        let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
-
         if (!(paragraErrorphIndex && paragraErrorphIndex >= 0)) {
+          if (
+            course.sections[sectionCounter].elements[lessonCounter].elementLesson
+              .paragraphs.length == 0
+          ) {
+            // console.warn("creating paragraphs");
+            payload.text = course.sections[sectionCounter].title;
+            payload.index = sectionCounter;
+            currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
+            course.sections[currentParagraphs.sectionIndex].elements[
+              lessonCounter
+            ].elementLesson.paragraphs = currentParagraphs.content.map(
+              (text: string) => {
+                console.info("cleanText in 307:", text)
+                return { content: cleanText(text), audioScript: cleanText(text) };
+              }
+            );
+          } else {
+            currentParagraphs = {
+              content:
+                course.sections[sectionCounter].elements[lessonCounter]
+                  .elementLesson.paragraphs,
+              sectionIndex: sectionCounter,
+            };
+            course.sections[currentParagraphs.sectionIndex].elements[
+              lessonCounter
+            ].elementLesson.paragraphs = currentParagraphs.content.map(
+              (text: string) => {
+                console.info("cleanText in 322:", text)
+                return { content: cleanText(text), audioScript: cleanText(text) };
+              }
+            );
+          }
+
+          let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+
           await Courses.findOneAndUpdate(
             { code: course.code },
             {
@@ -337,13 +339,13 @@ export async function createContentCycle(
           );
         }
 
-          
+
 
         // Create Audios & find images
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
           console.log(
-            `STARTED MEDIA CYCLE FOR LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
+            `STARTED MEDIA CYCLE FOR SECTION ${sectionCounter} LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
           );
 
           let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;

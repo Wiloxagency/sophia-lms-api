@@ -75,14 +75,14 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
                         if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) ||
                             (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
-                            await createContentCycle(currentCourse, sectionIndex, elementIndex)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+                            await createContentCycle(currentCourse, sectionIndex, elementIndex)
                             break
                         } else if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0) {
                             let paragraphIndex = compareObjectStructures(elements[elementIndex].elementLesson.paragraphs)
                             if (paragraphIndex >= 0) {
-                                await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
                                 saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`, "Info", "CreateContentCron()", "Courses/{courseCode}/CreateContent")
+                                await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
                                 break
                             }
 
