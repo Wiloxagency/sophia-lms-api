@@ -6,9 +6,9 @@
       "direction": "in",
       "name": "req",
       "methods": [
-        "get"
-      ],
-      "route": "CoursesUnity/{courseCode?}"
+        "get",
+        "post"
+      ]
     },
     {
       "type": "http",
@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/CourseUnity/index.js"
+  "scriptFile": "../dist/EmailNotification/index.js"
 }
