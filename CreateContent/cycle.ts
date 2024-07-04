@@ -16,6 +16,7 @@ import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateQuery, translateToLanguage } from "../shared/translator";
+import { Paragraph } from "docx";
 
 const database = createConnection();
 
@@ -27,7 +28,11 @@ let parsedPexelsImages: {
   resizedHeight: number;
 }[] = [];
 
-let parsedPexelsVideos: { url: string; height: number; width: number }[] = [];
+let parsedPexelsVideos: {
+  url: string;
+  height: number;
+  width: number
+}[] = [];
 
 export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
@@ -114,10 +119,13 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   if (isEvenNumber) {
     currentVideoCounter++;
-    // console.log("currentImageCounter: ", currentImageCounter);
+    console.log("currentVideoCounter: ", currentVideoCounter);
+    console.log("parsedPexelsVideos length: ", parsedPexelsVideos.length);
+    
   } else {
     currentImageCounter++;
-    // console.log("currentVideoCounter: ", currentVideoCounter);
+    console.log("currentImageCounter: ", currentImageCounter);
+    console.log("parsedPexelsImages length: ", parsedPexelsImages.length);
   }
 
   // if (isEvenNumber) {
@@ -289,11 +297,12 @@ export async function createContentCycle(
     // Create Content
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
+        console.info(`CREATING CONTENT FOR SECTION ${sectionCounter}, LESSON ${lessonCounter}...`)
         let currentParagraphs: any;
-        if (!(paragraErrorphIndex && paragraErrorphIndex >= 0)) {
+        if (!(paragraErrorphIndex != null && paragraErrorphIndex >= 0)) {
           if (
-            course.sections[sectionCounter].elements[lessonCounter].elementLesson
-              .paragraphs.length == 0
+            (course.sections[sectionCounter].elements[lessonCounter].elementLesson
+              .paragraphs.length == 0)
           ) {
             // console.warn("creating paragraphs");
             payload.text = course.sections[sectionCounter].title;
@@ -318,7 +327,7 @@ export async function createContentCycle(
               lessonCounter
             ].elementLesson.paragraphs = currentParagraphs.content.map(
               (text: string) => {
-                console.info("cleanText in 322:", text)
+                // console.info("cleanText in 322:", text)
                 return { content: cleanText(text), audioScript: cleanText(text) };
               }
             );
@@ -337,6 +346,35 @@ export async function createContentCycle(
               },
             }
           );
+        } else {
+          //TODO --> Recreate all the next structure from paragraErrorphIndex to the end (content & audioScript)
+          // console.info(
+          //   "Issued structure: ", course.sections[sectionCounter].elements[lessonCounter]
+          //         .elementLesson.paragraphs[paragraErrorphIndex]
+          // );
+          // currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs;
+          currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.map((paragraph: any, index: number) => {
+            if (index >= paragraErrorphIndex) {
+              return { content: paragraph.content, audioScript: paragraph.content }
+            } else return paragraph
+          })
+
+          currentParagraphs.sectionIndex = sectionCounter
+          // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs
+
+          // console.info(
+            // "Fixed structure for course: " + course.code, course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs)
+
+          let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphArrayPath]: currentParagraphs
+              },
+            }
+          )
         }
 
 
@@ -345,7 +383,7 @@ export async function createContentCycle(
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
           console.log(
-            `STARTED MEDIA CYCLE FOR SECTION ${sectionCounter} LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
+            `STARTED MEDIA CYCLE FOR COURSE: ${course.code}. SECTION ${sectionCounter} LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
           );
 
           let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
@@ -356,7 +394,9 @@ export async function createContentCycle(
           let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
           let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
 
-          const paragraphContent = currentParagraphs.content[paragraphCounter];
+          // console.log("currentParagraphs: ", currentParagraphs);
+          const paragraphContent = currentParagraphs[paragraphCounter].content;
+          // console.log("paragraphContent: ", paragraphContent);
           // Start creating an audio for a paragraph
 
           const createAudioFn = async (tries: number) => {
@@ -382,6 +422,7 @@ export async function createContentCycle(
                 );
               }
             }
+            // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
             currentParagrah =
               course.sections[currentAudio.sectionIndex].elements[lessonCounter]
                 .elementLesson.paragraphs[currentAudio.paragraphIndex];
@@ -603,7 +644,9 @@ export async function createContentCycle(
           paragraphCounter++;
           totalParagraphsCounter++;
 
-          if (paragraphCounter == currentParagraphs.content.length) {
+          // TODO --> Revisar comportamiento durante cración de curso
+          // if (paragraphCounter == currentParagraphs.content.length) {
+          if (paragraphCounter == currentParagraphs.length) {
             if (
               !(
                 lessonCounter <
