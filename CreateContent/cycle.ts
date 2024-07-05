@@ -394,8 +394,29 @@ export async function createContentCycle(
           let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
           let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
 
+          interface ParagraphStructure {
+            content: any[];
+            sectionIndex: number;
+          }
+
+          const isValidStructure = (obj: any): obj is ParagraphStructure => {
+            return (
+              obj &&
+              typeof obj === 'object' &&
+              Array.isArray(obj.content) &&
+              typeof obj.sectionIndex === 'number'
+            );
+          };
+
+          const isCorrectStructure: boolean = isValidStructure(currentParagraphs);
           // console.log("currentParagraphs: ", currentParagraphs);
-          const paragraphContent = currentParagraphs[paragraphCounter].content;
+          let paragraphContent: any;
+          if (isCorrectStructure) {
+            paragraphContent = currentParagraphs.content[paragraphCounter];
+          } else {
+            paragraphContent = currentParagraphs[paragraphCounter].content;
+          }
+          
           // console.log("paragraphContent: ", paragraphContent);
           // Start creating an audio for a paragraph
 
