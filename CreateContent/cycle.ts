@@ -702,7 +702,7 @@ export async function createContentCycle(
                 "createContentCycle()",
                 "Courses/{courseCode}/CreateContent"
               );
-              deleteCourseCreationLog(course.code);
+              deleteCourseCreationLog(course.code, course.sections);
               updateCourseDuration(course.code);
               parsedPexelsImages = [];
             } else {
