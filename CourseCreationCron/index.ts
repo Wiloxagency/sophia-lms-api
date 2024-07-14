@@ -103,7 +103,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
         }
         console.info("First section checking")
         await checkSection(0)
-        deleteCourseCreationLog(currentCourse.code, currentCourse.sections);
+        if (courseIsFine) deleteCourseCreationLog(currentCourse.code, currentCourse.sections);
 
 
     } catch (error) {
