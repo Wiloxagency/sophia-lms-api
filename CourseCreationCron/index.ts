@@ -1,6 +1,6 @@
 import { AzureFunction, Context } from "@azure/functions"
 import { createConnection } from "../shared/mongo"
-import { saveLog } from "../shared/saveLog";
+import { deleteCourseCreationLog, saveLog } from "../shared/saveLog";
 import { createContentCycle } from "../CreateContent/cycle";
 import { compareObjectStructures } from "../shared/compareParagraphs"
 
@@ -54,6 +54,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
 
         // Verificar si los párrafos tienen la estructura correcta, caso contrareio enviar el índice del párrafo también en createContentCycle
 
+        let courseIsFine = true
         const checkSection = async (sectionIndex: number) => {
             console.info("checkSection: " + sectionIndex)
             const elements = currentCourse.sections[sectionIndex].elements
@@ -66,6 +67,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                     if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) ||
                         (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
                         saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "CourseCreationCron - index")
+                        courseIsFine = false
                         await createContentCycle(currentCourse, sectionIndex, elementIndex)
                         return
                     } else if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0) {
@@ -74,6 +76,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                         if (paragraphIndex >= 0) {
                             console.info(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`, "Info", "CreateContentCron()", "CourseCreationCron - index")
+                            courseIsFine = false
                             await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
                             // To force exit: 
                             elementIndex = elements.length 
@@ -100,6 +103,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
         }
         console.info("First section checking")
         await checkSection(0)
+        deleteCourseCreationLog(currentCourse.code, currentCourse.sections);
 
 
     } catch (error) {
