@@ -4,7 +4,8 @@ import OpenAI from "openai";
 import { Uploadable } from "openai/uploads";
 import fs from 'fs';
 import { ParsedFile } from "@anzp/azure-function-multipart/dist/types/parsed-file.type";
-import { contentTableAgent } from "./prompts";
+import { contentParagraphsAgent, contentTableAgent } from "./prompts";
+import { createContentTable } from "../CreateContent/createContentTable";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || '',
@@ -15,94 +16,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
 
-    // Convertir los archivos a un array de Uploadable
-
-    // let path = new URL("https://sophieassets.blob.core.windows.net/documents/015b9763-8ff1-4bee-955b-c047aa5e8673.pdf");
-    // const fileArray = files.map(file => {
-    //     fs.createReadStream(path)
-    // }) as unknown as Uploadable[];
-
-    // const fileStreams = ["edgar/goog-10k.pdf", "edgar/brka-10k.txt"].map((path) =>
-    //     fs.createReadStream(path),
-    //   );
-
-    // console.info("fileArray: ", fileStreams)
-
-
-    // const assistant = await openai.beta.assistants.create({
-    //     name: "Financial Analyst Assistant",
-    //     instructions: "You are an expert financial analyst. Use you knowledge base to answer questions about audited financial statements.",
-    //     model: "gpt-4o",
-    //     tools: [{ type: "file_search" }],
-    // });
-
-
-
-    // Reading Vector Sotarge - Working Fine
-
-    /*
-    await openai.beta.assistants.update(assistant.id, {
-        tool_resources: { file_search: { vector_store_ids: ["vs_6ivzebHR44kh8pbAnH6B4kl6"] } },
-      });
-
-
-    const thread = await openai.beta.threads.create({
-        messages: [
-            {
-                role: "user",
-                content:
-                    "¿El Data Explorer está en la capacidad de proveer qué?",
-
-            },
-        ],
-    });
-
-    const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
-        assistant_id: assistant.id,
-    });
-
-
-    const messages = await openai.beta.threads.messages.list(thread.id, {
-        run_id: run.id,
-    });
-
-    const message = messages.data.pop()!;
-    if (message.content[0].type === "text") {
-        const { text } = message.content[0];
-        const { annotations } = text;
-        const citations: string[] = [];
-
-        let index = 0;
-        for (let annotation of annotations) {
-            text.value = text.value.replace(annotation.text, "[" + index + "]");
-            // const { file_citation } = annotation;
-            // if (file_citation) {
-            //     const citedFile = await openai.files.retrieve(file_citation.file_id);
-            //     citations.push("[" + index + "]" + citedFile.filename);
-            // }
-            index++;
-        }
-
-        console.log(text.value);
-        console.log(citations.join("\n"));
-    }
-    */
-
-    // End of Reading Vector Store
-
-
-    const ceateCourse = async (vectorStoreId: string,
+    const ceateContentTable = async (vectorStoreId: string,
         details: {
             languageName: string,
             maxSections: number,
             courseName: string,
             courseDescription: string,
         }
-    ): Promise<string> => {
+    ): Promise<string[]> => {
 
-        const contentTablePrompt = contentTableAgent.prompt 
+        const contentTablePrompt = contentTableAgent.prompt
             .replace("v{languageName}", details.languageName)
-            .replace(/v{maxSections}/g , details.maxSections.toString())
+            .replace(/v{maxSections}/g, details.maxSections.toString())
             .replace("v{courseName}", details.courseName)
             .replace("v{courseDescription}", details.courseDescription)
 
@@ -120,48 +45,139 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
         await openai.beta.assistants.update(assistant.id, {
             tool_resources: { file_search: { vector_store_ids: [vectorStoreId] } },
-          });
-    
-    
+        });
+
+
         const thread = await openai.beta.threads.create({
             messages: [
                 {
                     role: "user",
                     content: contentTablePrompt,
-    
+
                 },
             ],
         });
-    
+
         const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
             assistant_id: assistant.id,
         });
-    
-    
+
+
         const messages = await openai.beta.threads.messages.list(thread.id, {
             run_id: run.id,
         });
-    
+
         const message = messages.data.pop()!;
         if (message.content[0].type === "text") {
             const { text } = message.content[0];
+            console.log(text.value);
             const { annotations } = text;
             const citations: string[] = [];
-    
+
             let index = 0;
             for (let annotation of annotations) {
                 text.value = text.value.replace(annotation.text, "[" + index + "]");
-                // const { file_citation } = annotation;
-                // if (file_citation) {
-                //     const citedFile = await openai.files.retrieve(file_citation.file_id);
-                //     citations.push("[" + index + "]" + citedFile.filename);
-                // }
                 index++;
             }
-    
+
+
+            let splittedcontentTable = text.value
+                .trim()
+                .replace(/\d{1,2}\./g, "")
+                .split("\n")
+                .map((item) => {
+                    return item.trim();
+                })
+                .filter((item) => {
+                    return item.length > 1;
+                });
+
+            console.info("splittedcontentTable:", splittedcontentTable);
+            return splittedcontentTable
+        }
+
+        return null
+    }
+
+    const ceateParagraphs = async (vectorStoreId: string,
+        paragraphsDetails: {
+            languageName: string,
+            courseName: string,
+            sectionName: string,
+            contentTable: string
+        }
+    ): Promise<string[]> => {
+
+        const contentParagraphsPrompt = contentParagraphsAgent.prompt
+            .replace("v{languageName}", paragraphsDetails.languageName)
+            .replace(/v{courseName}/g, paragraphsDetails.courseName)
+            .replace("v{sectionName}", paragraphsDetails.sectionName)
+            .replace("v{contentTable}", paragraphsDetails.contentTable)
+
+        const instructions = contentParagraphsAgent.instructions.replace("v{courseName}", paragraphsDetails.courseName)
+
+        console.info("contentParagraphsPrompt:", contentParagraphsPrompt)
+        console.info("instructions: ", instructions)
+
+        const assistant = await openai.beta.assistants.create({
+            name: "Content Development Expert",
+            instructions: instructions,
+            model: "gpt-4o",
+            tools: [{ type: "file_search" }]
+        });
+
+        await openai.beta.assistants.update(assistant.id, {
+            tool_resources: { file_search: { vector_store_ids: [vectorStoreId] } },
+        });
+
+
+        const thread = await openai.beta.threads.create({
+            messages: [
+                {
+                    role: "user",
+                    content: contentParagraphsPrompt,
+
+                },
+            ],
+        });
+
+        const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+            assistant_id: assistant.id,
+        });
+
+
+        const messages = await openai.beta.threads.messages.list(thread.id, {
+            run_id: run.id,
+        });
+
+        const message = messages.data.pop()!;
+        if (message.content[0].type === "text") {
+            const { text } = message.content[0];
             console.log(text.value);
-            console.log(citations.join("\n"));
-            return text.value
+            const { annotations } = text;
+            const citations: string[] = [];
+
+            let index = 0;
+            for (let annotation of annotations) {
+                text.value = text.value.replace(annotation.text, "[" + index + "]");
+                index++;
+            }
+
+
+            let splittedParagraphs = text.value
+                .trim()
+                .replace(/\d{1,2}\./g, "")
+                .replace(/\[\d+\]/g, '')
+                .split(".\n")
+                .map((item) => {
+                    return item.trim();
+                })
+                .filter((item) => {
+                    return item.length > 1;
+                });
+
+            console.info("splittedParagraphs:", splittedParagraphs);
+            return splittedParagraphs
         }
 
         return null
@@ -217,33 +233,72 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     }
 
+    console.info("params: ", req.body)
+
     switch (req.method) {
 
         case "POST":
 
             if (req.query.vectorStoreId) {
 
-                console.info("params: ", req.body)
-                const details = { 
-                    languageName: req.body.languageName,
-                    maxSections: parseInt(req.body.maxSections), 
-                    courseName: req.body.courseName,
-                    courseDescription: req.body.courseDescription,
+                switch (req.query.task) {
+
+                    case "createContentTable":
+                        const details = {
+                            languageName: req.body.languageName,
+                            maxSections: parseInt(req.body.maxSections),
+                            courseName: req.body.courseName,
+                            courseDescription: req.body.courseDescription,
+                        }
+                        console.info("details: ", details)
+
+                        const contentTable = await ceateContentTable(req.query.vectorStoreId, details)
+
+                        context.res = {
+                            status: 200,
+                            headers: { "Content-Type": "application/json" },
+                            body: { "contentTable": contentTable }
+                        };
+
+                        break;
+
+                        case "createparagraph":
+                            const ParagraphDetails = {
+                                languageName: req.body.languageName,
+                                courseName: req.body.courseName,
+                                sectionName: req.body.sectionName,
+                                contentTable: req.body.contentTable,
+                            }
+                            console.info("ParagraphDetails: ", ParagraphDetails)
+    
+                            const paragraphs = await ceateParagraphs(req.query.vectorStoreId, ParagraphDetails)
+    
+                            context.res = {
+                                status: 200,
+                                headers: { "Content-Type": "application/json" },
+                                body: { "paragraphs": paragraphs }
+                            };
+    
+                            break;
+                        
+
+                    default:
+                        context.res = {
+                            status: 400,
+                            headers: { "Content-Type": "application/json" },
+                            body: { "error": "Missing a valid task parameter." }
+                        };
+                        break;
                 }
-                console.info("details: ", details)
 
-                const contentTable = await ceateCourse(req.query.vectorStoreId, details)
 
-                context.res = {
-                    status: 200,
-                    body: { "contentTable": contentTable }
-                };
 
             } else {
                 // Create a Vector Store with documents
                 const vectorStoreId = await ceateVectorStore(req);
                 context.res = {
                     status: 200,
+                    headers: { "Content-Type": "application/json" },
                     body: { "vectorStoreId": vectorStoreId }
                 };
             }
