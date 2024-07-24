@@ -6,10 +6,99 @@ import fs from 'fs';
 import { ParsedFile } from "@anzp/azure-function-multipart/dist/types/parsed-file.type";
 import { contentParagraphsAgent, contentTableAgent } from "./prompts";
 import { createContentTable } from "../CreateContent/createContentTable";
+import { paragraphCreation } from "../interfaces/paragraph";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || '',
 });
+
+export const ceateParagraphsWithAgent = async (vectorStoreId: string,
+    // paragraphsDetails: {
+    //     languageName: string,
+    //     courseName: string,
+    //     sectionName: string,
+    //     contentTable: string
+    // }
+    paragraphsDetails: paragraphCreation
+): Promise<string[]> => {
+
+    let context = paragraphsDetails.context
+    const text: string = paragraphsDetails.text
+
+    const contentParagraphsPrompt = contentParagraphsAgent.prompt
+        .replace("v{languageName}", paragraphsDetails.languageName)
+        .replace(/v{courseName}/g, context)
+        .replace("v{sectionName}", paragraphsDetails.text  )
+        .replace("v{contentTable}", paragraphsDetails.contentTable)
+
+    const instructions = contentParagraphsAgent.instructions.replace("v{courseName}", paragraphsDetails.courseName)
+
+    console.info("contentParagraphsPrompt:", contentParagraphsPrompt)
+    console.info("instructions: ", instructions)
+
+    const assistant = await openai.beta.assistants.create({
+        name: "Content Development Expert",
+        instructions: instructions,
+        model: "gpt-4o",
+        tools: [{ type: "file_search" }]
+    });
+
+    await openai.beta.assistants.update(assistant.id, {
+        tool_resources: { file_search: { vector_store_ids: [vectorStoreId] } },
+    });
+
+
+    const thread = await openai.beta.threads.create({
+        messages: [
+            {
+                role: "user",
+                content: contentParagraphsPrompt,
+
+            },
+        ],
+    });
+
+    const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+        assistant_id: assistant.id,
+    });
+
+
+    const messages = await openai.beta.threads.messages.list(thread.id, {
+        run_id: run.id,
+    });
+
+    const message = messages.data.pop()!;
+    if (message.content[0].type === "text") {
+        const { text } = message.content[0];
+        console.log(text.value);
+        const { annotations } = text;
+        const citations: string[] = [];
+
+        let index = 0;
+        for (let annotation of annotations) {
+            text.value = text.value.replace(annotation.text, "[" + index + "]");
+            index++;
+        }
+
+
+        let splittedParagraphs = text.value
+            .trim()
+            .replace(/\d{1,2}\./g, "")
+            .replace(/\[\d+\]/g, '')
+            .split(".\n")
+            .map((item) => {
+                return item.trim();
+            })
+            .filter((item) => {
+                return item.length > 1;
+            });
+
+        console.info("splittedParagraphs:", splittedParagraphs);
+        return splittedParagraphs
+    }
+
+    return null
+}
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     context.log('HTTP trigger function processed a Agent.');
@@ -99,89 +188,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return null
     }
 
-    const ceateParagraphs = async (vectorStoreId: string,
-        paragraphsDetails: {
-            languageName: string,
-            courseName: string,
-            sectionName: string,
-            contentTable: string
-        }
-    ): Promise<string[]> => {
-
-        const contentParagraphsPrompt = contentParagraphsAgent.prompt
-            .replace("v{languageName}", paragraphsDetails.languageName)
-            .replace(/v{courseName}/g, paragraphsDetails.courseName)
-            .replace("v{sectionName}", paragraphsDetails.sectionName)
-            .replace("v{contentTable}", paragraphsDetails.contentTable)
-
-        const instructions = contentParagraphsAgent.instructions.replace("v{courseName}", paragraphsDetails.courseName)
-
-        console.info("contentParagraphsPrompt:", contentParagraphsPrompt)
-        console.info("instructions: ", instructions)
-
-        const assistant = await openai.beta.assistants.create({
-            name: "Content Development Expert",
-            instructions: instructions,
-            model: "gpt-4o",
-            tools: [{ type: "file_search" }]
-        });
-
-        await openai.beta.assistants.update(assistant.id, {
-            tool_resources: { file_search: { vector_store_ids: [vectorStoreId] } },
-        });
-
-
-        const thread = await openai.beta.threads.create({
-            messages: [
-                {
-                    role: "user",
-                    content: contentParagraphsPrompt,
-
-                },
-            ],
-        });
-
-        const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
-            assistant_id: assistant.id,
-        });
-
-
-        const messages = await openai.beta.threads.messages.list(thread.id, {
-            run_id: run.id,
-        });
-
-        const message = messages.data.pop()!;
-        if (message.content[0].type === "text") {
-            const { text } = message.content[0];
-            console.log(text.value);
-            const { annotations } = text;
-            const citations: string[] = [];
-
-            let index = 0;
-            for (let annotation of annotations) {
-                text.value = text.value.replace(annotation.text, "[" + index + "]");
-                index++;
-            }
-
-
-            let splittedParagraphs = text.value
-                .trim()
-                .replace(/\d{1,2}\./g, "")
-                .replace(/\[\d+\]/g, '')
-                .split(".\n")
-                .map((item) => {
-                    return item.trim();
-                })
-                .filter((item) => {
-                    return item.length > 1;
-                });
-
-            console.info("splittedParagraphs:", splittedParagraphs);
-            return splittedParagraphs
-        }
-
-        return null
-    }
+    
 
     const ceateVectorStore = async (req: HttpRequest): Promise<string> => {
 
@@ -271,7 +278,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             }
                             console.info("ParagraphDetails: ", ParagraphDetails)
     
-                            const paragraphs = await ceateParagraphs(req.query.vectorStoreId, ParagraphDetails)
+                            const paragraphs = await ceateParagraphsWithAgent(req.query.vectorStoreId, ParagraphDetails)
     
                             context.res = {
                                 status: 200,

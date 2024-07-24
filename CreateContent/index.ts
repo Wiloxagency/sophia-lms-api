@@ -34,15 +34,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         const Courses = db.collection('course')
         const resp = Courses.findOne({ "code": courseCode })
 
-        const addGenerationTypeToCourse = await Courses.updateOne(
-            { "code": courseCode },
-            {
-                $set: {
-                    'generationType': req.body.type
-                }
-            }
-        )
-
         const body = await resp
 
         if (body) {
@@ -94,41 +85,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return currentCourse
     }
 
-    const addWordSections_dropme = (currentCourse: {}): {} => {
 
-        let sections = []
-        parsed.forEach((section: any) => {
-            let lessons = []
-            section.lessons.forEach((lesson: any) => {
-                let paragraphs = []
-                lesson.paragraphs.forEach((paragraph: any) => {
-                    paragraphs.push(paragraph.text)
-                });
-                lessons.push(
-                    {
-                        "type": "Lección Engine",
-                        "title": "Presentation",
-                        "elementCode": uuidv4(),
-                        "elementLesson": {
-                            "lessonTheme": lessonTheme,
-                            "paragraphs": paragraphs
-                        }
-                    }
-                )
-            })
-            sections.push(
-                {
-                    "title": section.name,
-                    "elements": lessons
-                }
-            )
-        })
-        currentCourse["sections"] = sections
-
-
-        return currentCourse
-
-    }
 
     const addWordSections = (currentCourse: {}): {} => {
 
@@ -162,6 +119,36 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         })
         currentCourse["sections"] = sections
 
+
+        return currentCourse
+
+    }
+
+    const addDocumentsSections = (currentCourse: {}): {} => {
+
+        const structure = parsed.split("\n")
+        let sections = []
+        structure.forEach((section: string) => {
+            let lessons = [{
+                "type": "Lección Engine",
+                "title": "Presentation",
+                "elementCode": uuidv4(),
+                "elementLesson": {
+                    "lessonTheme": lessonTheme,
+                    "paragraphs": []
+                }
+            }]
+         
+            sections.push(
+                {
+                    "title": section,
+                    "elements": lessons
+                }
+            )
+        })
+        currentCourse["sections"] = sections
+        currentCourse["generationType"] = "generatedByDocuments"
+        
 
         return currentCourse
 
@@ -288,6 +275,46 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 }
             }
 
+            break;
+
+        case "generatedByDocuments":
+            if (parsed) {
+
+                console.info(currentCourse)
+                currentCourse = addDocumentsSections(currentCourse)
+
+                //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
+
+                currentCourse.language = language
+                currentCourse.languageName = languageName
+                currentCourse.voice = voice
+
+                console.info(currentCourse)
+
+                //createContentCycle(currentCourse, 0, 0)
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": currentCourse
+                }
+
+
+            } else {
+                await saveLog(`Error creating content by documents for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating content by documents"
+                    }
+                }
+            }
+            
             break;
 
         //if (typeof variable === 'string')
