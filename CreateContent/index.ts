@@ -25,6 +25,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const languageName = req.body.languageName ? req.body.languageName : "Spanish"
     const lessonTheme = req.body.lessonTheme
     const contentTable = req.body.contentTable
+    const vectorStoreId = req.body.vectorStoreId
 
     console.info("req.body", req.body)
 
@@ -138,7 +139,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     "paragraphs": []
                 }
             }]
-         
+
             sections.push(
                 {
                     "title": section,
@@ -147,7 +148,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             )
         })
         currentCourse["sections"] = sections
-        currentCourse["generationType"] = "generatedByDocuments"
         
 
         return currentCourse
@@ -248,6 +248,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+                
 
                 console.info(currentCourse)
 
@@ -288,10 +289,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+                currentCourse.vectorStoreId = vectorStoreId
+                currentCourse.type = generationType
 
                 console.info(currentCourse)
 
-                //createContentCycle(currentCourse, 0, 0)
+                createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
@@ -314,7 +317,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     }
                 }
             }
-            
+
             break;
 
         //if (typeof variable === 'string')

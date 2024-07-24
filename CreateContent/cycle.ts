@@ -9,15 +9,13 @@ import {
 } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
-import { createSrt } from "./createSrt";
 import { updateCourseDuration } from "../shared/updateCourseDuration";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
-import { translateQuery, translateToLanguage } from "../shared/translator";
-import { Paragraph } from "docx";
-import { ceateParagraphsWithAgent} from "../Agents/index"
+import { translateToLanguage } from "../shared/translator";
+import { createParagraphsWithAgent} from "../Agents/createParagraphs"
 
 const database = createConnection();
 
@@ -300,7 +298,7 @@ export async function createContentCycle(
       const lessonCycle = async (lessonCounter: number) => {
         console.info(`CREATING CONTENT FOR SECTION ${sectionCounter}, LESSON ${lessonCounter}...`)
         let currentParagraphs: any;
-        if (paragraErrorphIndex === null || paragraErrorphIndex < 0) {
+        if (paragraErrorphIndex === null || paragraErrorphIndex === undefined || paragraErrorphIndex < 0) {
           if (
             (course.sections[sectionCounter].elements[lessonCounter].elementLesson
               .paragraphs.length == 0)
@@ -308,8 +306,8 @@ export async function createContentCycle(
             // console.warn("creating paragraphs");
             payload.text = course.sections[sectionCounter].title;
             payload.index = sectionCounter;
-            if (course.generationType == "generatedByDocuments") {
-              currentParagraphs = await ceateParagraphsWithAgent("wse", payload)
+            if (course.type == "generatedByDocuments") {
+              currentParagraphs = await createParagraphsWithAgent(course.vectorStoreId, payload)
             } else {
               currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
             }
