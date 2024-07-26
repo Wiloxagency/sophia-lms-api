@@ -2,7 +2,7 @@ import { AzureFunction, Context } from "@azure/functions"
 import { createConnection } from "../shared/mongo"
 import { deleteCourseCreationLog, saveLog } from "../shared/saveLog";
 import { createContentCycle } from "../CreateContent/cycle";
-import { compareObjectStructures } from "../shared/compareParagraphs"
+import { cleanParagraphs, compareObjectStructures } from "../shared/compareParagraphs"
 
 const database = createConnection()
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
@@ -71,6 +71,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                         await createContentCycle(currentCourse, sectionIndex, elementIndex)
                         return
                     } else if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0) {
+                        elements[elementIndex].elementLesson.paragraphs = await cleanParagraphs(elements[elementIndex].elementLesson.paragraphs, sectionIndex, elementIndex, courseUnderConstruction.courseCode)
                         let paragraphIndex = compareObjectStructures(elements[elementIndex].elementLesson.paragraphs)
                         console.info("paragraphIndex: ", paragraphIndex)
                         if (paragraphIndex >= 0) {

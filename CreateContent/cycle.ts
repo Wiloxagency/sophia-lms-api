@@ -15,7 +15,7 @@ import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateToLanguage } from "../shared/translator";
-import { createParagraphsWithAgent} from "../Agents/createParagraphs"
+import { createParagraphsWithAgent } from "../Agents/createParagraphs"
 
 const database = createConnection();
 
@@ -120,7 +120,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
     currentVideoCounter++;
     console.log("currentVideoCounter: ", currentVideoCounter);
     console.log("parsedPexelsVideos length: ", parsedPexelsVideos.length);
-    
+
   } else {
     currentImageCounter++;
     console.log("currentImageCounter: ", currentImageCounter);
@@ -311,15 +311,19 @@ export async function createContentCycle(
             } else {
               currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
             }
-            
+
             course.sections[currentParagraphs.sectionIndex].elements[
               lessonCounter
-            ].elementLesson.paragraphs = currentParagraphs.content.map(
-              (text: string) => {
-                console.info("cleanText in 307:", text)
-                return { content: cleanText(text), audioScript: cleanText(text) };
-              }
-            );
+            ].elementLesson.paragraphs = currentParagraphs.content
+              .filter((text: string) => {
+                return text && text != undefined && text != null && text.length > 3
+              })
+              .map(
+                (text: string) => {
+                  console.info("cleanText in 307:", text)
+                  return { content: cleanText(text), audioScript: cleanText(text) };
+                }
+              );
           } else {
             currentParagraphs = {
               content:
@@ -329,12 +333,14 @@ export async function createContentCycle(
             };
             course.sections[currentParagraphs.sectionIndex].elements[
               lessonCounter
-            ].elementLesson.paragraphs = currentParagraphs.content.map(
-              (text: string) => {
+            ].elementLesson.paragraphs = currentParagraphs.content
+            .filter((text: string) => {
+              return text && text != undefined && text != null && text.length > 3
+            })
+            .map((text: string) => {
                 // console.info("cleanText in 322:", text)
                 return { content: cleanText(text), audioScript: cleanText(text) };
-              }
-            );
+              });
           }
 
           let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
@@ -357,8 +363,10 @@ export async function createContentCycle(
           //         .elementLesson.paragraphs[paragraErrorphIndex]
           // );
           // currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs;
-          currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs.map((paragraph: any, index: number) => {
-            if (index >= paragraErrorphIndex) {
+    
+          currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
+          .map((paragraph: any, index: number) => {
+            if (index >= paragraErrorphIndex ) {
               return { content: paragraph.content, audioScript: paragraph.content }
             } else return paragraph
           })
@@ -367,7 +375,7 @@ export async function createContentCycle(
           // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs
 
           // console.info(
-            // "Fixed structure for course: " + course.code, course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs)
+          // "Fixed structure for course: " + course.code, course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs)
 
           let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
 
@@ -420,7 +428,7 @@ export async function createContentCycle(
           } else {
             paragraphContent = currentParagraphs[paragraphCounter].content;
           }
-          
+
           // console.log("paragraphContent: ", paragraphContent);
           // Start creating an audio for a paragraph
 

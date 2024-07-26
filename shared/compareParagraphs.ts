@@ -1,3 +1,35 @@
+import { createConnection } from "./mongo";
+const database = createConnection();
+export async function cleanParagraphs(objects: any[], sectionCounter: number, lessonCounter: number, courseCode: string): Promise<any[]> {
+
+
+    const db = await database;
+    const Courses = db.collection("course");
+
+    const filteredItems = objects.filter(item =>
+        item.content && item.audioScript &&
+        item.content.length > 3 &&
+        item.audioScript.length > 3
+    );
+
+    if (filteredItems.length < objects.length) {
+        console.log("El arreglo original necesitó ser modificado.");
+        const currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+        await Courses.findOneAndUpdate(
+            { code: courseCode },
+            {
+                $set: {
+                    [currentParagraphArrayPath]: filteredItems
+                },
+            }
+        )
+        return filteredItems
+    } else {
+        return objects
+    }
+
+}
+
 export function compareObjectStructures(objects: any[]): number {
     // console.info("objects:",
     //     objects.map((ele: any, index) => {
