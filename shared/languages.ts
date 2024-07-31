@@ -1,3 +1,9 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || '',
+});
+
 type Language = {
     language: string;
     country: string;
@@ -284,4 +290,27 @@ export async function returnLanguageAndLocaleFromLanguage(languageCode: string) 
     const languageAndLocale = filteredLanguages[0].code
 
     return languageAndLocale
+}
+
+export const detectLanguage = async (phrase: string): Promise<string> => {
+
+    try {
+        const prompt = 
+        `Detect the language of this phrase: "${phrase}".
+         answer succinctly, just the name of the detected language, for example: "English", 
+         do not add anything before or after the answer, just the name of the language. `
+
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+                { role: 'system', content: "You are a Polyglot Expert Assistant." },
+                { role: 'user', content: prompt },
+            ],
+            temperature: 0,
+        });
+        const answer = response.choices[0].message.content
+        return answer
+    } catch (error) {
+        return "English"
+    }
 }

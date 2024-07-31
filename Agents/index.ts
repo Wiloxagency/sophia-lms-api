@@ -4,7 +4,8 @@ import OpenAI from "openai";
 
 import fs from 'fs';
 import { ParsedFile } from "@anzp/azure-function-multipart/dist/types/parsed-file.type";
-import { contentTableAgent } from "./prompts";
+import { chatWithDocsAgent, contentTableAgent } from "./prompts";
+import { detectLanguage } from "../shared/languages";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || '',
@@ -13,7 +14,78 @@ const openai = new OpenAI({
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     context.log('HTTP trigger function processed a Agent.');
 
+    const chatWithDocuments = async (vectorStoreId: string,
+        details: {
+            ask: string
+        }
+    ): Promise<string> => {
 
+        console.info("details.ask: ", details.ask)
+        const language = await detectLanguage(details.ask)
+        console.info("Detected language: ", language)
+
+        const chatWithDocsPrompt = chatWithDocsAgent.prompt
+            .replace(/v{question}/g, details.ask)
+            .replace(/v{languageName}/g, language)
+
+        const instructions = chatWithDocsAgent.instructions
+            
+
+        console.info("chatWithDocsPrompt:", chatWithDocsPrompt)
+        console.info("instructions: ", instructions)
+
+        const assistant = await openai.beta.assistants.create({
+            name: "Content Development Expert",
+            instructions: instructions,
+            model: "gpt-4o",
+            tools: [{ type: "file_search" }]
+        });
+
+        await openai.beta.assistants.update(assistant.id, {
+            tool_resources: { file_search: { vector_store_ids: [vectorStoreId] } },
+        });
+
+
+        const thread = await openai.beta.threads.create({
+            messages: [
+                {
+                    role: "user",
+                    content: chatWithDocsPrompt,
+
+                },
+            ],
+        });
+
+        const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+            assistant_id: assistant.id,
+        });
+
+
+        const messages = await openai.beta.threads.messages.list(thread.id, {
+            run_id: run.id,
+        });
+
+        const message = messages.data.pop()!;
+        if (message.content[0].type === "text") {
+            const { text } = message.content[0];
+            console.log(text.value);
+            const { annotations } = text;
+            const citations: string[] = [];
+
+            let index = 0;
+            for (let annotation of annotations) {
+                text.value = text.value.replace(annotation.text, "[" + index + "]");
+                index++;
+            }
+
+
+            console.info("text.value:", text.value);
+            return text.value
+        }
+
+
+        return ""
+    }
 
     const ceateContentTable = async (vectorStoreId: string,
         details: {
@@ -139,6 +211,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 throw new Error('Error al crear el vector store');
             }
 
+            console.info(vectorStore)
+
             await openai.beta.vectorStores.fileBatches.uploadAndPoll(vectorStore.id, { files: fileStreams })
 
             return vectorStore.id
@@ -152,11 +226,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     console.info("params: ", req.body)
 
+    const savedVectorStoreId = req.query.vectorStoreId
+
     switch (req.method) {
 
         case "POST":
 
-            if (req.query.vectorStoreId) {
+            if (savedVectorStoreId) {
 
                 switch (req.query.task) {
 
@@ -169,7 +245,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                         }
                         console.info("details: ", details)
 
-                        const contentTable = await ceateContentTable(req.query.vectorStoreId, details)
+                        const contentTable = await ceateContentTable(savedVectorStoreId, details)
 
                         context.res = {
                             status: 200,
@@ -179,24 +255,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                         break;
 
-                        // case "createparagraph":
-                        //     const ParagraphDetails: paragraphCreation = {
-                        //         languageName: req.body.languageName,
-                        //         context: req.body.courseName,
-                        //         text: req.body.sectionName,
-                        //         courseStructure: req.body.contentTable,
-                        //     }
-                        //     console.info("ParagraphDetails: ", ParagraphDetails)
-    
-                        //     const paragraphs = await ceateParagraphsWithAgent(req.query.vectorStoreId, ParagraphDetails)
-    
-                        //     context.res = {
-                        //         status: 200,
-                        //         headers: { "Content-Type": "application/json" },
-                        //         body: { "paragraphs": paragraphs }
-                        //     };
-    
-                        //     break;
+                    case "chatWithDocs":
+                        const chatDetails = {
+                            ask: req.body.ask
+                        }
+                        console.info("chatDetails: ", chatDetails)
+
+                        const answer = await chatWithDocuments(savedVectorStoreId, chatDetails)
+
+                        context.res = {
+                            status: 200,
+                            headers: { "Content-Type": "application/json" },
+                            body: { "answer": answer }
+                        };
+
+                        break;
                         
 
                     default:
