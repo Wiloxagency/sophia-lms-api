@@ -25,6 +25,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const languageName = req.body.languageName ? req.body.languageName : "Spanish"
     const lessonTheme = req.body.lessonTheme
     const contentTable = req.body.contentTable
+    const vectorStoreId = req.body.vectorStoreId
 
     console.info("req.body", req.body)
 
@@ -33,15 +34,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         db = await database
         const Courses = db.collection('course')
         const resp = Courses.findOne({ "code": courseCode })
-
-        const addGenerationTypeToCourse = await Courses.updateOne(
-            { "code": courseCode },
-            {
-                $set: {
-                    'generationType': req.body.type
-                }
-            }
-        )
 
         const body = await resp
 
@@ -94,41 +86,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return currentCourse
     }
 
-    const addWordSections_dropme = (currentCourse: {}): {} => {
 
-        let sections = []
-        parsed.forEach((section: any) => {
-            let lessons = []
-            section.lessons.forEach((lesson: any) => {
-                let paragraphs = []
-                lesson.paragraphs.forEach((paragraph: any) => {
-                    paragraphs.push(paragraph.text)
-                });
-                lessons.push(
-                    {
-                        "type": "Lección Engine",
-                        "title": "Presentation",
-                        "elementCode": uuidv4(),
-                        "elementLesson": {
-                            "lessonTheme": lessonTheme,
-                            "paragraphs": paragraphs
-                        }
-                    }
-                )
-            })
-            sections.push(
-                {
-                    "title": section.name,
-                    "elements": lessons
-                }
-            )
-        })
-        currentCourse["sections"] = sections
-
-
-        return currentCourse
-
-    }
 
     const addWordSections = (currentCourse: {}): {} => {
 
@@ -162,6 +120,35 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         })
         currentCourse["sections"] = sections
 
+
+        return currentCourse
+
+    }
+
+    const addDocumentsSections = (currentCourse: {}): {} => {
+
+        const structure = parsed.split("\n")
+        let sections = []
+        structure.forEach((section: string) => {
+            let lessons = [{
+                "type": "Lección Engine",
+                "title": "Presentation",
+                "elementCode": uuidv4(),
+                "elementLesson": {
+                    "lessonTheme": lessonTheme,
+                    "paragraphs": []
+                }
+            }]
+
+            sections.push(
+                {
+                    "title": section,
+                    "elements": lessons
+                }
+            )
+        })
+        currentCourse["sections"] = sections
+        
 
         return currentCourse
 
@@ -261,6 +248,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+                
 
                 console.info(currentCourse)
 
@@ -284,6 +272,48 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     },
                     "body": {
                         "message": "Error creating docx content"
+                    }
+                }
+            }
+
+            break;
+
+        case "generatedByDocuments":
+            if (parsed) {
+
+                console.info(currentCourse)
+                currentCourse = addDocumentsSections(currentCourse)
+
+                //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
+
+                currentCourse.language = language
+                currentCourse.languageName = languageName
+                currentCourse.voice = voice
+                currentCourse.vectorStoreId = vectorStoreId
+                currentCourse.type = generationType
+
+                console.info(currentCourse)
+
+                createContentCycle(currentCourse, 0, 0)
+
+                context.res = {
+                    "status": 201,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": currentCourse
+                }
+
+
+            } else {
+                await saveLog(`Error creating content by documents for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
+                context.res = {
+                    "status": 500,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "message": "Error creating content by documents"
                     }
                 }
             }

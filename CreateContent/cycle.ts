@@ -9,13 +9,13 @@ import {
 } from "../shared/saveLog";
 import { extractTitle } from "./titleExtraction";
 import { createkeyphrases } from "./createKeyphrases";
-import { createSrt } from "./createSrt";
 import { updateCourseDuration } from "../shared/updateCourseDuration";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
-import { translateQuery, translateToLanguage } from "../shared/translator";
+import { translateToLanguage } from "../shared/translator";
+import { createParagraphsWithAgent } from "../Agents/createParagraphs"
 
 const database = createConnection();
 
@@ -27,7 +27,11 @@ let parsedPexelsImages: {
   resizedHeight: number;
 }[] = [];
 
-let parsedPexelsVideos: { url: string; height: number; width: number }[] = [];
+let parsedPexelsVideos: {
+  url: string;
+  height: number;
+  width: number
+}[] = [];
 
 export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   courseName: string,
@@ -36,24 +40,24 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   currentVideoCounter: number
 ): Promise<
   | {
-      image: {};
-      thumb: {};
-      finalImage: {};
-      imagesIds: string[];
-      urlBing: string;
-    }
+    image: {};
+    thumb: {};
+    finalImage: {};
+    imagesIds: string[];
+    urlBing: string;
+  }
   | {
-      thumb: {
-        url: string;
-        width: number;
-        height: number;
-      };
-      finalVideo: {
-        url: string;
-        width: number;
-        height: number;
-      };
-    }
+    thumb: {
+      url: string;
+      width: number;
+      height: number;
+    };
+    finalVideo: {
+      url: string;
+      width: number;
+      height: number;
+    };
+  }
 > {
   if (previousCourseName != courseName) {
     parsedPexelsImages = [];
@@ -114,10 +118,13 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   if (isEvenNumber) {
     currentVideoCounter++;
-    // console.log("currentImageCounter: ", currentImageCounter);
+    console.log("currentVideoCounter: ", currentVideoCounter);
+    console.log("parsedPexelsVideos length: ", parsedPexelsVideos.length);
+
   } else {
     currentImageCounter++;
-    // console.log("currentVideoCounter: ", currentVideoCounter);
+    console.log("currentImageCounter: ", currentImageCounter);
+    console.log("parsedPexelsImages length: ", parsedPexelsImages.length);
   }
 
   // if (isEvenNumber) {
@@ -128,28 +135,28 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   return isEvenNumber
     ? {
-        thumb: {
-          url: "",
-          width: 0,
-          height: 0,
-        },
-        finalVideo: {
-          url: parsedPexelsVideos[currentVideoCounter].url,
-          height: parsedPexelsVideos[currentVideoCounter].height,
-          width: parsedPexelsVideos[currentVideoCounter].width,
-        },
-      }
+      thumb: {
+        url: "",
+        width: 0,
+        height: 0,
+      },
+      finalVideo: {
+        url: parsedPexelsVideos[currentVideoCounter].url,
+        height: parsedPexelsVideos[currentVideoCounter].height,
+        width: parsedPexelsVideos[currentVideoCounter].width,
+      },
+    }
     : {
-        image: {},
-        thumb: {},
-        finalImage: {
-          url: parsedPexelsImages[currentImageCounter].url,
-          width: parsedPexelsImages[currentImageCounter].resizedWidth,
-          height: parsedPexelsImages[currentImageCounter].resizedHeight,
-        },
-        imagesIds: [],
-        urlBing: "",
-      };
+      image: {},
+      thumb: {},
+      finalImage: {
+        url: parsedPexelsImages[currentImageCounter].url,
+        width: parsedPexelsImages[currentImageCounter].resizedWidth,
+        height: parsedPexelsImages[currentImageCounter].resizedHeight,
+      },
+      imagesIds: [],
+      urlBing: "",
+    };
 }
 
 async function returnImageSizes(
@@ -231,7 +238,8 @@ export function cleanText(text: string): string {
 export async function createContentCycle(
   course: any,
   sectionIndex: number,
-  lessonIndex: number
+  lessonIndex: number,
+  paragraErrorphIndex?: number
 ) {
   let payload: paragraphCreation;
   if (!(course.sections && course.sections.length > 0)) {
@@ -249,7 +257,7 @@ export async function createContentCycle(
   let totalParagraphsCounter = 0;
   let currentImageCounter = 0;
   let currentVideoCounter = 0;
-  if (!(course.type && course.ty == "resume")) {
+  if (!(course.type && course.type == "resume")) {
     await Courses.findOneAndUpdate(
       { code: course.code },
       {
@@ -288,57 +296,106 @@ export async function createContentCycle(
     // Create Content
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
+        console.info(`CREATING CONTENT FOR SECTION ${sectionCounter}, LESSON ${lessonCounter}...`)
         let currentParagraphs: any;
+        if (paragraErrorphIndex === null || paragraErrorphIndex === undefined || paragraErrorphIndex < 0) {
+          if (
+            (course.sections[sectionCounter].elements[lessonCounter].elementLesson
+              .paragraphs.length == 0)
+          ) {
+            // console.warn("creating paragraphs");
+            payload.text = course.sections[sectionCounter].title;
+            payload.index = sectionCounter;
+            if (course.type == "generatedByDocuments") {
+              currentParagraphs = await createParagraphsWithAgent(course.vectorStoreId, payload)
+            } else {
+              currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
+            }
 
-        if (
-          course.sections[sectionCounter].elements[lessonCounter].elementLesson
-            .paragraphs.length == 0
-        ) {
-          // console.warn("creating paragraphs");
-          payload.text = course.sections[sectionCounter].title;
-          payload.index = sectionCounter;
-          currentParagraphs = await createParagraphs(payload);
-          course.sections[currentParagraphs.sectionIndex].elements[
-            lessonCounter
-          ].elementLesson.paragraphs = currentParagraphs.content.map(
-            (text: string) => {
-              return { content: cleanText(text), audioScript: cleanText(text) };
+            course.sections[currentParagraphs.sectionIndex].elements[
+              lessonCounter
+            ].elementLesson.paragraphs = currentParagraphs.content
+              .filter((text: string) => {
+                return text && text != undefined && text != null && text.length > 3
+              })
+              .map(
+                (text: string) => {
+                  console.info("cleanText in 307:", text)
+                  return { content: cleanText(text), audioScript: cleanText(text) };
+                }
+              );
+          } else {
+            currentParagraphs = {
+              content:
+                course.sections[sectionCounter].elements[lessonCounter]
+                  .elementLesson.paragraphs,
+              sectionIndex: sectionCounter,
+            };
+            course.sections[currentParagraphs.sectionIndex].elements[
+              lessonCounter
+            ].elementLesson.paragraphs = currentParagraphs.content
+            .filter((text: string) => {
+              return text && text != undefined && text != null && text.length > 3
+            })
+            .map((text: string) => {
+                // console.info("cleanText in 322:", text)
+                return { content: cleanText(text), audioScript: cleanText(text) };
+              });
+          }
+
+          let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphArrayPath]:
+                  course.sections[sectionCounter].elements[lessonCounter]
+                    .elementLesson.paragraphs,
+              },
             }
           );
         } else {
-          currentParagraphs = {
-            content:
-              course.sections[sectionCounter].elements[lessonCounter]
-                .elementLesson.paragraphs,
-            sectionIndex: sectionCounter,
-          };
-          course.sections[currentParagraphs.sectionIndex].elements[
-            lessonCounter
-          ].elementLesson.paragraphs = currentParagraphs.content.map(
-            (text: string) => {
-              return { content: cleanText(text), audioScript: cleanText(text) };
+          //TODO --> Recreate all the next structure from paragraErrorphIndex to the end (content & audioScript)
+          // console.info(
+          //   "Issued structure: ", course.sections[sectionCounter].elements[lessonCounter]
+          //         .elementLesson.paragraphs[paragraErrorphIndex]
+          // );
+          // currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs;
+    
+          currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
+          .map((paragraph: any, index: number) => {
+            if (index >= paragraErrorphIndex ) {
+              return { content: paragraph.content, audioScript: paragraph.content }
+            } else return paragraph
+          })
+
+          currentParagraphs.sectionIndex = sectionCounter
+          // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs
+
+          // console.info(
+          // "Fixed structure for course: " + course.code, course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs)
+
+          let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
+
+          await Courses.findOneAndUpdate(
+            { code: course.code },
+            {
+              $set: {
+                [currentParagraphArrayPath]: currentParagraphs
+              },
             }
-          );
+          )
         }
 
-        let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
 
-        await Courses.findOneAndUpdate(
-          { code: course.code },
-          {
-            $set: {
-              [currentParagraphArrayPath]:
-                course.sections[sectionCounter].elements[lessonCounter]
-                  .elementLesson.paragraphs,
-            },
-          }
-        );
 
         // Create Audios & find images
         var currentParagrah: any;
         const multimediaCycle = async (paragraphCounter: number) => {
           console.log(
-            `STARTED MEDIA CYCLE FOR LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
+            `STARTED MEDIA CYCLE FOR COURSE: ${course.code}. SECTION ${sectionCounter} LESSON ${lessonCounter} PARAGRAPH: ${paragraphCounter}`
           );
 
           let currentParagraphPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}`;
@@ -349,7 +406,30 @@ export async function createContentCycle(
           let currentParagraphVideoDataPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
           let currentParagraphKeyPhrasesPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
 
-          const paragraphContent = currentParagraphs.content[paragraphCounter];
+          interface ParagraphStructure {
+            content: any[];
+            sectionIndex: number;
+          }
+
+          const isValidStructure = (obj: any): obj is ParagraphStructure => {
+            return (
+              obj &&
+              typeof obj === 'object' &&
+              Array.isArray(obj.content) &&
+              typeof obj.sectionIndex === 'number'
+            );
+          };
+
+          const isCorrectStructure: boolean = isValidStructure(currentParagraphs);
+          // console.log("currentParagraphs: ", currentParagraphs);
+          let paragraphContent: any;
+          if (isCorrectStructure) {
+            paragraphContent = currentParagraphs.content[paragraphCounter];
+          } else {
+            paragraphContent = currentParagraphs[paragraphCounter].content;
+          }
+
+          // console.log("paragraphContent: ", paragraphContent);
           // Start creating an audio for a paragraph
 
           const createAudioFn = async (tries: number) => {
@@ -375,6 +455,7 @@ export async function createContentCycle(
                 );
               }
             }
+            // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
             currentParagrah =
               course.sections[currentAudio.sectionIndex].elements[lessonCounter]
                 .elementLesson.paragraphs[currentAudio.paragraphIndex];
@@ -596,7 +677,9 @@ export async function createContentCycle(
           paragraphCounter++;
           totalParagraphsCounter++;
 
-          if (paragraphCounter == currentParagraphs.content.length) {
+          // TODO --> Revisar comportamiento durante cración de curso
+          // if (paragraphCounter == currentParagraphs.content.length) {
+          if (paragraphCounter == currentParagraphs.length) {
             if (
               !(
                 lessonCounter <
@@ -631,7 +714,7 @@ export async function createContentCycle(
                 "createContentCycle()",
                 "Courses/{courseCode}/CreateContent"
               );
-              deleteCourseCreationLog(course.code);
+              deleteCourseCreationLog(course.code, course.sections);
               updateCourseDuration(course.code);
               parsedPexelsImages = [];
             } else {
@@ -655,7 +738,9 @@ export async function createContentCycle(
             await multimediaCycle(paragraphCounter);
           }
         };
-        await multimediaCycle(0);
+        if (paragraErrorphIndex && paragraErrorphIndex >= 0) {
+          await multimediaCycle(paragraErrorphIndex);
+        } else await multimediaCycle(0);
         // if (course.sections[sectionCounter].elements.length > (lessonCounter+1)) {
         //     await lessonCycle(lessonCounter+1)
         // }

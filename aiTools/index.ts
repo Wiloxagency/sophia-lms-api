@@ -7,6 +7,8 @@ import xmlbuilder from "xmlbuilder"
 import rp = require('request-promise')
 import { createAudioWithoutCourse, getAccessToken } from "../CreateContent/createAudios"
 import fs from "fs"
+import { main } from "./summarize"
+
 const axios = require('axios');
 
 const database = createConnection()
@@ -146,18 +148,39 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
     }
 
+    console.info(req.query)
     switch (req.method) {
         case "POST":
-            if (req.query.uploadFile) {
-                await uploadFile()
-                break;
-            } else if (req.query.textToSpeech) {
-                await textToSpeech()
-                break;
-            } else if (req.query.speechToText) {
-                await speechToText()
-                break;
+
+            switch (req.query.tool) {
+                case "uploadFile":
+                    await uploadFile()
+                    break;
+
+                case "textToSpeech":
+                    await textToSpeech()
+                    break;
+
+                case "speechToText":
+                    await speechToText()
+                    break;
+
+                case "summarize":
+                    const fullcontent = await main(req.body.vectorStoreId, req.body.conciseness, req.body.language)
+                    context.res = {
+                        "status": 200,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": fullcontent
+                    }
+                    break;
+            
+                default:
+                    break;
             }
+
+
 
         default:
             break;

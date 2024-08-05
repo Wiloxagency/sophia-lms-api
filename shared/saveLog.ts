@@ -1,4 +1,5 @@
 import { createConnection } from "./mongo"
+import { compareObjectStructures } from "../shared/compareParagraphs"
 
 const database = createConnection()
 
@@ -56,11 +57,24 @@ export async function saveCourseCreationLog(courseCode: string, courseTitle: str
     }
 }
 
-export async function deleteCourseCreationLog(courseCode: string) {
+export async function deleteCourseCreationLog(courseCode: string, sections: any) {
     try {
-        const db = await database
-        const CoursesUnderConstruction = db.collection("coursesUnderConstruction")
-        const DeleteLog = await CoursesUnderConstruction.deleteOne({ courseCode: courseCode })
+        let complete = true;
+        sections.forEach((section: any) => {
+            section.elements.forEach((element: any) => {
+                if (element.type == "Lección Engine") {
+                    let paragraphIndex = compareObjectStructures(element.elementLesson.paragraphs)
+                    if (paragraphIndex >= 0) {
+                        complete = false
+                    }
+                }
+            });
+        });
+        if (complete) {
+            const db = await database
+            const CoursesUnderConstruction = db.collection("coursesUnderConstruction")
+            const DeleteLog = await CoursesUnderConstruction.deleteOne({ courseCode: courseCode })
+        }
     } catch (error) {
         console.error("Error", error)
     }
