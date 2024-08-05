@@ -2,22 +2,54 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import sharp = require("sharp");
 
+import parseMultipartFormData from "@anzp/azure-function-multipart";
+
+import { BlobServiceClient } from "@azure/storage-blob";
+import { v4 as uuidv4 } from "uuid";
+import { saveLog } from "../shared/saveLog";
+import axios, { AxiosResponse } from "axios";
+
+import { BlobInfo } from "../DeleteElement/types";
+//import { DeleteResult } from "mongodb";
+
+
+
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
+
+const blobServiceClient = BlobServiceClient.fromConnectionString(
+  AZURE_STORAGE_CONNECTION_STRING
+);
+
+//const imagesBlobContainerUrl =
+//"https://sophieassets.blob.core.windows.net/assets/images/";
+
 const database = createConnection();
+
+export interface DeleteResult {
+  success: boolean;
+  count: number;
+}
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
-  req: HttpRequest
+  req: HttpRequest,
 ): Promise<void> {
 
-  const createCampus = async () => {
 
+  const createCampus = async () => {
+    const { files } = await parseMultipartFormData(req);
     try {
       const db = await database;
       const Campuses = db.collection("campus");
-      const campus = req.body;
+
+      const file = Buffer.from(files[0].bufferFile);
+
+      const campus = {};
+      campus["code"] = req.headers.campuscode;
+      campus["name"] = req.headers.name;
+      campus["author_code"] = req.headers.authorcode;
       campus["dataCreated"] = new Date();
 
       //validar si existe codigo
@@ -39,7 +71,30 @@ const httpTrigger: AzureFunction = async function (
         const body = await resp;
 
         if (body) {
-          updateFreelanceFromCampus(req.headers.authorcode, req.headers.campuscode);
+
+          const urlBanner = await uploadBlobFromBuffer(req.headers.campuscode, file);
+          
+          if(urlBanner.ok){
+            updateFreelanceFromCampus(req.headers.authorcode, req.headers.campuscode);
+            
+            const document = { "banner": urlBanner.body }
+            const resp = Campuses.findOneAndUpdate(
+              { code: req.headers.campuscode },
+              { $set: document }
+            );
+          }else{
+            context.res = {
+              status: 500,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: {
+                message: "Error guardando imagen de banner",
+              },
+            };
+          }
+
+          
           context.res = {
             status: 201,
             headers: {
@@ -73,46 +128,92 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const updateCampus = async () => {
-    try {
-      const db = await database;
-      const Campuses = db.collection("campus");
-      const resp = Campuses.findOneAndUpdate(
-        { code: req.headers.campuscode },
-        { $set: req.body }
-      );
 
-      const body = await resp;
 
-      if (body) {
-        context.res = {
-          status: 201,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: body,
-        };
+    //actualizar imagen del banner
+    if (req.headers.image == "true") {
+      const { files } = await parseMultipartFormData(req);
+      //1 buscar imagen guardada
+      //2 eliminar imagen guardada
+      const containerClient = blobServiceClient.getContainerClient("marketplace");
+      const deleteOk = await deleteBlobIfItExists(containerClient, req.headers.campuscode);
+
+      if (deleteOk) {
+        //3 guardar nueva imagen
+        const file = Buffer.from(files[0].bufferFile);
+        const uploadOk = await uploadBlobFromBuffer(req.headers.campuscode, file);
+
+        if(uploadOk.ok){
+          context.res = {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: "Imagen de banner actualizada exitosamente",
+          };
+        }else{
+          context.res = {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: "No se pudo actualizar la imagen",
+          };
+        }
       } else {
         context.res = {
           status: 500,
           headers: {
             "Content-Type": "application/json",
           },
+          body: "No se pudo actualizar la imagen",
+        };
+      }
+    } else {
+      //para actualizar nombre u otro dato del campus
+      try {
+        const document = { "name": req.headers.name }
+        const db = await database;
+        const Campuses = db.collection("campus");
+        const resp = Campuses.findOneAndUpdate(
+          { code: req.headers.campuscode },
+          { $set: document }
+        );
+
+        const body = await resp;
+
+        if (body) {
+          context.res = {
+            status: 201,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body,
+          };
+        } else {
+          context.res = {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: {
+              message: "Error 1 updating campus by code",
+            },
+          };
+        }
+      } catch (error) {
+        context.res = {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: {
-            message: "Error 1 updating campus by code",
+            message: "Error updating campus by code",
           },
         };
       }
-    } catch (error) {
-      context.res = {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          message: "Error updating campus by code",
-        },
-      };
     }
+
   };
 
   const getCampus = async () => {
@@ -319,10 +420,10 @@ const httpTrigger: AzureFunction = async function (
       break;
 
     case "GET":
-     // if (req.query.courses == "true") {
+      // if (req.query.courses == "true") {
       //  await getCoursesInstructor();
       //} else {
-        await getCampus();
+      await getCampus();
       //}
 
       break;
@@ -334,7 +435,7 @@ const httpTrigger: AzureFunction = async function (
 
 async function updateFreelanceFromCampus(code: string, campusCode: string) {
 
-  const document = { "campusCode": campusCode }
+  const document = { "campusCode": campusCode}
   try {
     const db = await database;
     const Users = db.collection("freelanceUser");
@@ -376,5 +477,55 @@ async function updateFreelanceFromCampus(code: string, campusCode: string) {
     };
   }
 };
+
+// containerClient: ContainerClient object
+// blobName: string, includes file extension if provided
+// buffer: blob contents as a buffer, for example, from fs.readFile()
+async function uploadBlobFromBuffer(campusCode: string, buffer: Buffer) {
+  try {
+    const containerClient = blobServiceClient.getContainerClient("marketplace");
+    const blobName = campusCode + ".jpg";//nombre del campus
+    // Create blob client from container client
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    // Upload buffer
+    await blockBlobClient.uploadData(buffer);
+
+    return {
+      ok: true,
+      body: blockBlobClient.url,
+    };
+
+    //return blockBlobClient.url
+  } catch (error) {
+    return {
+      ok: false
+    };
+  }
+}
+async function deleteBlobIfItExists(containerClient: { getBlockBlobClient: (arg0: string) => any; }, campusCode: string) {
+  try {
+    // include: Delete the base blob and all of its snapshots.
+    // only: Delete only the blob's snapshots and not the blob itself.
+    const options = {
+      deleteSnapshots: 'include' // or 'only'
+    }
+
+    const blobName = campusCode + ".jpg";//nombre del campus
+
+    // Create blob client from container client
+    const blockBlobClient = await containerClient.getBlockBlobClient(blobName);
+
+    await blockBlobClient.deleteIfExists(options);
+
+    console.log(`deleted blob ${blobName}`);
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+
+
+}
 
 export default httpTrigger

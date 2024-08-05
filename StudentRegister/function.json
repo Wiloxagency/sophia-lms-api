@@ -1,0 +1,23 @@
+{
+  "bindings": [
+    {
+      "authLevel": "admin",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": [
+        "post",
+        "put",
+        "delete"
+
+      ],
+      "route": "Student"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/StudentRegister/index.js"
+}

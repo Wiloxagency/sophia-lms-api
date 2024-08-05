@@ -2,6 +2,12 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import sharp = require("sharp");
 import { OptionalId, Document, ObjectId } from "mongodb";
+//import { Publish } from "AblySocket/AblyShared";
+import { Publish, PublishNotification } from "../shared/AblyShared";
+
+// Create the client
+const Ably = require('ably');
+//const ably = new Ably.Realtime({ authUrl: 'https://ably.com/ably-auth/token/docs' });
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -26,6 +32,9 @@ const httpTrigger: AzureFunction = async function (
       notification["expiration_date"] = new Date(notification["expiration_date"]);
 
       const resp = Notifications.insertOne(notification);
+
+      //llamar a ably socket
+      PublishNotification('greeting', notification.title + ": "+notification.content);
 
       const body = await resp;
 

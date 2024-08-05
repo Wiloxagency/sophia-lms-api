@@ -15,6 +15,7 @@
     "@azure/storage-blob": "^12.13.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@types/sharp": "^0.31.1",
+    "ably": "^2.3.0",
     "adm-zip": "^0.5.10",
     "axios": "^1.6.7",
     "azure-functions-core-tools": "^4.0.5312",
