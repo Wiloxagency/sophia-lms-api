@@ -1,3 +1,4 @@
+export const template = 
 {
     "Administrador" : "Administrador",
     "Cursos":"Cursos",
