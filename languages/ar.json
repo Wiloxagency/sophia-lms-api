@@ -464,5 +464,6 @@
   "Activo": "نشط",
   "Course summary": "ملخص الدورة",
   "Number of paragraphs": "عدد الفقرات",
-  "Redo course summary with AI": "إعادة ملخص الدورة باستخدام الذكاء الإصطناعي"
+  "Redo course summary with AI": "إعادة ملخص الدورة باستخدام الذكاء الإصطناعي",
+  "greeting": "مرحبا"
 }

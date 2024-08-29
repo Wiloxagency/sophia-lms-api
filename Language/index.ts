@@ -3,7 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { isoLangPro } from "./isoLang";
 import { template } from "./template";
-import fs = require("fs");
+import * as fs from "fs";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -28,36 +28,35 @@ const httpTrigger: AzureFunction = async function (
     console.info("Prompt --> ", prompt);
 
     try {
-      const response = await openai.completions.create({
-        model: "gpt-3.5-turbo-16k",
-        prompt: prompt,
-        temperature: 0,
-        max_tokens: 256,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+      const response = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+              { role: 'system', content: "You are an assistant." },
+              { role: 'user', content: prompt },
+          ],
       });
-      const translation = response.choices[0].text;
-      console.info("Start translation -->", translation, "End translation");
-
-      //return "{'Original':" + translation + "}" // adicionado o retorno da tradução
-      return '{"Original": "' + translation;
-    } catch (error) {
+  
+      // Log da resposta completa da API
+      console.info("Raw API Response -->", response);
+  
+      let answer = response.choices[0].message.content;
+  
+      return answer;
+  } catch (error) {
       await saveLog(
-        `Error creating language pack for: ${language}, error: ${error.message} `,
-        "Error",
-        "translate()",
-        "Language/{lang}"
+          `Error creating language pack for: ${language}, error: ${error.message} `,
+          "Error",
+          "translate()",
+          "Language/{lang}"
       );
       context.res = {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        statusText: "Can't get language",
-      };
-    }
-  };
+          status: 500,
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: { error: "Can't get language" },
+      };}}
+
 
   const translateObjectValues = async (lang: string) => {
     const outputFile = `languages/${lang}.json`;
