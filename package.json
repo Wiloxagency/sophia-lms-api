@@ -29,12 +29,13 @@
     "mercadopago": "^2.0.7",
     "mongodb": "^4.13.0",
     "nodemailer": "^6.9.3",
-    "openai": "^4.52.7",
+    "openai": "^4.55.7",
     "pexels": "^1.4.0",
     "request-promise": "^4.2.6",
     "sharp": "^0.32.6",
     "uuid": "^9.0.0",
-    "xmlbuilder": "^15.1.1"
+    "xmlbuilder": "^15.1.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@azure/functions": "^2.0.0",
