@@ -9,7 +9,6 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   const updateCreditCost = async () => {
-    console.log(req.body);
 
     try {
       const db = await database;
@@ -19,8 +18,6 @@ const httpTrigger: AzureFunction = async function (
         { code: req.body.code },
         { $set: { credits: req.body.credits } }
       );
-
-      console.log("response: ", updateCreditResponse);
 
       if (updateCreditResponse) {
         context.res = {
