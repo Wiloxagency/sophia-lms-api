@@ -8,8 +8,48 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const updateCreditCost = async () => {
+  const getCreditCosts = async () => {
+    try {
+      const db = await database;
 
+      const CreditCosts = db.collection("creditCosts");
+
+      const getCreditCostsResponse = await CreditCosts.find({}).toArray();
+
+      if (getCreditCostsResponse && getCreditCostsResponse.length > 0) {
+        context.res = {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: getCreditCostsResponse,
+        };
+      } else {
+        context.res = {
+          status: 204,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      }
+    } catch (error) {
+      await saveLog(
+        `Error getting roles, error ${error.message}`,
+        "Error",
+        "getRoles()",
+        "Role/{roleCode?}"
+      );
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusText: "Can't get roles",
+      };
+    }
+  };
+
+  const updateCreditCost = async () => {
     try {
       const db = await database;
       const CreditCosts = db.collection("creditCosts");
@@ -58,8 +98,13 @@ const httpTrigger: AzureFunction = async function (
   };
 
   switch (req.method) {
+    case "GET":
+      await getCreditCosts();
+      break;
     case "PUT":
       await updateCreditCost();
+      break;
+    default:
       break;
   }
 };
