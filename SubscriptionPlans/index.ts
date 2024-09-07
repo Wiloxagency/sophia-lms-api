@@ -4,11 +4,15 @@ import { saveLog } from "../shared/saveLog";
 
 const database = createConnection();
 
-type subscriptionPlan = {
+type SubscriptionPlan = {
   name: string;
   credits: number;
-  currency: "USD" | "EUR" | "CPL" | "BRL";
-  price: number;
+  prices: {
+    USD: number;
+    EUR: number;
+    CLP: number;
+    BRL: number;
+  };
 };
 
 const httpTrigger: AzureFunction = async function (
@@ -63,9 +67,10 @@ const httpTrigger: AzureFunction = async function (
 
   const updateSubscriptionPlan = async () => {
     try {
+
       const db = await database;
       const subscriptionPlans =
-        db.collection<subscriptionPlan>("subscriptionPlans");
+        db.collection<SubscriptionPlan>("subscriptionPlans");
 
       const updateSubscriptionPlanResponse =
         await subscriptionPlans.findOneAndUpdate(
