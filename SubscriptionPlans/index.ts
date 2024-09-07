@@ -4,25 +4,37 @@ import { saveLog } from "../shared/saveLog";
 
 const database = createConnection();
 
+type subscriptionPlan = {
+  name: string;
+  credits: number;
+  currency: "USD" | "EUR" | "CPL" | "BRL";
+  price: number;
+};
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const getCreditCosts = async () => {
+  const getSubscriptionPlans = async () => {
     try {
       const db = await database;
 
-      const CreditCosts = db.collection("creditCosts");
+      const subscriptionPlans = db.collection("subscriptionPlans");
 
-      const getCreditCostsResponse = await CreditCosts.find({}).toArray();
+      const getSubscriptionPlansResponse = await subscriptionPlans
+        .find({})
+        .toArray();
 
-      if (getCreditCostsResponse && getCreditCostsResponse.length > 0) {
+      if (
+        getSubscriptionPlansResponse &&
+        getSubscriptionPlansResponse.length > 0
+      ) {
         context.res = {
           status: 200,
           headers: {
             "Content-Type": "application/json",
           },
-          body: getCreditCostsResponse,
+          body: getSubscriptionPlansResponse,
         };
       } else {
         context.res = {
@@ -34,38 +46,40 @@ const httpTrigger: AzureFunction = async function (
       }
     } catch (error) {
       await saveLog(
-        `Error getting credit costs, error ${error.message}`,
+        `Error getting plans, error ${error.message}`,
         "Error",
-        "getCreditCosts()",
-        "CreditCosts/"
+        "getSubscriptionPlans()",
+        "SubscriptionPlans/"
       );
       context.res = {
         status: 500,
         headers: {
           "Content-Type": "application/json",
         },
-        statusText: "Can't get credit costs",
+        statusText: "Can't get plans",
       };
     }
   };
 
-  const updateCreditCost = async () => {
+  const updateSubscriptionPlan = async () => {
     try {
       const db = await database;
-      const CreditCosts = db.collection("creditCosts");
+      const subscriptionPlans =
+        db.collection<subscriptionPlan>("subscriptionPlans");
 
-      const updateCreditResponse = await CreditCosts.findOneAndUpdate(
-        { code: req.body.code },
-        { $set: { credits: req.body.credits } }
-      );
+      const updateSubscriptionPlanResponse =
+        await subscriptionPlans.findOneAndUpdate(
+          { name: req.body.planName },
+          { $set: { [req.body.field]: req.body.value } }
+        );
 
-      if (updateCreditResponse) {
+      if (updateSubscriptionPlanResponse) {
         context.res = {
           status: 201,
           headers: {
             "Content-Type": "application/json",
           },
-          body: updateCreditResponse,
+          body: updateSubscriptionPlanResponse,
         };
       } else {
         context.res = {
@@ -74,16 +88,16 @@ const httpTrigger: AzureFunction = async function (
             "Content-Type": "application/json",
           },
           body: {
-            message: "Error updating credit cost",
+            message: "Error updating subcsription plan",
           },
         };
       }
     } catch (error) {
       await saveLog(
-        `Error updating credit cost: ${req.body.code}` + error.message,
+        `Error updating subcsription plan: ${req.body.code}` + error.message,
         "Error",
-        "updateCreditCost()",
-        "CreditCost/"
+        "updateSubscriptionPlan()",
+        "SubscriptionPlan/"
       );
       context.res = {
         status: 500,
@@ -91,7 +105,7 @@ const httpTrigger: AzureFunction = async function (
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error updating credit cost",
+          message: "Error updating subcsription plan",
         },
       };
     }
@@ -99,10 +113,10 @@ const httpTrigger: AzureFunction = async function (
 
   switch (req.method) {
     case "GET":
-      await getCreditCosts();
+      await getSubscriptionPlans();
       break;
     case "PUT":
-      await updateCreditCost();
+      await updateSubscriptionPlan();
       break;
     default:
       break;
