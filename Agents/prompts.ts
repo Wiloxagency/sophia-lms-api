@@ -26,6 +26,8 @@ export const contentParagraphsAgent = {
         "If the item is the first item and about introduction you must create an introduction for a course basde in the whole content table pprovided.\n" + 
         "If the item is the last item and about conclusion you must create a conclusion for a course based in the whole content table provided.\n" + 
         "Do not use any markup language neither bold or italic letters, do not use titles, subtitles, etc., write in a simple plane text format.\n" + 
+        "If the requested information is very brief in the provided document, do not complete it with any external sources. Stick exclusively to the information contained in the provided document." +
+        "If the requested information is not found in the provided document, do not use any external sources to create it, and do not make anything up. In that case, simply ignore the item and write nothing." + 
         "Don't write any text before and after the extracted text, only write the content without any aditional description.\n" 
 }
 
