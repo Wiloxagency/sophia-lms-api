@@ -5,6 +5,7 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 import { updateCourseDuration } from "../shared/updateCourseDuration";
+import { updateUserCreditConsumption } from "../shared/creditConsumption";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -789,6 +790,7 @@ const httpTrigger: AzureFunction = async function (
 
       const { fields, files } = await parseMultipartFormData(req);
       const courseCode = fields[0].value;
+      const userCode = fields[1].value;
       const imageFile = files[0];
 
       const compressedImageBuffer = await sharp(imageFile.bufferFile)
@@ -817,6 +819,9 @@ const httpTrigger: AzureFunction = async function (
           },
         }
       );
+
+      await updateUserCreditConsumption("cpc", userCode);
+
       context.res = {
         status: 201,
         headers: { "Content-Type": "application/json" },

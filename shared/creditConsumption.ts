@@ -4,26 +4,28 @@ import { createConnection } from "./mongo";
 const database = createConnection();
 
 export async function updateUserCreditConsumption(
-  creditCostCode: string,
+  creditCostCode: "eiv" | "cl" | "ce" | "cpc" | "ar" | "dsc",
   userCode: string
 ) {
-  const db = await database;
+  try {
+    const db = await database;
 
-  const creditCosts = db.collection<CreditCost>("creditCosts");
-  const users = db.collection("user");
-  const creditCost = (await creditCosts.findOne({ code: creditCostCode }))
-    .credits;
+    const creditCosts = db.collection<CreditCost>("creditCosts");
+    const users = db.collection("user");
+    const creditCost = (await creditCosts.findOne({ code: creditCostCode }))
+      .credits;
 
-  const updateUserResponse = await users.updateOne(
-    { code: userCode },
-    {
-      $set: {
-        credits: {
-          $subtract: ["$credits", creditCost],
+    const updateUserResponse = await users.updateOne(
+      { code: userCode },
+      {
+        $inc: {
+          credits: -creditCost,
         },
-      },
-    }
-  );
+      }
+    );
 
-  console.log(updateUserResponse);
+    console.log(updateUserResponse);
+  } catch (error) {
+    console.log(error);
+  }
 }
