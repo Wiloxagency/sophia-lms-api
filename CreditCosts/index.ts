@@ -4,6 +4,12 @@ import { saveLog } from "../shared/saveLog";
 
 const database = createConnection();
 
+export type CreditCost = {
+  code: string;
+  name: string;
+  credits: number;
+};
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
