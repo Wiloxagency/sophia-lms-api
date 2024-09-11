@@ -3,9 +3,18 @@ import { createConnection } from "./mongo";
 
 const database = createConnection();
 
+const validCreditCostCodes = ["eiv", "cl", "ce", "cpc", "ar", "dsc"] as const;
+
+export type CreditCostCodes = (typeof validCreditCostCodes)[number];
+
+// Helper function to check if a string is a valid CreditCostCode
+export function isValidCreditCostCode(code: string): code is CreditCostCodes {
+  return validCreditCostCodes.includes(code as CreditCostCodes);
+}
+
 export async function updateUserCreditConsumption(
-  creditCostCode: "eiv" | "cl" | "ce" | "cpc" | "ar" | "dsc",
-  userCode: string
+  userCode: string,
+  creditCostCode: CreditCostCodes
 ) {
   try {
     const db = await database;
@@ -15,16 +24,17 @@ export async function updateUserCreditConsumption(
     const creditCost = (await creditCosts.findOne({ code: creditCostCode }))
       .credits;
 
-    const updateUserResponse = await users.updateOne(
+    const updateUserResponse = await users.findOneAndUpdate(
       { code: userCode },
       {
         $inc: {
           credits: -creditCost,
         },
-      }
+      },
+      { returnDocument: "after" }
     );
 
-    console.log(updateUserResponse);
+    return updateUserResponse.value.credits as number;
   } catch (error) {
     console.log(error);
   }

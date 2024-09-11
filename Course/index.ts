@@ -5,7 +5,10 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 import { updateCourseDuration } from "../shared/updateCourseDuration";
-import { updateUserCreditConsumption } from "../shared/creditConsumption";
+import {
+  isValidCreditCostCode,
+  updateUserCreditConsumption,
+} from "../shared/creditConsumption";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -74,27 +77,43 @@ const httpTrigger: AzureFunction = async function (
 
   const updateCourse = async (courseCode: string) => {
     delete req.body._id;
-
+    let remainingCredits = null;
     try {
       const db = await database;
       const Courses = db.collection("course");
-      const resp = Courses.findOneAndUpdate(
+      const updateCourseResponse = await Courses.findOneAndUpdate(
         { code: courseCode },
         { $set: req.body }
       );
-      const body = await resp;
 
       if (req.query.updateCourseDuration) {
         updateCourseDuration(courseCode);
       }
 
-      if (body) {
+      if (req.query.creditCostCode) {
+        if (isValidCreditCostCode(req.query.creditCostCode)) {
+          remainingCredits = await updateUserCreditConsumption(
+            req.query.userCode,
+            req.query.creditCostCode
+          );
+          console.log("remainingCredits: ", remainingCredits);
+        } else {
+          throw new Error(
+            `Invalid creditCostCode: ${req.query.creditCostCode}`
+          );
+        }
+      }
+
+      if (updateCourseResponse) {
         context.res = {
           status: 201,
           headers: {
             "Content-Type": "application/json",
           },
-          body: body,
+          body: {
+            updateCourseResponse: updateCourseResponse,
+            remainingCredits: remainingCredits,
+          },
         };
       } else {
         await saveLog(
@@ -820,7 +839,7 @@ const httpTrigger: AzureFunction = async function (
         }
       );
 
-      await updateUserCreditConsumption("cpc", userCode);
+      await updateUserCreditConsumption(userCode, "cpc");
 
       context.res = {
         status: 201,

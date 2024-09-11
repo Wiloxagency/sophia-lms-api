@@ -1,11 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { CreditCostCodes } from "../shared/creditConsumption";
 
 const database = createConnection();
 
 export type CreditCost = {
-  code: string;
+  code: CreditCostCodes;
   name: string;
   credits: number;
 };
