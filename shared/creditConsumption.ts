@@ -18,7 +18,6 @@ export async function updateUserCreditConsumption(
 ) {
   try {
     const db = await database;
-
     const creditCosts = db.collection<CreditCost>("creditCosts");
     const users = db.collection("user");
     const creditCost = (await creditCosts.findOne({ code: creditCostCode }))

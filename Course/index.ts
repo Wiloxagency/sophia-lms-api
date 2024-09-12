@@ -6,6 +6,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 import { updateCourseDuration } from "../shared/updateCourseDuration";
 import {
+  CreditCostCodes,
   isValidCreditCostCode,
   updateUserCreditConsumption,
 } from "../shared/creditConsumption";
@@ -155,11 +156,36 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-
       let elementPath = `sections.${req.query.indexSection}.elements`;
+      let remainingCredits = null;
+      let creditCostCode: CreditCostCodes;
+      const elementType: string = req.body.courseElement.type;
 
-      // console.log(req.body)
-      // return
+      if (elementType === "Lección Engine") {
+        creditCostCode = "cl";
+      }
+
+      if (
+        elementType === "completion" ||
+        elementType === "quizz" ||
+        elementType === "shortAnswer" ||
+        elementType === "trueOrFalse"
+      ) {
+        creditCostCode = "ce";
+      }
+
+      if (
+        elementType === "file" ||
+        elementType === "video_url" ||
+        elementType === "html"
+      ) {
+        creditCostCode = "ar";
+      }
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.query.userCode,
+        creditCostCode
+      );
 
       const updateOneResponse = await Courses.updateOne(
         { code: courseCode },
@@ -173,7 +199,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: updateOneResponse,
+          body: { remainingCredits },
         };
       } else {
         await saveLog(
