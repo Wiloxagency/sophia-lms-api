@@ -54,7 +54,10 @@ const httpTrigger: AzureFunction = async function (
           );
 
           const emailVerificationLink =
-            "https://" + FRONTEND_URL + "/verification/" + encryptedId;
+            (FRONTEND_URL === "localhost:4200" ? "http://" : "https://") +
+            FRONTEND_URL +
+            "/verification/" +
+            encryptedId;
 
           if (req.body.isSelfManageable) {
             sendValidationEmail(
