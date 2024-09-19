@@ -11,7 +11,7 @@ import {
   sendFailedSCORMCreationEmail,
   sendSCORMDownloadLinkEmail,
   sendScormUnderConstructionEmail,
-} from "../nodemailer/scormDownloadEmail";
+} from "../nodemailer/sendMiscEmails";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
 
 const AZURE_STORAGE_CONNECTION_STRING =
