@@ -3,8 +3,12 @@ import Stripe from "stripe";
 import { createConnection } from "../shared/mongo";
 const database = createConnection();
 
+const FRONTEND_URL: string = process.env.FRONTEND_URL as string;
+
 const STRIPE_SK = process.env.STRIPE_SK;
 const stripe = new Stripe(STRIPE_SK);
+const endpointSecret =
+  "whsec_26a0718cb39c8e990e9f48fcd9150af234265e99cbfee948e6adadb977012a01";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -30,9 +34,14 @@ const httpTrigger: AzureFunction = async function (
         );
       }
 
+      const successUrl =
+        (FRONTEND_URL === "localhost:4200" ? "http://" : "https://") +
+        FRONTEND_URL +
+        "/profile";
+
       const session = await stripe.checkout.sessions.create({
         customer: stripeCustomerId,
-        success_url: "https://example.com/success",
+        success_url: successUrl,
         line_items: [
           {
             price: req.body.priceId,
@@ -52,8 +61,28 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-  async function fulfillCheckout() {
-    const sessionId = req.body.sessionId;
+  async function webhook() {
+    const payload = req.rawBody;
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    } catch (err) {
+      console.log(`Webhook Error: ${err.message}`);
+    }
+
+    if (
+      event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded"
+    ) {
+      fulfillCheckout(event.data.object.id);
+    }
+  }
+
+  async function fulfillCheckout(sessionId: string) {
+    console.log("sessionId: ", sessionId);
+    // const sessionId = req.body.sessionId;
     const stripe = require("stripe")(STRIPE_SK);
     // TODO: Make this function safe to run multiple times,
     // even concurrently, with the same session ID
@@ -65,6 +94,19 @@ const httpTrigger: AzureFunction = async function (
     const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
     });
+    // console.log("checkoutSession: ", checkoutSession.line_items.data.price.id)
+    console.log("checkoutSession: ", checkoutSession);
+
+    const userEmail = checkoutSession.customer_details.email;
+    const currentDate = new Date();
+    const futureDate = new Date(currentDate);
+    futureDate.setMonth(currentDate.getMonth() + 1);
+    const db = await database;
+    const users = db.collection("user");
+    const user = users.updateOne(
+      { email: userEmail },
+      { $set: { subscriptionExpiryDate: futureDate, credits: 20000 } }
+    );
 
     // Check the Checkout Session's payment_status property
     // to determine if fulfillment should be peformed
@@ -81,7 +123,7 @@ const httpTrigger: AzureFunction = async function (
     //   break;
     case "POST":
       if (req.query.checkoutSessionCompletedWebhook) {
-        await fulfillCheckout();
+        await webhook();
       } else {
         await createCheckoutSession();
         break;

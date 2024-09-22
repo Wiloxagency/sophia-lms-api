@@ -37,17 +37,17 @@ const httpTrigger: AzureFunction = async function (
           body: { message: "Invalid password" },
         };
       } else {
-        const userAggregastionResponse = await Users.aggregate(
+        const userAggregationResponse = await Users.aggregate(
           userAggregation({ code: user.code }, {})
         ).toArray();
-        console.log("userAggregastionResponse: ", userAggregastionResponse);
-        delete userAggregastionResponse[0].password;
+        // console.log("userAggregationResponse: ", userAggregationResponse);
+        delete userAggregationResponse[0].password;
         context.res = {
           status: 200,
           headers: {
             "Content-Type": "application/json",
           },
-          body: userAggregastionResponse[0],
+          body: userAggregationResponse[0],
         };
       }
     } else {
