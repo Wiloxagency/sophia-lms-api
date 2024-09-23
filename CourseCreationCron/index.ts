@@ -7,8 +7,6 @@ import { cleanParagraphs, compareObjectStructures } from "../shared/compareParag
 const database = createConnection()
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
 
-    return
-
     if (myTimer.isPastDue) {
         // context.log('Timer function is running late!');
     }

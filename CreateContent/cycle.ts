@@ -212,7 +212,7 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
     // console.log(video.link)
     if (video != undefined)
       return { url: video.link, height: video.height, width: video.width };
-  });
+  }).filter(video => { return video != undefined});
 
   parsedPexelsVideos = parsedPexelsVideos.concat(videoResultsCache);
 }
