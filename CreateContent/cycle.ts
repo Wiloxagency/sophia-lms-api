@@ -16,6 +16,7 @@ import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateToLanguage } from "../shared/translator";
 import { createParagraphsWithAgent } from "../Agents/createParagraphs"
+import { createDallePrompt } from "./createDallePrompt";
 
 const database = createConnection();
 
@@ -334,10 +335,10 @@ export async function createContentCycle(
             course.sections[currentParagraphs.sectionIndex].elements[
               lessonCounter
             ].elementLesson.paragraphs = currentParagraphs.content
-            .filter((text: string) => {
-              return text && text != undefined && text != null && text.length > 3
-            })
-            .map((text: string) => {
+              .filter((text: string) => {
+                return text && text != undefined && text != null && text.length > 3
+              })
+              .map((text: string) => {
                 // console.info("cleanText in 322:", text)
                 return { content: cleanText(text), audioScript: cleanText(text) };
               });
@@ -363,13 +364,13 @@ export async function createContentCycle(
           //         .elementLesson.paragraphs[paragraErrorphIndex]
           // );
           // currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs;
-    
+
           currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
-          .map((paragraph: any, index: number) => {
-            if (index >= paragraErrorphIndex ) {
-              return { content: paragraph.content, audioScript: paragraph.content }
-            } else return paragraph
-          })
+            .map((paragraph: any, index: number) => {
+              if (index >= paragraErrorphIndex) {
+                return { content: paragraph.content, audioScript: paragraph.content }
+              } else return paragraph
+            })
 
           currentParagraphs.sectionIndex = sectionCounter
           // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs
@@ -494,6 +495,16 @@ export async function createContentCycle(
           };
           await createAudioFn(0);
           saveCourseCreationLog(course.code, course.details.title);
+
+          // Create prompt for Dalle image creation
+          await createDallePrompt(
+            course.details.title,
+            course.code,
+            paragraphContent,
+            currentParagraphs.sectionIndex,
+            lessonCounter,
+            paragraphCounter
+          )
 
           // Start stract english title for images context searching
           var extractedTitle = {
