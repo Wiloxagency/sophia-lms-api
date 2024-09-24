@@ -7,8 +7,7 @@ const FRONTEND_URL: string = process.env.FRONTEND_URL as string;
 
 const STRIPE_SK = process.env.STRIPE_SK;
 const stripe = new Stripe(STRIPE_SK);
-const endpointSecret =
-  "whsec_26a0718cb39c8e990e9f48fcd9150af234265e99cbfee948e6adadb977012a01";
+const stripeWebhookEndpointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -67,7 +66,11 @@ const httpTrigger: AzureFunction = async function (
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+      event = stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        stripeWebhookEndpointSecret
+      );
     } catch (err) {
       console.log(`Webhook Error: ${err.message}`);
     }
@@ -95,7 +98,6 @@ const httpTrigger: AzureFunction = async function (
       expand: ["line_items"],
     });
     // console.log("checkoutSession: ", checkoutSession.line_items.data.price.id)
-    console.log("checkoutSession: ", checkoutSession);
 
     const userEmail = checkoutSession.customer_details.email;
     const currentDate = new Date();
