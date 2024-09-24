@@ -9,6 +9,30 @@ const STRIPE_SK = process.env.STRIPE_SK;
 const stripe = new Stripe(STRIPE_SK);
 const stripeWebhookEndpointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
 
+const stripeProducts = [
+  {
+    name: "Plan 3.000 Créditos",
+    credits: 3000,
+    courses: 6,
+    usd: 100,
+    priceId: "price_1Q2egpRsASo6ld227KhxelX7",
+  },
+  {
+    name: "Plan 7.000 Créditos",
+    courses: 14,
+    credits: 7000,
+    usd: 200,
+    priceId: "price_1Q2ehfRsASo6ld22ftutxYlq",
+  },
+  {
+    name: "Plan 20.000 Créditos",
+    courses: 30,
+    credits: 20000,
+    usd: 500,
+    priceId: "price_1Q2ei3RsASo6ld22yGulImWn",
+  },
+];
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -97,7 +121,13 @@ const httpTrigger: AzureFunction = async function (
     const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
     });
-    // console.log("checkoutSession: ", checkoutSession.line_items.data.price.id)
+
+    const productPurchasedPriceId = checkoutSession.line_items.data.price.id;
+
+    const productPurchased = stripeProducts.find(
+      (item) => item.priceId === productPurchasedPriceId
+    );
+    const creditsToAdd = productPurchased?.credits;
 
     const userEmail = checkoutSession.customer_details.email;
     const currentDate = new Date();
@@ -107,7 +137,7 @@ const httpTrigger: AzureFunction = async function (
     const users = db.collection("user");
     const user = users.updateOne(
       { email: userEmail },
-      { $set: { subscriptionExpiryDate: futureDate, credits: 20000 } }
+      { $set: { subscriptionExpiryDate: futureDate, credits: creditsToAdd } }
     );
 
     // Check the Checkout Session's payment_status property
