@@ -11,7 +11,8 @@ import {
   sendFailedSCORMCreationEmail,
   sendSCORMDownloadLinkEmail,
   sendScormUnderConstructionEmail,
-} from "../nodemailer/scormDownloadEmail";
+} from "../nodemailer/sendMiscEmails";
+import { updateUserCreditConsumption } from "../shared/creditConsumption";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -44,9 +45,7 @@ const httpTrigger: AzureFunction = async function (
     elementIndex: number;
     lessonCounter: number;
     courseCode: string;
-  })
-  
-  {
+  }) {
     const title = scormPayload.courseTitle;
     errorLine = 35;
     const organization_default =
@@ -75,9 +74,6 @@ const httpTrigger: AzureFunction = async function (
         </organization>
     </organizations>
           `;
-
-
-
 
     const xmlString = `
 <resources>
@@ -528,12 +524,23 @@ const httpTrigger: AzureFunction = async function (
     case "POST":
       if (req.body.courseCode) {
         loadCourse(req.body.courseCode);
+
+        let remainingCredits = null;
+
+        remainingCredits = await updateUserCreditConsumption(
+          req.body.userCode,
+          "dsc"
+        );
+
         context.res = {
           status: 200,
           headers: {
             "Content-Type": "application/xml",
           },
-          body: { message: "Start scorm creation" },
+          body: {
+            message: "Start scorm creation",
+            remainingCredits: remainingCredits,
+          },
         };
       } else {
         // await createScorm(req.body.courseName, req.body.Urls);

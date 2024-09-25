@@ -1,0 +1,17 @@
+{
+  "bindings": [
+    {
+      "authLevel": "admin",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["get", "put"]
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/CreditCosts/index.js"
+}
