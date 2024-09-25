@@ -11,7 +11,7 @@ import {
   sendFailedSCORMCreationEmail,
   sendSCORMDownloadLinkEmail,
   sendScormUnderConstructionEmail,
-} from "../nodemailer/scormDownloadEmail";
+} from "../nodemailer/sendMiscEmails";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;

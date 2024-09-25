@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail";
+import { sendScormUnderConstructionEmail } from "../nodemailer/sendMiscEmails";
 
 const database = createConnection()
 

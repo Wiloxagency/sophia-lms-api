@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { saveLog } from "../shared/saveLog"
-import { sendScormUnderConstructionEmail } from "../nodemailer/scormDownloadEmail"
+import { sendScormUnderConstructionEmail } from "../nodemailer/sendMiscEmails"
 import { updateSlideAfterTranscriptionJob } from "../shared/azureSpeechToText"
 
 const axios = require('axios').default
