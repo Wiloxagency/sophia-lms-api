@@ -71,6 +71,19 @@ const httpTrigger: AzureFunction = async function (
     const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
     });
+    console.log("checkoutSession: ", checkoutSession);
+
+    console.log(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    );
+    console.log("checkoutSession.line_items: ", checkoutSession.line_items);
+    console.log(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    );
+    console.log(
+      "checkoutSession.line_items.price: ",
+      checkoutSession.line_items.price
+    );
 
     const productPurchasedPriceId = checkoutSession.line_items.data.price.id;
 
