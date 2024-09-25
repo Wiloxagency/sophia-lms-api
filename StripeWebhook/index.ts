@@ -58,7 +58,7 @@ const httpTrigger: AzureFunction = async function (
   }
 
   async function fulfillCheckout(sessionId: string) {
-    console.log("sessionId: ", sessionId);
+    // console.log("sessionId: ", sessionId);
     // const sessionId = req.body.sessionId;
     const stripe = require("stripe")(STRIPE_SK);
     // TODO: Make this function safe to run multiple times,
@@ -72,10 +72,10 @@ const httpTrigger: AzureFunction = async function (
       expand: ["line_items"],
     });
 
-    console.log(
-      "checkoutSession.line_items.data[0].price: ",
-      checkoutSession.line_items.data[0].price
-    );
+    // console.log(
+    //   "checkoutSession.line_items.data[0].price: ",
+    //   checkoutSession.line_items.data[0].price
+    // );
 
     const productPurchasedPriceId = checkoutSession.line_items.data[0].price.id;
 
