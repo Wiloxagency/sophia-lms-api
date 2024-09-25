@@ -5,6 +5,11 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 import { updateCourseDuration } from "../shared/updateCourseDuration";
+import {
+  CreditCostCodes,
+  isValidCreditCostCode,
+  updateUserCreditConsumption,
+} from "../shared/creditConsumption";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -73,27 +78,43 @@ const httpTrigger: AzureFunction = async function (
 
   const updateCourse = async (courseCode: string) => {
     delete req.body._id;
-
+    let remainingCredits = null;
     try {
       const db = await database;
       const Courses = db.collection("course");
-      const resp = Courses.findOneAndUpdate(
+      const updateCourseResponse = await Courses.findOneAndUpdate(
         { code: courseCode },
         { $set: req.body }
       );
-      const body = await resp;
 
       if (req.query.updateCourseDuration) {
         updateCourseDuration(courseCode);
       }
 
-      if (body) {
+      if (req.query.creditCostCode) {
+        if (isValidCreditCostCode(req.query.creditCostCode)) {
+          remainingCredits = await updateUserCreditConsumption(
+            req.query.userCode,
+            req.query.creditCostCode
+          );
+          console.log("remainingCredits: ", remainingCredits);
+        } else {
+          throw new Error(
+            `Invalid creditCostCode: ${req.query.creditCostCode}`
+          );
+        }
+      }
+
+      if (updateCourseResponse) {
         context.res = {
           status: 201,
           headers: {
             "Content-Type": "application/json",
           },
-          body: body,
+          body: {
+            updateCourseResponse: updateCourseResponse,
+            remainingCredits: remainingCredits,
+          },
         };
       } else {
         await saveLog(
@@ -135,11 +156,36 @@ const httpTrigger: AzureFunction = async function (
     try {
       const db = await database;
       const Courses = db.collection("course");
-
       let elementPath = `sections.${req.query.indexSection}.elements`;
+      let remainingCredits = null;
+      let creditCostCode: CreditCostCodes;
+      const elementType: string = req.body.courseElement.type;
 
-      // console.log(req.body)
-      // return
+      if (elementType === "Lección Engine") {
+        creditCostCode = "cl";
+      }
+
+      if (
+        elementType === "completion" ||
+        elementType === "quizz" ||
+        elementType === "shortAnswer" ||
+        elementType === "trueOrFalse"
+      ) {
+        creditCostCode = "ce";
+      }
+
+      if (
+        elementType === "file" ||
+        elementType === "video_url" ||
+        elementType === "html"
+      ) {
+        creditCostCode = "ar";
+      }
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.query.userCode,
+        creditCostCode
+      );
 
       const updateOneResponse = await Courses.updateOne(
         { code: courseCode },
@@ -153,7 +199,7 @@ const httpTrigger: AzureFunction = async function (
           headers: {
             "Content-Type": "application/json",
           },
-          body: updateOneResponse,
+          body: { remainingCredits },
         };
       } else {
         await saveLog(
@@ -789,6 +835,7 @@ const httpTrigger: AzureFunction = async function (
 
       const { fields, files } = await parseMultipartFormData(req);
       const courseCode = fields[0].value;
+      const userCode = fields[1].value;
       const imageFile = files[0];
 
       const compressedImageBuffer = await sharp(imageFile.bufferFile)
@@ -817,6 +864,9 @@ const httpTrigger: AzureFunction = async function (
           },
         }
       );
+
+      await updateUserCreditConsumption(userCode, "cpc");
+
       context.res = {
         status: 201,
         headers: { "Content-Type": "application/json" },

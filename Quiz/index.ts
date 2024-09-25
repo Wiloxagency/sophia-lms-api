@@ -4,6 +4,7 @@ import { saveLog } from "../shared/saveLog";
 import { downloadQuiz } from "./download";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
+import { updateUserCreditConsumption } from "../shared/creditConsumption";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,7 +22,7 @@ async function returnArrayOfRelevantParagraphs(
 ): Promise<string[]> {
   let concatenatedLessonParagraphs = "";
 
-  if ((indexElement == -1)) {
+  if (indexElement == -1) {
     // THIS MEANS ALL LESSON INSIDE SECTION MUST BE USED
 
     for (const lesson of course.sections[indexSection].elements) {
@@ -83,6 +84,12 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
+      let remainingCredits = null;
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.body.userCode,
+        "ce"
+      );
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -147,7 +154,7 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: quizList,
+        body: { quizList: quizList, remainingCredits: remainingCredits },
       };
     } catch (error) {
       // console.log(error)
@@ -176,6 +183,12 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
+      let remainingCredits = null;
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.body.userCode,
+        "ce"
+      );
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -242,7 +255,7 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: quizList,
+        body: { quizList: quizList, remainingCredits: remainingCredits },
       };
     } catch (error) {
       // console.log(error)
@@ -271,6 +284,12 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
+      let remainingCredits = null;
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.body.userCode,
+        "ce"
+      );
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -359,7 +378,7 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: quizList,
+        body: { quizList: quizList, remainingCredits: remainingCredits },
       };
     } catch (error) {
       await saveLog(
@@ -386,6 +405,12 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
+      let remainingCredits = null;
+
+      remainingCredits = await updateUserCreditConsumption(
+        req.body.userCode,
+        "ce"
+      );
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -471,7 +496,7 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: quizList,
+        body: { quizList: quizList, remainingCredits: remainingCredits },
       };
     } catch (error) {
       await saveLog(
