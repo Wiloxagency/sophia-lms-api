@@ -74,7 +74,7 @@ const httpTrigger: AzureFunction = async function (
 
     console.log(
       "checkoutSession.line_items.data[0].price: ",
-      checkoutSession.line_items.price
+      checkoutSession.line_items.data[0].price
     );
 
     const productPurchasedPriceId = checkoutSession.line_items.data[0].price.id;
