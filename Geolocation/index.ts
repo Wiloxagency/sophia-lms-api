@@ -9,7 +9,9 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   try {
-    let clientIp = req.headers["x-forwarded-for"];
+    // let clientIp = req.headers["x-forwarded-for"];
+    // CHILEAN IP 👇🏻
+    let clientIp = "101.44.15.255";
 
     // 'x-forwarded-for' can be a list of IPs, so we take the first one
     if (clientIp) {
