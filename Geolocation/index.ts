@@ -17,7 +17,7 @@ const httpTrigger: AzureFunction = async function (
       clientIp = clientIp.split(":")[0]; // Remove port number if present
     }
 
-    const ipInfoResponse = ipinfoWrapper
+    const ipInfoResponse = await ipinfoWrapper
       .lookupIp(clientIp)
       .then((response: IPinfo) => {
         //   console.log(response);
