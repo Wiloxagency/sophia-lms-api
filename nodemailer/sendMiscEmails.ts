@@ -132,12 +132,6 @@ export async function sendValidationEmail(
   recipientName: string,
   receivedEmailVerificationLink: string
 ): Promise<any> {
-  console.log(
-    "AWS_SES_ACCESS_KEY: ",
-    AWS_SES_ACCESS_KEY.length,
-    "AWS_SES_SECRET_ACCESS_KEY: ",
-    AWS_SES_SECRET_ACCESS_KEY.length
-  );
   const source = fs
     .readFileSync("nodemailer/templates/emailVerification.html", "utf-8")
     .toString();
@@ -159,7 +153,7 @@ export async function sendValidationEmail(
       // html: await readFile('nodemailer/welcome.html', 'utf8'),
       html: htmlToSend,
     });
-    console.log("Message sent: %s", sendEmailResponse.messageId);
+    // console.log("Message sent: %s", sendEmailResponse.messageId);
   } catch (error) {
     console.log(error);
   }
