@@ -153,7 +153,7 @@ export async function sendValidationEmail(
       // html: await readFile('nodemailer/welcome.html', 'utf8'),
       html: htmlToSend,
     });
-    // console.log("Message sent: %s", sendEmailResponse.messageId);
+    console.log("Message sent: %s", sendEmailResponse.messageId);
   } catch (error) {
     console.log(error);
   }
