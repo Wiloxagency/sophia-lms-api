@@ -9,7 +9,13 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   try {
-    const clientIp = req.headers["x-forwarded-for"];
+    let clientIp = req.headers["x-forwarded-for"];
+
+    // 'x-forwarded-for' can be a list of IPs, so we take the first one
+    if (clientIp) {
+      clientIp = clientIp.split(",")[0]; // If it's a list, take the first IP
+      clientIp = clientIp.split(":")[0]; // Remove port number if present
+    }
 
     const ipInfoResponse = ipinfoWrapper
       .lookupIp(clientIp)
