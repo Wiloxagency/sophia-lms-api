@@ -18,14 +18,18 @@ const httpTrigger: AzureFunction = async function (
     }
 
     const ipInfoResponse = await ipinfoWrapper.lookupIp(clientIp);
-    
-    console.log("ipInfoResponse: ", ipInfoResponse)
+
+    // console.log("ipInfoResponse: ", ipInfoResponse);
 
     context.res = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: ipInfoResponse,
+      body: {
+        country: ipInfoResponse.country,
+        countryCode: ipInfoResponse.countryCode,
+        countryCurrency: ipInfoResponse.countryCurrency,
+      },
     };
   } catch (error) {
     console.error("Error getting geolocation ", error);
