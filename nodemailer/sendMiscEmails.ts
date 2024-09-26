@@ -132,6 +132,12 @@ export async function sendValidationEmail(
   recipientName: string,
   receivedEmailVerificationLink: string
 ): Promise<any> {
+  console.log(
+    "AWS_SES_ACCESS_KEY: ",
+    AWS_SES_ACCESS_KEY.length,
+    "AWS_SES_SECRET_ACCESS_KEY: ",
+    AWS_SES_SECRET_ACCESS_KEY.length
+  );
   const source = fs
     .readFileSync("nodemailer/templates/emailVerification.html", "utf-8")
     .toString();
