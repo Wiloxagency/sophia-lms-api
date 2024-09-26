@@ -23,12 +23,13 @@ const httpTrigger: AzureFunction = async function (
         //   console.log(response);
         return response;
       });
+    console.log("ipInfoResponse: ", ipInfoResponse)
 
     context.res = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: { ipInfoResponse },
+      body: ipInfoResponse,
     };
   } catch (error) {
     console.error("Error getting geolocation ", error);
