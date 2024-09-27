@@ -1,4 +1,3 @@
-import { contentTable } from "./prompts";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";

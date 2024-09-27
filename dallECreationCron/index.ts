@@ -1,4 +1,5 @@
 import { AzureFunction, Context } from "@azure/functions"
+import { aiImageCreation } from "./dallECreationCycle";
 
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
     var timeStamp = new Date().toISOString();
@@ -8,6 +9,8 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
         context.log('Timer function is running late!');
     }
     context.log('Timer trigger function ran!', timeStamp);   
+
+    aiImageCreation()
 };
 
 export default timerTrigger;
