@@ -79,17 +79,20 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   const createShortAnswerQuiz = async () => {
+    const db = await database;
+    const Courses = db.collection("course");
+    const isSelfManageable = req.body.isSelfManageable;
     try {
-      const db = await database;
-      const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
       let remainingCredits = null;
 
-      remainingCredits = await updateUserCreditConsumption(
-        req.body.userCode,
-        "ce"
-      );
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(
+          req.body.userCode,
+          "ce"
+        );
+      }
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -178,17 +181,20 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const createMultipleChoiceQuiz = async () => {
+    const db = await database;
+    const Courses = db.collection("course");
+    const isSelfManageable = req.body.isSelfManageable;
     try {
-      const db = await database;
-      const Courses = db.collection("course");
       let coursePromise = Courses.findOne({ code: req.body.courseCode });
       let course = await coursePromise;
       let remainingCredits = null;
 
-      remainingCredits = await updateUserCreditConsumption(
-        req.body.userCode,
-        "ce"
-      );
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(
+          req.body.userCode,
+          "ce"
+        );
+      }
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -279,17 +285,18 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const createCompletionQuiz = async () => {
+    const db = await database;
+    const Courses = db.collection("course");
+    const isSelfManageable = req.body.isSelfManageable;
     try {
-      const db = await database;
-      const Courses = db.collection("course");
-      let coursePromise = Courses.findOne({ code: req.body.courseCode });
-      let course = await coursePromise;
+      let course = await Courses.findOne({ code: req.body.courseCode });
       let remainingCredits = null;
 
-      remainingCredits = await updateUserCreditConsumption(
-        req.body.userCode,
-        "ce"
-      );
+      if (isSelfManageable)
+        remainingCredits = await updateUserCreditConsumption(
+          req.body.userCode,
+          "ce"
+        );
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
@@ -400,17 +407,19 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const createTrueOrFalseQuiz = async () => {
+    const db = await database;
+    const Courses = db.collection("course");
+    const isSelfManageable = req.body.isSelfManageable;
     try {
-      const db = await database;
-      const Courses = db.collection("course");
-      let coursePromise = Courses.findOne({ code: req.body.courseCode });
-      let course = await coursePromise;
+      let course = await Courses.findOne({ code: req.body.courseCode });
       let remainingCredits = null;
 
-      remainingCredits = await updateUserCreditConsumption(
-        req.body.userCode,
-        "ce"
-      );
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(
+          req.body.userCode,
+          "ce"
+        );
+      }
 
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,

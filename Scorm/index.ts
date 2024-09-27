@@ -523,14 +523,17 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "POST":
       if (req.body.courseCode) {
+        const isSelfManageable = req.query.isSelfManageable;
         loadCourse(req.body.courseCode);
 
         let remainingCredits = null;
 
-        remainingCredits = await updateUserCreditConsumption(
-          req.body.userCode,
-          "dsc"
-        );
+        if (isSelfManageable) {
+          remainingCredits = await updateUserCreditConsumption(
+            req.body.userCode,
+            "dsc"
+          );
+        }
 
         context.res = {
           status: 200,

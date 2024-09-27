@@ -76,9 +76,12 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const updateCourse = async (courseCode: string) => {
+  const updateCourse = async () => {
+    const courseCode = req.params.courseCode;
+    const isSelfManageable = req.params.isSelfManageable;
     delete req.body._id;
     let remainingCredits = null;
+
     try {
       const db = await database;
       const Courses = db.collection("course");
@@ -93,10 +96,12 @@ const httpTrigger: AzureFunction = async function (
 
       if (req.query.creditCostCode) {
         if (isValidCreditCostCode(req.query.creditCostCode)) {
-          remainingCredits = await updateUserCreditConsumption(
-            req.query.userCode,
-            req.query.creditCostCode
-          );
+          if (isSelfManageable) {
+            remainingCredits = await updateUserCreditConsumption(
+              req.query.userCode,
+              req.query.creditCostCode
+            );
+          }
           console.log("remainingCredits: ", remainingCredits);
         } else {
           throw new Error(
@@ -152,7 +157,9 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const addCourseElement = async (courseCode: string) => {
+  const addCourseElement = async () => {
+    const courseCode = req.params.courseCode;
+    const isSelfManageable = req.params.isSelfManageable;
     try {
       const db = await database;
       const Courses = db.collection("course");
@@ -182,10 +189,12 @@ const httpTrigger: AzureFunction = async function (
         creditCostCode = "ar";
       }
 
-      remainingCredits = await updateUserCreditConsumption(
-        req.query.userCode,
-        creditCostCode
-      );
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(
+          req.query.userCode,
+          creditCostCode
+        );
+      }
 
       const updateOneResponse = await Courses.updateOne(
         { code: courseCode },
@@ -836,6 +845,7 @@ const httpTrigger: AzureFunction = async function (
       const { fields, files } = await parseMultipartFormData(req);
       const courseCode = fields[0].value;
       const userCode = fields[1].value;
+      const isSelfManageable = fields[2].value;
       const imageFile = files[0];
 
       const compressedImageBuffer = await sharp(imageFile.bufferFile)
@@ -865,7 +875,9 @@ const httpTrigger: AzureFunction = async function (
         }
       );
 
-      await updateUserCreditConsumption(userCode, "cpc");
+      if (isSelfManageable) {
+        await updateUserCreditConsumption(userCode, "cpc");
+      }
 
       context.res = {
         status: 201,
@@ -894,7 +906,7 @@ const httpTrigger: AzureFunction = async function (
   switch (req.method) {
     case "POST":
       if (req.query.postElement == "true") {
-        await addCourseElement(req.params.courseCode);
+        await addCourseElement();
       } else {
         await createCourse();
       }
@@ -904,7 +916,7 @@ const httpTrigger: AzureFunction = async function (
       if (req.query.uploadCourseCover == "true") {
         await uploadCourseCover(req);
       } else {
-        await updateCourse(req.params.courseCode);
+        await updateCourse();
         break;
       }
 

@@ -22,6 +22,7 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  const isSelfManageable = req.body.isSelfManageable;
   const db = await database;
   const Courses = db.collection("course");
 
@@ -369,8 +370,12 @@ const httpTrigger: AzureFunction = async function (
   multimediaCycle(0);
 
   let remainingCredits = null;
-
-  remainingCredits = await updateUserCreditConsumption(req.body.userCode, "cl");
+  if (isSelfManageable) {
+    remainingCredits = await updateUserCreditConsumption(
+      req.body.userCode,
+      "cl"
+    );
+  }
 
   context.res = {
     status: 200,
