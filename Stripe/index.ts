@@ -17,7 +17,7 @@ type SubscriptionPlan = {
     CLP: number;
     BRL: number;
   };
-  code: string;
+  priceCode: string;
 };
 
 const httpTrigger: AzureFunction = async function (
@@ -52,22 +52,18 @@ const httpTrigger: AzureFunction = async function (
 
     const subscriptionPlans: SubscriptionPlan[] = products.data.map(
       (product) => {
-        const credits = parseInt(
-          product.name.split(" ")[0].replace(".", ""),
-          10
-        ); // Extract credits from the product name
-        const prices = priceMap.get(product.id) ?? {
-          USD: 0,
-          EUR: 0,
-          CLP: 0,
-          BRL: 0,
-        };
+        const price = prices.data.find((p) => p.product === product.id);
 
         return {
           name: product.name,
-          credits,
-          prices,
-          code: product.id,
+          credits: parseInt(product.name.replace(/\D/g, ""), 10), // Assuming credits can be extracted from name
+          prices: {
+            USD: price?.currency_options?.usd?.unit_amount || 0,
+            EUR: price?.currency_options?.eur?.unit_amount || 0,
+            CLP: price?.currency_options?.clp?.unit_amount || 0,
+            BRL: price?.currency_options?.brl?.unit_amount || 0,
+          },
+          priceCode: price?.id || "", // Assign the priceCode here
         };
       }
     );
