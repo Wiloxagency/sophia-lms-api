@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid"
 import { Db } from "mongodb";
 import { createContentCycle } from "./cycle";
 import { saveLog } from "../shared/saveLog";
+import { asyncCreateContent } from "./asyncCycle";
 
 const database = createConnection()
 var currentCourse: any = {}
@@ -170,7 +171,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse, 0, 0)
+                // createContentCycle(currentCourse, 0, 0)
+                asyncCreateContent(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
