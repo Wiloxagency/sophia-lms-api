@@ -8,10 +8,80 @@ const FRONTEND_URL: string = process.env.FRONTEND_URL as string;
 const STRIPE_SK = process.env.STRIPE_SK;
 const stripe = new Stripe(STRIPE_SK);
 
+type SubscriptionPlan = {
+  name: string;
+  credits: number;
+  prices: {
+    USD: number;
+    EUR: number;
+    CLP: number;
+    BRL: number;
+  };
+  code: string;
+};
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  async function getSubscriptionPlans() {
+    const products = await stripe.products.list({
+      active: true,
+    });
+
+    const prices = await stripe.prices.list({
+      active: true,
+      expand: ["data.currency_options"],
+    });
+
+    // Create a map of product ID to its price information
+    const priceMap = new Map<string, any>();
+
+    prices.data.forEach((price) => {
+      // Ensure that price.product is a string (product ID) before using it
+      if (typeof price.product === "string") {
+        const productPrice = {
+          USD: price.currency_options?.usd?.unit_amount ?? 0,
+          EUR: price.currency_options?.eur?.unit_amount ?? 0,
+          CLP: price.currency_options?.clp?.unit_amount ?? 0,
+          BRL: price.currency_options?.brl?.unit_amount ?? 0,
+        };
+        priceMap.set(price.product, productPrice);
+      }
+    });
+
+    const subscriptionPlans: SubscriptionPlan[] = products.data.map(
+      (product) => {
+        const credits = parseInt(
+          product.name.split(" ")[0].replace(".", ""),
+          10
+        ); // Extract credits from the product name
+        const prices = priceMap.get(product.id) ?? {
+          USD: 0,
+          EUR: 0,
+          CLP: 0,
+          BRL: 0,
+        };
+
+        return {
+          name: product.name,
+          credits,
+          prices,
+          code: product.id,
+        };
+      }
+    );
+
+    console.log(subscriptionPlans);
+
+    context.res = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: subscriptionPlans,
+    };
+  }
+
   async function createCheckoutSession() {
     try {
       let stripeCustomerId = req.body.stripeCustomerId;
@@ -60,6 +130,9 @@ const httpTrigger: AzureFunction = async function (
   }
 
   switch (req.method) {
+    case "GET":
+      await getSubscriptionPlans();
+      break;
     case "POST":
       await createCheckoutSession();
       break;
