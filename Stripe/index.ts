@@ -50,13 +50,13 @@ const httpTrigger: AzureFunction = async function (
       }
     });
 
-    const subscriptionPlans: SubscriptionPlan[] = products.data.map(
-      (product) => {
+    const subscriptionPlans: SubscriptionPlan[] = products.data
+      .map((product) => {
         const price = prices.data.find((p) => p.product === product.id);
 
         return {
           name: product.name,
-          credits: parseInt(product.name.replace(/\D/g, ""), 10), // Assuming credits can be extracted from name
+          credits: parseInt(product.name.replace(/\D/g, ""), 10), // Credits extracted from name
           prices: {
             USD: price?.currency_options?.usd?.unit_amount || 0,
             EUR: price?.currency_options?.eur?.unit_amount || 0,
@@ -65,10 +65,10 @@ const httpTrigger: AzureFunction = async function (
           },
           priceCode: price?.id || "", // Assign the priceCode here
         };
-      }
-    );
+      })
+      .sort((a, b) => a.credits - b.credits); // Sort by the least amount of credits
 
-    console.log(subscriptionPlans);
+    // console.log(subscriptionPlans);
 
     context.res = {
       headers: {
@@ -106,6 +106,7 @@ const httpTrigger: AzureFunction = async function (
       const session = await stripe.checkout.sessions.create({
         customer: stripeCustomerId,
         success_url: successUrl,
+        currency: req.body.currency,
         line_items: [
           {
             price: req.body.priceId,
