@@ -52,9 +52,10 @@ export async function asyncCreateContent(
         return item.title;
     });
 
+    console.info(courseStructure)
 
     course.sections.forEach((sectionItem: any, sectionIndex: number) => {
-        sectionItem.forEach((lessonItem: any, lessonIndex: number) => {
+        sectionItem.elements.forEach((lessonItem: any, lessonIndex: number) => {
             asyncCreateParagraphs(
                 course.code,
                 course.details.title,

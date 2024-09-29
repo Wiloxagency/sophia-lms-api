@@ -74,7 +74,7 @@ export async function asyncCreateParagraphs(
   sectionTitle: string,
   sectionIndex: number,
   elementIndex: number,
-  
+
 ) {
 
   const languageShortIso = languageIso.split("-")[0];
@@ -176,34 +176,34 @@ export async function asyncCreateParagraphs(
     });
 
     let date = new Date()
-    let payload = {
-      timestamp: date,
-      courseName: courseName,
-      courseCode: courseCode,
-      sectionIndex: sectionIndex,
-      elementIndex: elementIndex,
-      slideIndex: 0,
-      status: "started",
-      paragraph: null,
-      audioUrl: null
-    }
+    
     let payloads = []
     cleanParagraphs.forEach((paragraph: string, slideIndex: number) => {
-      payload.paragraph = paragraph
-      payload.slideIndex = slideIndex
+      let payload = {
+        timestamp: date,
+        courseName: courseName,
+        courseCode: courseCode,
+        sectionIndex: sectionIndex,
+        elementIndex: elementIndex,
+        slideIndex: slideIndex,
+        paragraph: paragraph,
+        ttsStatus: "waiting",
+        promptStatus: "waiting",
+        dalleStatus: "waiting",
+      }
       payloads.push(payload)
     });
-      console.info(payloads)
-      const db = await database
-      const slide = db.collection("slide")
-      await slide.insertMany(payloads)
+    console.info(payloads)
+    const db = await database
+    const slide = db.collection("slide")
+    await slide.insertMany(payloads)
 
     //return { content: cleanParagraphs, sectionIndex: index };
   } catch (error) {
     await saveLog(
-      `Error creating Paragraph for course: ${courseCode}.`,
+      `Error: ${error.message} creating Paragraph for course: ${courseCode}.`,
       "Error",
-      "createParagraphs()",
+      "asyncCreateParagraphs()",
       "Courses/{courseCode}/CreateContent"
     );
     console.error(error);
