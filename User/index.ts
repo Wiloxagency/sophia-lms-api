@@ -60,6 +60,8 @@ const httpTrigger: AzureFunction = async function (
             encryptedId;
 
           if (req.body.isSelfManageable) {
+            console.log(req.body.email, req.body.name, emailVerificationLink);
+
             sendValidationEmail(
               req.body.email,
               req.body.name,

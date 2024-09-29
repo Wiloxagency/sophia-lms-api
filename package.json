@@ -28,6 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "mercadopago": "^2.0.7",
     "mongodb": "^4.13.0",
+    "node-ipinfo": "^3.5.3",
     "nodemailer": "^6.9.3",
     "openai": "^4.55.7",
     "pexels": "^1.4.0",
