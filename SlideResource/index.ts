@@ -85,6 +85,7 @@ const httpTrigger: AzureFunction = async function (
     thumbnailUrl: string,
     externalUrlImage: string
   ) => {
+    const isSelfManageable = req;
     try {
       const input = (
         await axios({ url: externalUrlImage, responseType: "arraybuffer" })
@@ -162,7 +163,7 @@ const httpTrigger: AzureFunction = async function (
     }
   };
 
-  const uploadResource = async (req: HttpRequest) => {
+  const uploadResource = async () => {
     try {
       const { fields, files } = await parseMultipartFormData(req);
       const courseCode = fields[0].value;
@@ -171,6 +172,7 @@ const httpTrigger: AzureFunction = async function (
       const slideIndex = fields[3].value;
       const resourceType = fields[4].value;
       const userCode = fields[5].value;
+      const isSelfManageable = fields[6].value;
 
       const imageOrVideoFile = files[0];
 
@@ -236,7 +238,9 @@ const httpTrigger: AzureFunction = async function (
 
       let remainingCredits = null;
 
-      remainingCredits = await updateUserCreditConsumption(userCode, "eiv");
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(userCode, "eiv");
+      }
 
       context.res = {
         status: 201,
@@ -267,7 +271,7 @@ const httpTrigger: AzureFunction = async function (
 
   switch (req.method) {
     case "POST":
-      await uploadResource(req);
+      await uploadResource();
       break;
 
     case "DELETE":
