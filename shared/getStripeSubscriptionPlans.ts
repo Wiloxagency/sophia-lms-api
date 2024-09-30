@@ -44,6 +44,7 @@ export async function getStripeSubscriptionPlans() {
           BRL: price?.currency_options?.brl?.unit_amount || 0,
         },
         priceCode: price?.id || "", // Assign the priceCode here
+        type: price?.type,
       };
     })
     .sort((a, b) => a.credits - b.credits); // Sort by the least amount of credits

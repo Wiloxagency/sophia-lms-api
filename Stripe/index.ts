@@ -19,6 +19,7 @@ export type SubscriptionPlan = {
     BRL: number;
   };
   priceCode: string;
+  type: "one_time" | "recurring";
 };
 
 const httpTrigger: AzureFunction = async function (
