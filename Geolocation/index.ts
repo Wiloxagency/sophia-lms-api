@@ -34,13 +34,22 @@ const httpTrigger: AzureFunction = async function (
       },
     };
   } catch (error) {
-    console.error("Error getting geolocation ", error);
+    // console.error("Error getting geolocation ", error);
     await saveLog(
       `Error getting geolocation.`,
       "Error",
       "Geolocation()",
       "Geolocation/"
     );
+    context.res = {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        message: error.toString(),
+      },
+    };
   }
 };
 
