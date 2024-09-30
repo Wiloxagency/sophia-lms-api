@@ -1,17 +1,15 @@
 import { paragraphCreation } from "../interfaces/paragraph";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
+import { asyncTextToSpeech } from "./asyncCreateAudios";
 import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
 
 const database = createConnection();
 
 export async function asyncCreateContent(
     course: any,
-    sectionIndex: number,
-    lessonIndex: number,
-    paragraErrorphIndex?: number
 ) {
-    let payload: paragraphCreation;
+
     if (!(course.sections && course.sections.length > 0)) {
         await saveLog(
             `Course: ${course.code} has not sections`,
@@ -25,9 +23,7 @@ export async function asyncCreateContent(
     const db = await database;
     const Courses = db.collection("course");
     const startCreation = new Date();
-    let totalParagraphsCounter = 0;
-    let currentImageCounter = 0;
-    let currentVideoCounter = 0;
+
     if (!(course.type && course.type == "resume")) {
         await Courses.findOneAndUpdate(
             { code: course.code },
@@ -43,7 +39,7 @@ export async function asyncCreateContent(
         await saveLog(
             `Start content creating for course: ${course.code}`,
             "Info",
-            "createContentCycle()",
+            "asyncCreateContent()",
             "Courses/{courseCode}/CreateContent"
         );
     }
@@ -68,4 +64,6 @@ export async function asyncCreateContent(
             )
         });
     });
+
+    asyncTextToSpeech()
 }

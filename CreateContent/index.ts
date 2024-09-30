@@ -172,7 +172,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.voice = voice
 
                 // createContentCycle(currentCourse, 0, 0)
-                asyncCreateContent(currentCourse, 0, 0)
+                asyncCreateContent(currentCourse)
 
                 context.res = {
                     "status": 201,

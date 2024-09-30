@@ -10,6 +10,8 @@ import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { cleanText } from "./cycle";
 import { createConnection } from "../shared/mongo";
+import { createDallePrompt } from "./createDallePrompt";
+import { asyncTextToSpeech } from "./asyncCreateAudios";
 
 
 const openai = new OpenAI({
@@ -176,8 +178,9 @@ export async function asyncCreateParagraphs(
     });
 
     let date = new Date()
-    
+
     let payloads = []
+    let courseParagraphs = []
     cleanParagraphs.forEach((paragraph: string, slideIndex: number) => {
       let payload = {
         timestamp: date,
@@ -191,14 +194,62 @@ export async function asyncCreateParagraphs(
         promptStatus: "waiting",
         dalleStatus: "waiting",
       }
+      let courseParagraph = {
+
+        "content": paragraph,
+        "audioScript": paragraph,
+        "audioUrl": "",
+        "srt": [],
+        "titleAI": "",
+        "translatedTitleAI": "",
+        "imageData": {
+          "finalImage": {
+            "url": null,
+            "width": 0,
+            "height": 0
+          },
+        },
+        "videoData": {
+          "thumb": {
+            "url": "",
+            "width": 0,
+            "height": 0
+          },
+          "finalVideo": {
+            "url": "",
+            "width": 0,
+            "height": 0
+          }
+        }
+      }
       payloads.push(payload)
+      courseParagraphs.push(courseParagraph)
     });
-    console.info(payloads)
+
     const db = await database
     const slide = db.collection("slide")
     await slide.insertMany(payloads)
 
-    //return { content: cleanParagraphs, sectionIndex: index };
+    let paragraphsArrayPath = 
+    `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs`;
+
+    await  db.collection("course").findOneAndUpdate(
+      { code: courseCode },
+      {
+        $set: {
+          [paragraphsArrayPath]: courseParagraphs
+        },
+      }
+    );
+
+    payloads.forEach((item:any, slideIndex: number)=> {
+      createDallePrompt(courseName, courseCode, item.paragraph, sectionIndex, elementIndex, slideIndex  )
+    })
+
+    asyncTextToSpeech()
+    
+
+    
   } catch (error) {
     await saveLog(
       `Error: ${error.message} creating Paragraph for course: ${courseCode}.`,
@@ -207,6 +258,6 @@ export async function asyncCreateParagraphs(
       "Courses/{courseCode}/CreateContent"
     );
     console.error(error);
-    //return { content: null, sectionIndex: index };
+    
   }
 }

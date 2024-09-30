@@ -4,6 +4,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import OpenAI from "openai";
 import sharp = require("sharp");
 import { Db } from "mongodb";
+import { updateCourseTokens } from "../Course/courseTokenCounter";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -47,8 +48,50 @@ const generateImage = async (currentItem, db: Db) => {
             response_format: "b64_json",
         });
     } catch (error) {
-        await db.collection("dallePrompt").updateOne({ _id: currentItem._id }, { $set: { status: "started" } });
+        
         console.log("Dalle error:", error)
+
+        if (error.code == 'content_policy_violation') {
+
+            const newPrompt = `The following prompt violates one of OpenAI Dall-E 3's usage policies: 
+            "${currentItem.prompt}"
+            Rewrite a new prompt by removing the elements that could cause this violation. 
+            Focus more on the atmosphere and quality of the image; do not use words related to violence or known characters, 
+            or phrases that could be offensive, racist, or cruel. Also, avoid mentioning traumatic or sensitive events.
+            Do not make any comments before or after the prompt; simply create a new prompt based on the previous one. `
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                  {
+                    role: "system",
+                    content: "You are a prompt engineer",
+                  },
+                  {
+                    role: "user",
+                    content: newPrompt,
+                  },
+                  {
+                    role: "system",
+                    content: "The new prompt is:",
+                  },
+                ],
+              });
+          
+              updateCourseTokens(currentItem.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
+          
+              const generatedPrompt = response.choices[0].message.content
+                .trim()
+                .replace(/"/g, "")
+          
+          
+              console.info("New prompt:", generatedPrompt);
+              await db.collection("dallePrompt").updateOne({ _id: currentItem._id }, { $set: { status: "started", prompt: generatedPrompt } });
+              generateImage(currentItem, db)
+
+        } else {
+            await db.collection("dallePrompt").updateOne({ _id: currentItem._id }, { $set: { status: "started" } });
+        }
+        
         return
     }
 

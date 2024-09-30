@@ -19,8 +19,12 @@ export async function createDallePrompt(
 ): Promise<string> {
 
   const prompt =
-    `In the context of a course called: ${courseName}, 
-  what prompt in english for generating a High-resolution photo using DALL·E-3 would you recommend for a slide with the following text content:
+  `In the context of a course called: ${courseName}, 
+  write a prompt in english for generating a High-resolution photo using DALL·E-3 for a slide with some text content, 
+  In case of including people, they are only Westerners.
+  Do not use words related to violence or known characters or phrases that could be offensive, racist, or cruel. 
+  Also, avoid mentioning traumatic or sensitive events. 
+  The slide text content is:
   ${paragraph}`
 
   console.info("Prompt:", prompt);
