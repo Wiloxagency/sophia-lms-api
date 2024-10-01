@@ -73,7 +73,7 @@ const httpTrigger: AzureFunction = async function (
             quantity: 1,
           },
         ],
-        mode: "subscription",
+        mode: req.body.mode,
       });
       context.res = {
         headers: {
