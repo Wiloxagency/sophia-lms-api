@@ -19,7 +19,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
     
     setTimeout(() => {
         AsyncDalleImgCycle()
-    }, 20000);
+    }, 15000);
 };
 
 export default timerTrigger;
