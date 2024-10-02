@@ -138,7 +138,12 @@ const generateImage = async (currentItem: any, db: Db) => {
 
         let currentParagraphArrayPath =
             `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.imageData.finalImage`;
-        await db.collection("course").findOneAndUpdate(
+        
+        //TODO -> Due "srt" is a requiered key and iamge in not, temporarly usi srt as image created flag
+        let currentSrtPath =
+            `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.srt`;
+        
+            await db.collection("course").findOneAndUpdate(
             { code: currentItem.courseCode },
             {
                 $set: {
@@ -147,7 +152,8 @@ const generateImage = async (currentItem: any, db: Db) => {
                         url: blockBlobClient.url,
                         width: randomSize.width,
                         height: randomSize.height
-                    }
+                    },
+                    [currentSrtPath]: []
                 },
             }
         );
