@@ -3,7 +3,7 @@ import { createConnection } from "../shared/mongo";
 import { createContentTable } from "./createContentTable";
 import { v4 as uuidv4 } from "uuid"
 import { Db } from "mongodb";
-import { createContentCycle } from "./cycle";
+// import { createContentCycle } from "./cycle";
 import { saveLog } from "../shared/saveLog";
 import { asyncCreateContent } from "./asyncCycle";
 
@@ -210,7 +210,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
 
-                createContentCycle(currentCourse, 0, 0)
+                // createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
@@ -254,7 +254,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 console.info(currentCourse)
 
-                createContentCycle(currentCourse, 0, 0)
+                // createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
@@ -296,7 +296,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
                 console.info(currentCourse)
 
-                createContentCycle(currentCourse, 0, 0)
+                // createContentCycle(currentCourse, 0, 0)
 
                 context.res = {
                     "status": 201,
@@ -332,7 +332,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
                         if ((elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length == 0) ||
                             (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
-                            createContentCycle(currentCourse, sectionIndex, elementIndex)
+                            // createContentCycle(currentCourse, sectionIndex, elementIndex)
                             context.res = {
                                 "status": 201,
                                 "headers": {

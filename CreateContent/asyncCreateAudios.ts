@@ -21,9 +21,6 @@ const database = createConnection()
 
 const generateTTS = async (slideItem: any, db: Db) => {
 
-    await db.collection("slide").
-        updateOne({ _id: slideItem._id }, { $set: { status: "processing" } });
-
     try {
         const mp3 = await openai.audio.speech.create({
             model: "tts-1",
@@ -40,7 +37,7 @@ const generateTTS = async (slideItem: any, db: Db) => {
             blobHTTPHeaders: { blobContentType: "audio/mpeg" },
         });
 
-        console.info("Ausio saved:", blockBlobClient.url)
+        console.info("Audio saved:", blockBlobClient.url)
 
         let currentAudioPath =
             `sections.${slideItem.sectionIndex}.elements.${slideItem.elementIndex}.elementLesson.paragraphs.${slideItem.slideIndex}.audioUrl`;
@@ -54,7 +51,7 @@ const generateTTS = async (slideItem: any, db: Db) => {
         );
 
         await db.collection("slide").
-            updateOne({ _id: slideItem._id }, { $set: { ttsStatus: "completed" } });
+            updateOne({ _id: slideItem._id }, { $set: { ttsStatus: "created" } });
 
 
     } catch (error) {
@@ -66,23 +63,30 @@ const generateTTS = async (slideItem: any, db: Db) => {
 
 }
 
-export async function asyncTextToSpeech() {
+export async function AsyncTextToSpeechCycle() {
 
     console.info('asyncTextToSpeech function ran at:' + new Date().toISOString());
 
     const db = await database
     const slide = db.collection("slide")
 
-    const slideList = await slide
+    const slidesInList = await slide
         .find({ "ttsStatus": "waiting" })
         .sort({ "timestamp": 1 })
         .limit(openAILimit)
         .toArray();
 
-    if (slideList.length <= 0)
+    if (slidesInList.length <= 0)
         return
 
-    slideList.forEach(slideItem => {
+    const idsToUpdate = slidesInList.map(slide => slide._id);
+
+    await slide.updateMany(
+        { _id: { $in: idsToUpdate } },
+        { $set: { ttsStatus: "processing" } }
+    );
+
+    slidesInList.forEach(slideItem => {
         if (slideItem.paragraph && slideItem.paragraph.length > 0) {
             generateTTS(slideItem, db)
         }

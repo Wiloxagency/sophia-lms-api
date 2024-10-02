@@ -1,18 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createDallePrompt } from "../CreateContent/createDallePrompt";
+import { createDallePrompt } from "../CreateContent/asyncCreateDallePrompt";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
   console.log(req.body);
-  const prompt = await createDallePrompt(
-    req.body.courseName,
-    req.body.courseCode, 
-    req.body.paragraph, 
-    req.body.sectionIndex, 
-    req.body.elementIndex, 
-    req.body.slideIndex)
+  const prompt = ""
   context.res = {
     status: 200,
     headers: {

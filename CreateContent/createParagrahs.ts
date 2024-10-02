@@ -11,7 +11,7 @@ import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
-import { cleanText } from "./cycle";
+// import { cleanText } from "./cycle";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -211,7 +211,8 @@ export async function createParagraphs(
   const paragraphs = splitParagraphs(formattedData, true);
 
     const cleanParagraphs = paragraphs.map((paragraph) => {
-      return cleanText(paragraph);
+      // return cleanText(paragraph);
+      return paragraph
     });
 
     return { content: cleanParagraphs, sectionIndex: index };

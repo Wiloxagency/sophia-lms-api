@@ -8,10 +8,9 @@ import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
-import { cleanText } from "./cycle";
 import { createConnection } from "../shared/mongo";
-import { createDallePrompt } from "./createDallePrompt";
-import { asyncTextToSpeech } from "./asyncCreateAudios";
+import { AsyncPromptCycle } from "./asyncCreateDallePrompt";
+import { AsyncTextToSpeechCycle } from "./asyncCreateAudios";
 
 
 const openai = new OpenAI({
@@ -19,6 +18,18 @@ const openai = new OpenAI({
 });
 
 const database = createConnection()
+
+export function cleanText(text: string): string {
+  return text
+    .trimStart()
+    .replace(/\n\s*\n/g, "\n")
+    .replace(/  +/g, " ")
+    .replace(/^ +/gm, "")
+    .replace(/(?<=[a-z])\s?\n/, ". ")
+    .replace(/\*/g, "")
+    .replace(/\#/g, "")
+    .replace(/"/g, "");
+}
 
 function splitParagraphByThreshold(text: string): string[] {
   let out: string[] = [];
@@ -192,7 +203,9 @@ export async function asyncCreateParagraphs(
         paragraph: paragraph,
         ttsStatus: "waiting",
         promptStatus: "waiting",
-        dalleStatus: "waiting",
+        dalleStatus: "waiting-prompt",
+        titleStatus: "waiting",
+        prompts: []
       }
       let courseParagraph = {
 
@@ -241,14 +254,6 @@ export async function asyncCreateParagraphs(
         },
       }
     );
-
-    payloads.forEach((item:any, slideIndex: number)=> {
-      createDallePrompt(courseName, courseCode, item.paragraph, sectionIndex, elementIndex, slideIndex  )
-    })
-
-    asyncTextToSpeech()
-    
-
     
   } catch (error) {
     await saveLog(

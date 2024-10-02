@@ -7,5 +7,5 @@
       "schedule": "0 */1 * * * *"
     }
   ],
-  "scriptFile": "../dist/dallECreationCron/index.js"
+  "scriptFile": "../dist/asyncContentCron/index.js"
 }

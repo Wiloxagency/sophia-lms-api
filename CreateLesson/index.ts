@@ -13,7 +13,7 @@ import { returnPexelsImages } from "../PexelsImages/shared";
 import { translateToLanguage } from "../shared/translator";
 import { createTranscriptionJob } from "../shared/azureSpeechToText";
 import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
-import { fetchAndParsePexelsImagesAndVideosAndReturnOne } from "../CreateContent/cycle";
+// import { fetchAndParsePexelsImagesAndVideosAndReturnOne } from "../CreateContent/cycle";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
 
 const database = createConnection();
@@ -187,13 +187,13 @@ const httpTrigger: AzureFunction = async function (
 
     if (!(totalParagraphsCounter % 2 == 0)) {
       // IS IMAGE 🖼️
-      const currentImageData =
-        await fetchAndParsePexelsImagesAndVideosAndReturnOne(
-          req.body.courseTitle,
-          totalParagraphsCounter,
-          currentImageCounter,
-          -1
-        );
+      // const currentImageData =
+      //   await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+      //     req.body.courseTitle,
+      //     totalParagraphsCounter,
+      //     currentImageCounter,
+      //     -1
+      //   );
 
       currentImageCounter++;
 
@@ -210,26 +210,26 @@ const httpTrigger: AzureFunction = async function (
       //     paragraphCounter + 1
       //   }/${currentParagraphs.content.length} created`
       // );
-      currentParagrah["imageData"] = currentImageData;
+      // currentParagrah["imageData"] = currentImageData;
 
       await Courses.findOneAndUpdate(
         { code: req.body.courseCode },
         {
           $set: {
-            [currentParagraphImageDataPath]: currentImageData,
+            // [currentParagraphImageDataPath]: currentImageData,
             [currentParagraphVideoDataPath]: currentParagrah["videoData"],
           },
         }
       );
     } else {
       // IS VIDEO 📽️
-      const currentVideoData =
-        await fetchAndParsePexelsImagesAndVideosAndReturnOne(
-          req.body.courseTitle,
-          totalParagraphsCounter,
-          -1,
-          currentVideoCounter
-        );
+      // const currentVideoData =
+      //   await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+      //     req.body.courseTitle,
+      //     totalParagraphsCounter,
+      //     -1,
+      //     currentVideoCounter
+      //   );
 
       currentVideoCounter++;
 
@@ -249,13 +249,13 @@ const httpTrigger: AzureFunction = async function (
       //     paragraphCounter + 1
       //   }/${currentParagraphs.content.length} created`
       // );
-      currentParagrah["videoData"] = currentVideoData;
+      // currentParagrah["videoData"] = currentVideoData;
 
       await Courses.findOneAndUpdate(
         { code: req.body.courseCode },
         {
           $set: {
-            [currentParagraphVideoDataPath]: currentVideoData,
+            // [currentParagraphVideoDataPath]: currentVideoData,
             [currentParagraphImageDataPath]: currentParagrah["imageData"],
           },
         }

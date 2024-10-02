@@ -16,7 +16,7 @@ import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateToLanguage } from "../shared/translator";
 import { createParagraphsWithAgent } from "../Agents/createParagraphs"
-import { createDallePrompt } from "./createDallePrompt";
+import { createDallePrompt } from "./asyncCreateDallePrompt";
 
 const database = createConnection();
 
@@ -497,14 +497,14 @@ export async function createContentCycle(
           saveCourseCreationLog(course.code, course.details.title);
 
           // Create prompt for Dalle image creation
-          await createDallePrompt(
-            course.details.title,
-            course.code,
-            paragraphContent,
-            currentParagraphs.sectionIndex,
-            lessonCounter,
-            paragraphCounter
-          )
+          // await createDallePrompt(
+          //   course.details.title,
+          //   course.code,
+          //   paragraphContent,
+          //   currentParagraphs.sectionIndex,
+          //   lessonCounter,
+          //   paragraphCounter
+          // )
 
           // Start stract english title for images context searching
           var extractedTitle = {

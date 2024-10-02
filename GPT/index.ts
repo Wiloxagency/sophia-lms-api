@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
-import { cleanText } from "../CreateContent/cycle";
+// import { cleanText } from "../CreateContent/cycle";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -96,7 +96,7 @@ const httpTrigger: AzureFunction = async function (
         response.usage.completion_tokens
       );
 
-      let cleanResponse = cleanText(response.choices[0].message.content);
+      // let cleanResponse = cleanText(response.choices[0].message.content);
 
       // console.log(response.data.choices[0].message.content)
       context.res = {

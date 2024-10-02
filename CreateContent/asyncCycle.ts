@@ -1,7 +1,5 @@
-import { paragraphCreation } from "../interfaces/paragraph";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-import { asyncTextToSpeech } from "./asyncCreateAudios";
 import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
 
 const database = createConnection();
@@ -22,7 +20,6 @@ export async function asyncCreateContent(
 
     const db = await database;
     const Courses = db.collection("course");
-    const startCreation = new Date();
 
     if (!(course.type && course.type == "resume")) {
         await Courses.findOneAndUpdate(
@@ -65,5 +62,5 @@ export async function asyncCreateContent(
         });
     });
 
-    asyncTextToSpeech()
+    
 }

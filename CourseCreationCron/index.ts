@@ -1,7 +1,7 @@
 import { AzureFunction, Context } from "@azure/functions"
 import { createConnection } from "../shared/mongo"
 import { deleteCourseCreationLog, saveLog } from "../shared/saveLog";
-import { createContentCycle } from "../CreateContent/cycle";
+// import { createContentCycle } from "../CreateContent/cycle";
 import { cleanParagraphs, compareObjectStructures } from "../shared/compareParagraphs"
 
 const database = createConnection()
@@ -69,7 +69,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                         (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0 && typeof elements[elementIndex].elementLesson.paragraphs[0] === 'string')) {
                         saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}`, "Info", "CreateContentCron()", "CourseCreationCron - index")
                         courseIsFine = false
-                        await createContentCycle(currentCourse, sectionIndex, elementIndex)
+                        // await createContentCycle(currentCourse, sectionIndex, elementIndex)
                         return
                     } else if (elements[elementIndex].type == "Lección Engine" && elements[elementIndex].elementLesson.paragraphs.length > 0) {
                         elements[elementIndex].elementLesson.paragraphs = await cleanParagraphs(elements[elementIndex].elementLesson.paragraphs, sectionIndex, elementIndex, courseUnderConstruction.courseCode)
@@ -79,7 +79,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
                             console.info(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`)
                             saveLog(`Course resume detected, of: ${courseUnderConstruction.courseCode} at section ${sectionIndex}, lesson ${elementIndex}, paragraph ${paragraphIndex}`, "Info", "CreateContentCron()", "CourseCreationCron - index")
                             courseIsFine = false
-                            await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
+                            // await createContentCycle(currentCourse, sectionIndex, elementIndex, paragraphIndex)
                             // To force exit: 
                             elementIndex = elements.length 
                             sectionIndex = currentCourse.sections.length
