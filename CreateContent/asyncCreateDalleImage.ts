@@ -60,8 +60,8 @@ const generateImage = async (currentItem: any, db: Db) => {
                     role: "user",
                     content: `In the context of a course called: ${currentItem.courseName}, ` +
                         `what prompt in english for generating a High-resolution photo using DALL·E-3 would you recommend for a slide with the following text content:\n` +
-                        `\n"${currentItem.paragraph}"\n` + 
-                        `In case of including people, they are only Westerners.\n` + 
+                        `\n"${currentItem.paragraph}"\n` +
+                        `In case of including people, they are only Westerners.\n` +
                         `Do not make any comments before or after the prompt.`,
                 },
 
@@ -94,6 +94,20 @@ const generateImage = async (currentItem: any, db: Db) => {
                 model: "gpt-4o",
                 messages: messagesArray
             });
+
+            //TODO -> Due "srt" is a requiered key and iamge in not, temporarly usi srt as image created flag
+            let currentSrtPath =
+            `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.srt`;
+
+            
+            await db.collection("course").findOneAndUpdate(
+                { code: currentItem.courseCode },
+                {
+                    $set: {
+                        [currentSrtPath]: []
+                    },
+                }
+            );
 
             updateCourseTokens(currentItem.courseCode, response.usage.prompt_tokens, response.usage.completion_tokens);
 
@@ -138,12 +152,12 @@ const generateImage = async (currentItem: any, db: Db) => {
 
         let currentParagraphArrayPath =
             `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.imageData.finalImage`;
-        
+
         //TODO -> Due "srt" is a requiered key and iamge in not, temporarly usi srt as image created flag
         let currentSrtPath =
             `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.srt`;
-        
-            await db.collection("course").findOneAndUpdate(
+
+        await db.collection("course").findOneAndUpdate(
             { code: currentItem.courseCode },
             {
                 $set: {

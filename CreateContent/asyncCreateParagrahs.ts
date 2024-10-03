@@ -9,9 +9,6 @@ import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
-import { AsyncPromptCycle } from "./asyncCreateDallePrompt";
-import { AsyncTextToSpeechCycle } from "./asyncCreateAudios";
-
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
