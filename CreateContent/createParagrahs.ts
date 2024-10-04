@@ -142,13 +142,13 @@ export async function createParagraphs(
     typeDetected.Introduction.filter((introductionWord) => {
       return formattedText.indexOf(introductionWord) === 0;
     }).length > 0;
-  console.info("introductionFound-->", introductionFound);
+  // console.info("introductionFound-->", introductionFound);
 
   const conclusionFound =
     typeDetected.Conclusion.filter((conclusionWord) => {
       return formattedText.indexOf(conclusionWord) === 0;
     }).length > 0;
-  console.info("conclusionFound-->", conclusionFound);
+  // console.info("conclusionFound-->", conclusionFound);
 
   const contentType = introductionFound
     ? "Introduction"

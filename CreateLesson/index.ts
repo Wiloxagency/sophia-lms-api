@@ -30,6 +30,8 @@ const httpTrigger: AzureFunction = async function (
   let currentImageCounter = 0;
   let currentVideoCounter = 0;
 
+  let remainingCredits = null;
+
   const payload: paragraphCreation = {
     context: req.body.courseTitle,
     key: "",
@@ -89,7 +91,7 @@ const httpTrigger: AzureFunction = async function (
 
   // Create Audios & find images
   const multimediaCycle = async (paragraphCounter: number) => {
-    console.log("STARTED MEDIA CYCLE FOR PARAGRAPH ", paragraphCounter + 1);
+    // console.log("STARTED MEDIA CYCLE FOR PARAGRAPH ", paragraphCounter + 1);
 
     let currentParagraphPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}`;
     let currentParagraphContentPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.content`;
@@ -334,6 +336,13 @@ const httpTrigger: AzureFunction = async function (
 
     lesson.elementLesson.paragraphs.push(currentParagrah);
 
+    // if (isSelfManageable) {
+    //   remainingCredits = await updateUserCreditConsumption(
+    //     req.body.userCode,
+    //     "cl"
+    //   );
+    // }
+
     paragraphCounter++;
     totalParagraphsCounter++;
 
@@ -368,14 +377,6 @@ const httpTrigger: AzureFunction = async function (
     }
   };
   multimediaCycle(0);
-
-  let remainingCredits = null;
-  if (isSelfManageable) {
-    remainingCredits = await updateUserCreditConsumption(
-      req.body.userCode,
-      "cl"
-    );
-  }
 
   context.res = {
     status: 200,
