@@ -83,9 +83,12 @@ export async function asyncCreateParagraphs(
   sectionTitle: string,
   sectionIndex: number,
   elementIndex: number,
+  elementTitle?: string
 
 ) {
 
+  // If its a lesson will use elementTitle instead sectionTitle
+  sectionTitle = elementTitle?elementTitle:sectionTitle
   const languageShortIso = languageIso.split("-")[0];
   let formattedCourseName = courseName
     .replace(/curso de/gi, "")

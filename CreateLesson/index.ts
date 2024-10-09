@@ -26,6 +26,7 @@ const httpTrigger: AzureFunction = async function (
   const db = await database;
   const Courses = db.collection("course");
 
+  console.info(req.body)
   let totalParagraphsCounter = 0;
   let currentImageCounter = 0;
   let currentVideoCounter = 0;
@@ -77,16 +78,20 @@ const httpTrigger: AzureFunction = async function (
   const elementIndex =
     updatedCourse.sections[req.body.indexSection].elements.length - 1;
 
+  const syllabus = updatedCourse.sections.map( (section: any) => {
+    return section.title
+  })
   // TODO -> Refactor to Async mode
  const currentParagraphs = await asyncCreateParagraphs(
   req.body.courseCode,
   req.body.courseTitle,
-  req.body.syllabus,
+  syllabus,
   req.body.languageName,
-  req.body.languageName,
-  req.body.syllabus[req.body.indexSection],
+  updatedCourse.language,
+  syllabus[req.body.indexSection],
   req.body.indexSection,
-  req.body.indexLesson
+  req.body.indexLesson,
+  req.body.lessonTitle
  );
   // const currentParagraphs = {content: []};
 
