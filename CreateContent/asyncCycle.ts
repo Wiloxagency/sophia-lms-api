@@ -1,6 +1,7 @@
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
+import { asyncCreateParagraphsWithAgent } from "./asyncCreateParagraphsWithAgent";
 
 const database = createConnection();
 
@@ -22,6 +23,7 @@ export async function asyncCreateContent(
     const Courses = db.collection("course");
 
     if (!(course.type && course.type == "resume")) {
+
         await Courses.findOneAndUpdate(
             { code: course.code },
             {
@@ -30,6 +32,8 @@ export async function asyncCreateContent(
                     language: course.language,
                     languageName: course.languageName,
                     voice: course.voice,
+                    generationType: course.generationType, 
+                    vectorStoreId: course.vectorStoreId ? course.vectorStoreId : ""
                 },
             }
         );
@@ -49,16 +53,31 @@ export async function asyncCreateContent(
 
     course.sections.forEach((sectionItem: any, sectionIndex: number) => {
         sectionItem.elements.forEach((lessonItem: any, lessonIndex: number) => {
-            asyncCreateParagraphs(
-                course.code,
-                course.details.title,
-                courseStructure,
-                course.languageName,
-                course.language,
-                sectionItem.title,
-                sectionIndex,
-                lessonIndex
-            )
+            if ( course.generationType == "generatedByDocuments") {
+                asyncCreateParagraphsWithAgent(
+                    course.vectorStoreId,
+                    course.code,
+                    course.details.title,
+                    courseStructure,
+                    course.languageName,
+                    course.language,
+                    sectionItem.title,
+                    sectionIndex,
+                    lessonIndex
+                )
+            } else {
+                asyncCreateParagraphs(
+                    course.code,
+                    course.details.title,
+                    courseStructure,
+                    course.languageName,
+                    course.language,
+                    sectionItem.title,
+                    sectionIndex,
+                    lessonIndex
+                )
+            }
+            
         });
     });
 

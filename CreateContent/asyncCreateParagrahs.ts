@@ -54,7 +54,7 @@ function splitParagraphByThreshold(text: string): string[] {
   return out;
 }
 
-function splitParagraphs(text: string, autoBreak: boolean): string[] {
+export function splitParagraphs(text: string, autoBreak: boolean): string[] {
   let validParagraphs = text.split("\n").filter((p) => {
     return p.length >= 50;
   });
@@ -75,7 +75,6 @@ function splitParagraphs(text: string, autoBreak: boolean): string[] {
 }
 
 export async function asyncCreateParagraphs(
-  //payload: paragraphCreation
   courseCode: string,
   courseName: string,
   courseStructure: string[],
@@ -264,10 +263,10 @@ export async function asyncCreateParagraphs(
     const slide = db.collection("slide")
     await slide.insertMany(payloads)
 
-    let paragraphsArrayPath = 
-    `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs`;
+    let paragraphsArrayPath =
+      `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs`;
 
-    await  db.collection("course").findOneAndUpdate(
+    await db.collection("course").findOneAndUpdate(
       { code: courseCode },
       {
         $set: {
@@ -275,7 +274,7 @@ export async function asyncCreateParagraphs(
         },
       }
     );
-    
+
   } catch (error) {
     await saveLog(
       `Error: ${error.message} creating Paragraph for course: ${courseCode}.`,
@@ -284,6 +283,6 @@ export async function asyncCreateParagraphs(
       "Courses/{courseCode}/CreateContent"
     );
     console.error(error);
-    
+
   }
 }

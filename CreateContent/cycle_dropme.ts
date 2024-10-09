@@ -1,6 +1,6 @@
 import { createAudio } from "./createAudios";
 import { createConnection } from "../shared/mongo";
-import { createParagraphs } from "./createParagrahs";
+// import { createParagraphs } from "./createParagrahs";
 import { paragraphCreation } from "../interfaces/paragraph";
 import {
   deleteCourseCreationLog,
@@ -15,7 +15,7 @@ import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateToLanguage } from "../shared/translator";
-import { createParagraphsWithAgent } from "../Agents/createParagraphs"
+// import { createParagraphsWithAgent } from "../Agents/createParagraphs"
 import { createDallePrompt } from "./asyncCreateDallePrompt";
 
 const database = createConnection();
@@ -307,11 +307,11 @@ export async function createContentCycle(
             // console.warn("creating paragraphs");
             payload.text = course.sections[sectionCounter].title;
             payload.index = sectionCounter;
-            if (course.type == "generatedByDocuments") {
-              currentParagraphs = await createParagraphsWithAgent(course.vectorStoreId, payload)
-            } else {
-              currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
-            }
+            // if (course.type == "generatedByDocuments") {
+            //   currentParagraphs = await createParagraphsWithAgent(course.vectorStoreId, payload)
+            // } else {
+            //   currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
+            // }
 
             course.sections[currentParagraphs.sectionIndex].elements[
               lessonCounter

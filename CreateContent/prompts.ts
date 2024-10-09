@@ -53,3 +53,32 @@ export const searchImages = "We have a course in v{languageName} called: \"v{cou
 
 // Images finder - GPT-3
 export const searchImagesGpt3 = "We have a course in spanish called: \"v{courseName}\", the first module of the course is: \"v{sectionTitle}\" and the first paragraph of the module contains the following information:\n###\n\"v{paragraphContent}\"\n###\nConsidering the previous information, write in English a short and accurate title related to that paragraph in the context of the course and module.\nThe phrase must not exceed 5 words.\n###\nThe phrase is:"
+
+// Agentic prompt - gpt-4o
+// Extract paragraphs for a course based in document
+export const contentParagraphsAgent = {
+    "name": "Professional Assistant",
+    "instructions": "You are an expert academic. Use only de provided documents to answer questions.",
+    "prompt": "Write in v{languageName} a relevant answer for this question:\n" +
+    "\"v{sectionName}\".\n" +
+        "The answer must be based from that subject extracted for the provided documents.\n" +
+        "If the answer is not in the provided documents, translate if necessary to v{languageName} this answer: \"The answer is not in the selected document(s).\" \n" +
+        "Do not use any markup language neither bold or italic letters, do not use titles, subtitles, etc., write in a simple plane text format.\n"
+}
+
+// Extract paragraphs for a course based in document
+export const contentParagraphsAgentOld = {
+    "name": "Academic Professor Assistant",
+    "instructions": "You are an expert academic professor. Use only the provided document to extract the requested content.",
+    "prompt":
+        "Extract from the provided document all information found about the item \"v{sectionName}\".\n If the extracted content is in a language other than v{languageName}, then translate it into v{languageName}.\n" +
+        "This item belongs to a course that has the following table of contents:\n " +
+        "v{contentTable}\"\n" +
+        "The extracted content must be relevant for the course and the information must be exclusively from the provided documents.\n" +
+        "If the item is the first item and about introduction you must create an introduction for a course based in the whole content table pprovided.\n" +
+        "If the item is the last item and about conclusion you must create a conclusion for a course based in the whole content table provided.\n" +
+        "Do not use any markup language neither bold or italic letters, do not use titles, subtitles, etc., write in a simple plane text format.\n" +
+        "If the extracted content is very brief, do not complete it with any external sources. Stick exclusively to the information contained in the provided document." +
+        "If the requested information is not found in the provided document, do not use any external sources to create it, and do not make anything up. In that case, just respond with an exclamation mark, nothing more: ?." +
+        "Don't write any text before and after the extracted text, only write the content without any aditional description.\n"
+}

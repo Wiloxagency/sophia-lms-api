@@ -170,6 +170,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+                currentCourse.generationType = generationType
 
                 // createContentCycle(currentCourse, 0, 0)
                 asyncCreateContent(currentCourse)
@@ -185,7 +186,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             } else {
-                await saveLog(`Error creating syllabus for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
+                await saveLog(`Error creating syllabus for course: ${courseCode}.`, "Error", "asyncCreateContent()", "Courses/{courseCode}/CreateContent")
                 context.res = {
                     "status": 500,
                     "headers": {
@@ -209,8 +210,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.language = language
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
+                currentCourse.generationType = generationType
 
                 // createContentCycle(currentCourse, 0, 0)
+
+                asyncCreateContent(currentCourse)
 
                 context.res = {
                     "status": 201,
@@ -292,11 +296,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 currentCourse.languageName = languageName
                 currentCourse.voice = voice
                 currentCourse.vectorStoreId = vectorStoreId
-                currentCourse.type = generationType
+                // currentCourse.type = generationType
 
+                currentCourse.generationType = generationType
                 console.info(currentCourse)
 
                 // createContentCycle(currentCourse, 0, 0)
+                asyncCreateContent(currentCourse)
 
                 context.res = {
                     "status": 201,
