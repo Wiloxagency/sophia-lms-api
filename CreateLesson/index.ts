@@ -23,6 +23,7 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  const isSelfManageable = req.body.isSelfManageable;
   const db = await database;
   const Courses = db.collection("course");
 
@@ -30,6 +31,8 @@ const httpTrigger: AzureFunction = async function (
   let totalParagraphsCounter = 0;
   let currentImageCounter = 0;
   let currentVideoCounter = 0;
+
+  let remainingCredits = null;
 
   const payload: paragraphCreation = {
     context: req.body.courseTitle,
@@ -96,10 +99,302 @@ const httpTrigger: AzureFunction = async function (
   // const currentParagraphs = {content: []};
 
 
+<<<<<<< HEAD
+=======
+  pexelsImagesResponse = await returnPexelsImages(req.body.courseTitle);
+  parsedPexelImages = pexelsImagesResponse.photos.map((photo) => {
+    return photo.src.large;
+  });
 
-  let remainingCredits = null;
+  // Create Audios & find images
+  const multimediaCycle = async (paragraphCounter: number) => {
+    // console.log("STARTED MEDIA CYCLE FOR PARAGRAPH ", paragraphCounter + 1);
 
-  remainingCredits = await updateUserCreditConsumption(req.body.userCode, "cl");
+    let currentParagraphPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}`;
+    let currentParagraphContentPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.content`;
+    let currentParagraphAudioScriptPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.audioScript`;
+    let currentParagraphAudioUrlPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.audioUrl`;
+    let currentParagraphTitleAIPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.titleAI`;
+    let currentParagraphTranslatedTitleAIPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.translatedTitleAI`;
+    let currentParagraphImageDataPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.imageData`;
+    let currentParagraphVideoDataPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.videoData`;
+    let currentParagraphKeyPhrasesPath = `sections.${req.body.indexSection}.elements.${req.body.indexLesson}.elementLesson.paragraphs.${paragraphCounter}.keyPhrases`;
+
+    const paragraphContent = currentParagraphs.content[paragraphCounter];
+
+    let currentParagrah = {
+      content: paragraphContent,
+      audioScript: paragraphContent,
+      audioUrl: "",
+      titleAI: "",
+      translatedTitleAi: "",
+      imageData: {},
+      keyPhrases: [],
+    };
+
+    await Courses.findOneAndUpdate(
+      { code: req.body.courseCode },
+      {
+        $set: {
+          [currentParagraphContentPath]: paragraphContent,
+          [currentParagraphAudioScriptPath]: paragraphContent,
+        },
+      }
+    );
+
+    const sectionIndex = req.body.indexSection;
+    const currentAudio = await createAudio(
+      paragraphContent,
+      payload.voice,
+      payload.language,
+      req.body.courseCode,
+      sectionIndex,
+      req.body.indexLesson,
+      paragraphCounter
+    );
+    // console.info(
+    //   `Audio for section ${sectionIndex}}, paragraph ${paragraphCounter + 1}/${
+    //     currentParagraphs.content.length
+    //   } created`
+    // );
+    currentParagrah.audioUrl = currentAudio.url;
+
+    await Courses.findOneAndUpdate(
+      { code: req.body.courseCode },
+      {
+        $set: {
+          [currentParagraphAudioUrlPath]: currentAudio.url,
+        },
+      }
+    );
+
+    const extractedTitle = await extractTitle(
+      paragraphContent,
+      payload.text,
+      "es",
+      req.body.courseTitle,
+      req.body.courseCode
+    );
+    // console.info(
+    //   `Title for section ${sectionIndex}, paragraph ${paragraphCounter + 1}/${
+    //     currentParagraphs.content.length
+    //   } Extracted `
+    // );
+
+    currentParagrah.titleAI = extractedTitle.title;
+
+    const translatedTitleAi = await translateToLanguage(
+      extractedTitle.title,
+      payload.language
+    );
+
+    const noQuotesTranslatedTitleAi = translatedTitleAi.replace(/['"]+/g, "");
+    const noQuotesTitleAi = extractedTitle.title.replace(/['"]+/g, "");
+
+    currentParagrah.translatedTitleAi = translatedTitleAi;
+
+    await Courses.findOneAndUpdate(
+      { code: req.body.courseCode },
+      {
+        $set: {
+          [currentParagraphTitleAIPath]: noQuotesTitleAi,
+          [currentParagraphTranslatedTitleAIPath]: noQuotesTranslatedTitleAi,
+        },
+      }
+    );
+
+    // 👇🏻ADD IMAGE/VIDEO TO SLIDE 🖼️📽️
+
+    if (!(totalParagraphsCounter % 2 == 0)) {
+      // IS IMAGE 🖼️
+      const currentImageData =
+        await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+          req.body.courseTitle,
+          totalParagraphsCounter,
+          currentImageCounter,
+          -1
+        );
+
+      currentImageCounter++;
+
+      // CREATE EMPTY VIDEO STRUCTURE
+      currentParagrah["videoData"] = {
+        thumb: { url: "", width: 0, height: 0 },
+        finalVideo: { url: "", width: 0, height: 0 },
+      };
+
+      // console.info(
+      //   `Image for section ${sectionCounter + 1}/${
+      //     course.sections.length
+      //   }, Lesson ${lessonCounter + 1}, paragraph ${
+      //     paragraphCounter + 1
+      //   }/${currentParagraphs.content.length} created`
+      // );
+      currentParagrah["imageData"] = currentImageData;
+
+      await Courses.findOneAndUpdate(
+        { code: req.body.courseCode },
+        {
+          $set: {
+            [currentParagraphImageDataPath]: currentImageData,
+            [currentParagraphVideoDataPath]: currentParagrah["videoData"],
+          },
+        }
+      );
+    } else {
+      // IS VIDEO 📽️
+      const currentVideoData =
+        await fetchAndParsePexelsImagesAndVideosAndReturnOne(
+          req.body.courseTitle,
+          totalParagraphsCounter,
+          -1,
+          currentVideoCounter
+        );
+
+      currentVideoCounter++;
+
+      // CREATE EMPTY IMAGE STRUCTURE
+      currentParagrah["imageData"] = {
+        image: {},
+        thumb: {},
+        finalImage: {},
+        imagesIds: "",
+        urlBing: "",
+      };
+
+      // console.info(
+      //   `Video for section ${sectionCounter + 1}/${
+      //     course.sections.length
+      //   }, Lesson ${lessonCounter + 1}, paragraph ${
+      //     paragraphCounter + 1
+      //   }/${currentParagraphs.content.length} created`
+      // );
+      currentParagrah["videoData"] = currentVideoData;
+
+      await Courses.findOneAndUpdate(
+        { code: req.body.courseCode },
+        {
+          $set: {
+            [currentParagraphVideoDataPath]: currentVideoData,
+            [currentParagraphImageDataPath]: currentParagrah["imageData"],
+          },
+        }
+      );
+    }
+
+    // const currentImageData = {
+    //   image: {},
+    //   thumb: {},
+    //   finalImage: {
+    //     url: parsedPexelImages[paragraphCounter],
+    //     width: "",
+    //     height: "",
+    //   },
+    //   imagesIds: [],
+    //   urlBing: "",
+    // };
+    // await Courses.findOneAndUpdate(
+    //   { code: req.body.courseCode },
+    //   {
+    //     $set: {
+    //       [currentParagraphImageDataPath]: currentImageData,
+    //       [currentParagraphVideoDataPath]: currentParagrah["videoData"],
+    //     },
+    //   }
+    // );
+
+    // currentParagrah.imageData = currentImageData;
+
+    const keyPhrases = await createkeyphrases(
+      paragraphContent,
+      "es",
+      req.body.courseCode
+    );
+    currentParagrah.keyPhrases = keyPhrases;
+
+    await Courses.findOneAndUpdate(
+      { code: req.body.courseCode },
+      {
+        $set: {
+          [currentParagraphKeyPhrasesPath]: keyPhrases,
+        },
+      }
+    );
+
+    // console.info(
+    //   `KeyPhrases for section ${sectionIndex}, paragraph ${
+    //     paragraphCounter + 1
+    //   }/${currentParagraphs.content.length} created`
+    // );
+
+    //create an empty video structure too
+    currentParagrah["videoData"] = {
+      thumb: { url: "", width: 0, height: 0 },
+      finalVideo: { url: "", width: 0, height: 0 },
+    };
+
+    // console.log(
+    //   req.body.courseCode,
+    //   currentAudio.sectionIndex,
+    //   req.body.indexLesson,
+    //   currentAudio.paragraphIndex,
+    //   currentAudio.url,
+    //   await returnLanguageAndLocaleFromLanguage(req.body.language)
+    // );
+
+    const azureSpeechToText = await createTranscriptionJob(
+      req.body.courseCode,
+      currentAudio.sectionIndex,
+      req.body.indexLesson,
+      currentAudio.paragraphIndex,
+      currentAudio.url,
+      await returnLanguageAndLocaleFromLanguage(req.body.language)
+    );
+
+    lesson.elementLesson.paragraphs.push(currentParagrah);
+
+    // if (isSelfManageable) {
+    //   remainingCredits = await updateUserCreditConsumption(
+    //     req.body.userCode,
+    //     "cl"
+    //   );
+    // }
+
+    paragraphCounter++;
+    totalParagraphsCounter++;
+
+    if (paragraphCounter == currentParagraphs.content.length) {
+      await saveLog(
+        `Completed course lesson creation for: ${req.body.courseCode}`,
+        "Info",
+        "multimediaCycle()",
+        "Courses/{courseCode}/CreateLesson"
+      );
+
+      // Save course (in the future be necessary to check if content was 100% fine generated)
+      const newSectionPath = `sections.${req.body.indexSection}.elements.${elementIndex}`;
+      try {
+        // await Course.updateOne(
+        //   { code: req.body.courseCode },
+        //   {
+        //     $set: { [newSectionPath]: lesson },
+        //   }
+        // );
+        updateCourseDuration(req.body.courseCode);
+      } catch (error) {
+        await saveLog(
+          `Error updating a course ${req.body.courseCode} in lesson creation for indexSection: ${req.body.indexSection}`,
+          "Error",
+          "AzureFunction()",
+          "Courses/{courseCode}/CreateLesson"
+        );
+      }
+    } else {
+      await multimediaCycle(paragraphCounter);
+    }
+  };
+  multimediaCycle(0);
+>>>>>>> production
 
   context.res = {
     status: 200,

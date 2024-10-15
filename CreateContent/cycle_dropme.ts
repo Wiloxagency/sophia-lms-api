@@ -15,8 +15,13 @@ import { returnLanguageAndLocaleFromLanguage } from "../shared/languages";
 import { returnPexelsImages } from "../PexelsImages/shared";
 import { returnPexelsVideos } from "../PexelsVideos/shared";
 import { translateToLanguage } from "../shared/translator";
+<<<<<<< HEAD:CreateContent/cycle_dropme.ts
 // import { createParagraphsWithAgent } from "../Agents/createParagraphs"
 import { createDallePrompt } from "./asyncCreateDallePrompt";
+=======
+import { createParagraphsWithAgent } from "../Agents/createParagraphs";
+import { updateUserCreditConsumption } from "../shared/creditConsumption";
+>>>>>>> production:CreateContent/cycle.ts
 
 const database = createConnection();
 
@@ -31,7 +36,7 @@ let parsedPexelsImages: {
 let parsedPexelsVideos: {
   url: string;
   height: number;
-  width: number
+  width: number;
 }[] = [];
 
 export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
@@ -41,24 +46,24 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   currentVideoCounter: number
 ): Promise<
   | {
-    image: {};
-    thumb: {};
-    finalImage: {};
-    imagesIds: string[];
-    urlBing: string;
-  }
+      image: {};
+      thumb: {};
+      finalImage: {};
+      imagesIds: string[];
+      urlBing: string;
+    }
   | {
-    thumb: {
-      url: string;
-      width: number;
-      height: number;
-    };
-    finalVideo: {
-      url: string;
-      width: number;
-      height: number;
-    };
-  }
+      thumb: {
+        url: string;
+        width: number;
+        height: number;
+      };
+      finalVideo: {
+        url: string;
+        width: number;
+        height: number;
+      };
+    }
 > {
   if (previousCourseName != courseName) {
     parsedPexelsImages = [];
@@ -91,7 +96,7 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
   }
 
   if (indexSlide == parsedPexelsImages.length + parsedPexelsVideos.length - 1) {
-    console.log("REACHED LAST RESOURCE.");
+    // console.log("REACHED LAST RESOURCE.");
     let pexelsImagesResponse2;
     let parsedPexelsImages2;
     pexelsImagesResponse2 = await returnPexelsImages(courseName);
@@ -119,13 +124,12 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   if (isEvenNumber) {
     currentVideoCounter++;
-    console.log("currentVideoCounter: ", currentVideoCounter);
-    console.log("parsedPexelsVideos length: ", parsedPexelsVideos.length);
-
+    // console.log("currentVideoCounter: ", currentVideoCounter);
+    // console.log("parsedPexelsVideos length: ", parsedPexelsVideos.length);
   } else {
     currentImageCounter++;
-    console.log("currentImageCounter: ", currentImageCounter);
-    console.log("parsedPexelsImages length: ", parsedPexelsImages.length);
+    // console.log("currentImageCounter: ", currentImageCounter);
+    // console.log("parsedPexelsImages length: ", parsedPexelsImages.length);
   }
 
   // if (isEvenNumber) {
@@ -136,28 +140,28 @@ export async function fetchAndParsePexelsImagesAndVideosAndReturnOne(
 
   return isEvenNumber
     ? {
-      thumb: {
-        url: "",
-        width: 0,
-        height: 0,
-      },
-      finalVideo: {
-        url: parsedPexelsVideos[currentVideoCounter].url,
-        height: parsedPexelsVideos[currentVideoCounter].height,
-        width: parsedPexelsVideos[currentVideoCounter].width,
-      },
-    }
+        thumb: {
+          url: "",
+          width: 0,
+          height: 0,
+        },
+        finalVideo: {
+          url: parsedPexelsVideos[currentVideoCounter].url,
+          height: parsedPexelsVideos[currentVideoCounter].height,
+          width: parsedPexelsVideos[currentVideoCounter].width,
+        },
+      }
     : {
-      image: {},
-      thumb: {},
-      finalImage: {
-        url: parsedPexelsImages[currentImageCounter].url,
-        width: parsedPexelsImages[currentImageCounter].resizedWidth,
-        height: parsedPexelsImages[currentImageCounter].resizedHeight,
-      },
-      imagesIds: [],
-      urlBing: "",
-    };
+        image: {},
+        thumb: {},
+        finalImage: {
+          url: parsedPexelsImages[currentImageCounter].url,
+          width: parsedPexelsImages[currentImageCounter].resizedWidth,
+          height: parsedPexelsImages[currentImageCounter].resizedHeight,
+        },
+        imagesIds: [],
+        urlBing: "",
+      };
 }
 
 async function returnImageSizes(
@@ -208,12 +212,16 @@ async function processPexelsVideosResponse(pexelsVideosResponse) {
     }
   }
 
-  videoResultsCache = videoResultsCache.map((video, index) => {
-    // console.log(video)
-    // console.log(video.link)
-    if (video != undefined)
-      return { url: video.link, height: video.height, width: video.width };
-  }).filter(video => { return video != undefined});
+  videoResultsCache = videoResultsCache
+    .map((video, index) => {
+      // console.log(video)
+      // console.log(video.link)
+      if (video != undefined)
+        return { url: video.link, height: video.height, width: video.width };
+    })
+    .filter((video) => {
+      return video != undefined;
+    });
 
   parsedPexelsVideos = parsedPexelsVideos.concat(videoResultsCache);
 }
@@ -240,7 +248,9 @@ export async function createContentCycle(
   course: any,
   sectionIndex: number,
   lessonIndex: number,
-  paragraErrorphIndex?: number
+  paragraErrorphIndex: number,
+  isSelfManageable: boolean,
+  userCode: string
 ) {
   let payload: paragraphCreation;
   if (!(course.sections && course.sections.length > 0)) {
@@ -297,34 +307,54 @@ export async function createContentCycle(
     // Create Content
     const contentCycle = async (sectionCounter: number) => {
       const lessonCycle = async (lessonCounter: number) => {
-        console.info(`CREATING CONTENT FOR SECTION ${sectionCounter}, LESSON ${lessonCounter}...`)
+        console.info(
+          `CREATING CONTENT FOR SECTION ${sectionCounter}, LESSON ${lessonCounter}...`
+        );
         let currentParagraphs: any;
-        if (paragraErrorphIndex === null || paragraErrorphIndex === undefined || paragraErrorphIndex < 0) {
+        if (
+          paragraErrorphIndex === null ||
+          paragraErrorphIndex === undefined ||
+          paragraErrorphIndex < 0
+        ) {
           if (
-            (course.sections[sectionCounter].elements[lessonCounter].elementLesson
-              .paragraphs.length == 0)
+            course.sections[sectionCounter].elements[lessonCounter]
+              .elementLesson.paragraphs.length == 0
           ) {
             // console.warn("creating paragraphs");
             payload.text = course.sections[sectionCounter].title;
             payload.index = sectionCounter;
+<<<<<<< HEAD:CreateContent/cycle_dropme.ts
             // if (course.type == "generatedByDocuments") {
             //   currentParagraphs = await createParagraphsWithAgent(course.vectorStoreId, payload)
             // } else {
             //   currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
             // }
+=======
+            if (course.type == "generatedByDocuments") {
+              currentParagraphs = await createParagraphsWithAgent(
+                course.vectorStoreId,
+                payload
+              );
+            } else {
+              currentParagraphs = await createParagraphs(payload); // Get this object:  { content: cleanParagraphs, sectionIndex: index }
+            }
+>>>>>>> production:CreateContent/cycle.ts
 
             course.sections[currentParagraphs.sectionIndex].elements[
               lessonCounter
             ].elementLesson.paragraphs = currentParagraphs.content
               .filter((text: string) => {
-                return text && text != undefined && text != null && text.length > 3
+                return (
+                  text && text != undefined && text != null && text.length > 3
+                );
               })
-              .map(
-                (text: string) => {
-                  console.info("cleanText in 307:", text)
-                  return { content: cleanText(text), audioScript: cleanText(text) };
-                }
-              );
+              .map((text: string) => {
+                // console.info("cleanText in 307:", text);
+                return {
+                  content: cleanText(text),
+                  audioScript: cleanText(text),
+                };
+              });
           } else {
             currentParagraphs = {
               content:
@@ -336,16 +366,24 @@ export async function createContentCycle(
               lessonCounter
             ].elementLesson.paragraphs = currentParagraphs.content
               .filter((text: string) => {
+<<<<<<< HEAD:CreateContent/cycle_dropme.ts
                 return text && text != undefined && text != null && text.length > 3
+=======
+                return (
+                  text && text != undefined && text != null && text.length > 3
+                );
+>>>>>>> production:CreateContent/cycle.ts
               })
               .map((text: string) => {
                 // console.info("cleanText in 322:", text)
-                return { content: cleanText(text), audioScript: cleanText(text) };
+                return {
+                  content: cleanText(text),
+                  audioScript: cleanText(text),
+                };
               });
           }
 
           let currentParagraphArrayPath = `sections.${sectionCounter}.elements.${lessonCounter}.elementLesson.paragraphs`;
-
 
           await Courses.findOneAndUpdate(
             { code: course.code },
@@ -364,6 +402,7 @@ export async function createContentCycle(
           //         .elementLesson.paragraphs[paragraErrorphIndex]
           // );
           // currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs;
+<<<<<<< HEAD:CreateContent/cycle_dropme.ts
 
           currentParagraphs = course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs
             .map((paragraph: any, index: number) => {
@@ -371,8 +410,21 @@ export async function createContentCycle(
                 return { content: paragraph.content, audioScript: paragraph.content }
               } else return paragraph
             })
+=======
+>>>>>>> production:CreateContent/cycle.ts
 
-          currentParagraphs.sectionIndex = sectionCounter
+          currentParagraphs = course.sections[sectionCounter].elements[
+            lessonCounter
+          ].elementLesson.paragraphs.map((paragraph: any, index: number) => {
+            if (index >= paragraErrorphIndex) {
+              return {
+                content: paragraph.content,
+                audioScript: paragraph.content,
+              };
+            } else return paragraph;
+          });
+
+          currentParagraphs.sectionIndex = sectionCounter;
           // course.sections[sectionCounter].elements[lessonCounter].elementLesson.paragraphs = currentParagraphs
 
           // console.info(
@@ -384,13 +436,11 @@ export async function createContentCycle(
             { code: course.code },
             {
               $set: {
-                [currentParagraphArrayPath]: currentParagraphs
+                [currentParagraphArrayPath]: currentParagraphs,
               },
             }
-          )
+          );
         }
-
-
 
         // Create Audios & find images
         var currentParagrah: any;
@@ -415,13 +465,14 @@ export async function createContentCycle(
           const isValidStructure = (obj: any): obj is ParagraphStructure => {
             return (
               obj &&
-              typeof obj === 'object' &&
+              typeof obj === "object" &&
               Array.isArray(obj.content) &&
-              typeof obj.sectionIndex === 'number'
+              typeof obj.sectionIndex === "number"
             );
           };
 
-          const isCorrectStructure: boolean = isValidStructure(currentParagraphs);
+          const isCorrectStructure: boolean =
+            isValidStructure(currentParagraphs);
           // console.log("currentParagraphs: ", currentParagraphs);
           let paragraphContent: any;
           if (isCorrectStructure) {
@@ -494,7 +545,12 @@ export async function createContentCycle(
             // currentParagrah["srt"] = azureSpeechToText;
           };
           await createAudioFn(0);
-          saveCourseCreationLog(course.code, course.details.title);
+          saveCourseCreationLog(
+            course.code,
+            course.details.title,
+            isSelfManageable,
+            userCode
+          );
 
           // Create prompt for Dalle image creation
           // await createDallePrompt(
@@ -757,6 +813,12 @@ export async function createContentCycle(
         // }
       };
       await lessonCycle(lessonIndex);
+
+      let remainingCredits = null;
+
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(userCode, "cl");
+      }
     };
     contentCycle(sectionIndex);
   } catch (error) {

@@ -1,36 +1,13 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import Stripe from "stripe";
 import { createConnection } from "../shared/mongo";
+import { getStripeSubscriptionPlans } from "../shared/getStripeSubscriptionPlans";
 const database = createConnection();
 
 const STRIPE_SK = process.env.STRIPE_SK;
 const stripe = new Stripe(STRIPE_SK);
 
 const stripeWebhookEndpointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
-
-const stripeProducts = [
-  {
-    name: "Plan 3.000 Créditos",
-    credits: 3000,
-    courses: 6,
-    usd: 100,
-    priceId: "price_1Q2egpRsASo6ld227KhxelX7",
-  },
-  {
-    name: "Plan 7.000 Créditos",
-    courses: 14,
-    credits: 7000,
-    usd: 200,
-    priceId: "price_1Q2ehfRsASo6ld22ftutxYlq",
-  },
-  {
-    name: "Plan 20.000 Créditos",
-    courses: 30,
-    credits: 20000,
-    usd: 500,
-    priceId: "price_1Q2ei3RsASo6ld22yGulImWn",
-  },
-];
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -79,8 +56,10 @@ const httpTrigger: AzureFunction = async function (
 
     const productPurchasedPriceId = checkoutSession.line_items.data[0].price.id;
 
-    const productPurchased = stripeProducts.find(
-      (item) => item.priceId === productPurchasedPriceId
+    const subscriptionPlans = await getStripeSubscriptionPlans()
+
+    const productPurchased = subscriptionPlans.find(
+      (item) => item.priceCode === productPurchasedPriceId
     );
     const creditsToAdd = productPurchased?.credits;
 
