@@ -27,11 +27,17 @@ export async function createDallePrompt(
 
   // console.info("Prompt:", prompt);
 
+  // const prompt =
+  // `In the context of a course called: ${currentItem.courseName}, what prompt in English for generating a realistic, high-resolution photo using DALL·E-3 would you recommend for a slide with the following text content:\n` + 
+  // `"${currentItem.paragraph}"\n` + 
+  // "Ensure the photo appears to be captured with a conventional DSLR camera, using natural lighting, and a candid, unposed style. If including people, limit them to a small group (1-3) of Western individuals in the scene to maintain a natural and realistic atmosphere. Avoid overcrowding or futuristic elements.\n" + 
+  // "Do not make any comments before or after the prompt.";
+
   const prompt =
   `In the context of a course called: ${currentItem.courseName}, what prompt in English for generating a realistic, high-resolution photo using DALL·E-3 would you recommend for a slide with the following text content:\n` + 
   `"${currentItem.paragraph}"\n` + 
-  "Ensure the photo appears to be captured with a conventional DSLR camera, using natural lighting, and a candid, unposed style. If including people, limit them to a small group (1-3) of Western individuals in the scene to maintain a natural and realistic atmosphere. Avoid overcrowding or futuristic elements.\n" + 
-  "Do not make any comments before or after the prompt.";
+  "Ensure the photo appears to be captured with a conventional DSLR camera, using natural lighting, and a candid, unposed style. If including people, limit them to a small group (1-3) of Western individuals. Emphasize that the individuals should appear as realistic as possible, resembling actual photographs with natural skin tones, facial features, and clothing. Avoid any 3D or illustrated look, and focus on creating a lifelike, authentic representation.\n" + 
+  "Do not make any comments before or after the prompt."
 
   console.info("Prompt:", prompt);
 
