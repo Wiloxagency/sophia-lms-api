@@ -80,6 +80,7 @@ export async function asyncCreateParagraphs(
   courseStructure: string[],
   languageName: string,
   languageIso: string,
+  voice: string,
   sectionTitle: string,
   sectionIndex: number,
   elementIndex: number,
@@ -200,6 +201,8 @@ export async function asyncCreateParagraphs(
         elementIndex: elementIndex,
         slideIndex: slideIndex,
         paragraph: paragraph,
+        language: languageIso,
+        voice: voice,
         ttsStatus: "waiting",
         promptStatus: "waiting",
         dalleStatus: "waiting-prompt",
@@ -230,34 +233,7 @@ export async function asyncCreateParagraphs(
           }
         }
       }
-      // let courseParagraph = {
 
-      //   "content": paragraph,
-      //   "audioScript": paragraph,
-      //   "audioUrl": "",
-      //   "srt": [],
-      //   "titleAI": "",
-      //   "translatedTitleAI": "",
-      //   "imageData": {
-      //     "finalImage": {
-      //       "url": null,
-      //       "width": 0,
-      //       "height": 0
-      //     },
-      //   },
-      //   "videoData": {
-      //     "thumb": {
-      //       "url": "",
-      //       "width": 0,
-      //       "height": 0
-      //     },
-      //     "finalVideo": {
-      //       "url": "",
-      //       "width": 0,
-      //       "height": 0
-      //     }
-      //   }
-      // }
       payloads.push(payload)
       courseParagraphs.push(courseParagraph)
     });

@@ -61,6 +61,7 @@ export async function asyncCreateContent(
                     courseStructure,
                     course.languageName,
                     course.language,
+                    course.voice,
                     sectionItem.title,
                     sectionIndex,
                     lessonIndex
@@ -72,6 +73,7 @@ export async function asyncCreateContent(
                     courseStructure,
                     course.languageName,
                     course.language,
+                    course.voice,
                     sectionItem.title,
                     sectionIndex,
                     lessonIndex
