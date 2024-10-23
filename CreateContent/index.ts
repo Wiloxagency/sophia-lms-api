@@ -240,50 +240,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             break;
 
-
-        case "docx":
-
-            if (parsed) {
-
-                currentCourse = addWordSections(currentCourse)
-
-                console.info(currentCourse)
-
-                //currentCourse["createAvatarIntro"] = req.body.createAvatarIntro
-
-                currentCourse.language = language
-                currentCourse.languageName = languageName
-                currentCourse.voice = voice
-                
-
-                console.info(currentCourse)
-
-                // createContentCycle(currentCourse, 0, 0)
-
-                context.res = {
-                    "status": 201,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": currentCourse
-                }
-
-
-            } else {
-                await saveLog(`Error creating docx content for course: ${courseCode}.`, "Error", "CreateContent()", "Courses/{courseCode}/CreateContent")
-                context.res = {
-                    "status": 500,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "body": {
-                        "message": "Error creating docx content"
-                    }
-                }
-            }
-
-            break;
-
         case "generatedByDocuments":
             if (parsed) {
 
