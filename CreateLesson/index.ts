@@ -75,6 +75,7 @@ const httpTrigger: AzureFunction = async function (
   req.body.languageName,
   updatedCourse.language,
   syllabus[req.body.indexSection],
+  req.body.slideshowGlobalAssetsSource,
   req.body.indexSection,
   req.body.indexLesson,
   req.body.lessonTitle

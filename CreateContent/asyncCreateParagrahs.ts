@@ -81,6 +81,7 @@ export async function asyncCreateParagraphs(
   languageName: string,
   languageIso: string,
   voice: string,
+  assetsSource: string,
   sectionTitle: string,
   sectionIndex: number,
   elementIndex: number,
@@ -89,7 +90,7 @@ export async function asyncCreateParagraphs(
 ) {
 
   // If its a lesson will use elementTitle instead sectionTitle
-  sectionTitle = elementTitle?elementTitle:sectionTitle
+  sectionTitle = elementTitle ? elementTitle : sectionTitle
   const languageShortIso = languageIso.split("-")[0];
   let formattedCourseName = courseName
     .replace(/curso de/gi, "")
@@ -204,10 +205,23 @@ export async function asyncCreateParagraphs(
         language: languageIso,
         voice: voice,
         ttsStatus: "waiting",
-        promptStatus: "waiting",
-        dalleStatus: "waiting-prompt",
         titleStatus: "waiting",
-        prompts: []
+      }
+
+      switch (assetsSource) {
+
+        case 'openai':
+          payload['promptStatus'] = "waiting";
+          payload['dalleStatus'] = "waiting-prompt";
+          payload['prompts'] = [];
+          break;
+
+        case 'vecteezy':
+          payload['assetStatus'] = "waiting";
+          break;
+
+        default:
+          break;
       }
       let courseParagraph = {
 

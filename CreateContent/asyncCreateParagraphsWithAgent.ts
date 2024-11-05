@@ -20,6 +20,7 @@ export async function asyncCreateParagraphsWithAgent(
     languageName: string,
     languageIso: string,
     voice: string,
+    assetsSource: string,
     sectionTitle: string,
     sectionIndex: number,
     elementIndex: number,
@@ -120,12 +121,27 @@ export async function asyncCreateParagraphsWithAgent(
                     paragraph: paragraph,
                     language: languageIso,
                     voice: voice,
+                    assetsSource: assetsSource,
                     ttsStatus: "waiting",
-                    promptStatus: "waiting",
-                    dalleStatus: "waiting-prompt",
                     titleStatus: "waiting",
-                    prompts: []
                 }
+
+                switch (assetsSource) {
+
+                    case 'openai':
+                      payload['promptStatus'] = "waiting";
+                      payload['dalleStatus'] = "waiting-prompt";
+                      payload['prompts'] = [];
+                      break;
+            
+                    case 'vecteezy':
+                      payload['assetStatus'] = "waiting";
+                      break;
+            
+                    default:
+                      break;
+                  }
+
                 let courseParagraph = {
 
                     "content": paragraph,
