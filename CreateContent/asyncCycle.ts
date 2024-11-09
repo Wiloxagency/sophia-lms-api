@@ -2,6 +2,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
 import { asyncCreateParagraphsWithAgent } from "./asyncCreateParagraphsWithAgent";
+import { findVecteezyAssets } from "./vecteezy";
 
 const database = createConnection();
 
@@ -50,6 +51,10 @@ export async function asyncCreateContent(
     });
 
     console.info(courseStructure)
+
+    if (course.slideshowGlobalAssetsSource=="vecteezy") {
+        findVecteezyAssets(course.details.title, course.code, courseStructure, db)
+      }
 
     course.sections.forEach((sectionItem: any, sectionIndex: number) => {
         sectionItem.elements.forEach((lessonItem: any, lessonIndex: number) => {

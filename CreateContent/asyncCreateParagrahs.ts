@@ -9,6 +9,7 @@ import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
+import { findVecteezyAssets } from "./vecteezy";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -88,6 +89,8 @@ export async function asyncCreateParagraphs(
   elementTitle?: string
 
 ) {
+
+  const db = await database
 
   // If its a lesson will use elementTitle instead sectionTitle
   sectionTitle = elementTitle ? elementTitle : sectionTitle
@@ -252,7 +255,7 @@ export async function asyncCreateParagraphs(
       courseParagraphs.push(courseParagraph)
     });
 
-    const db = await database
+   
     const slide = db.collection("slide")
     await slide.insertMany(payloads)
 
