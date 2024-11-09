@@ -10,6 +10,7 @@ import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
 import { findVecteezyAssets } from "./vecteezy";
+import { Payload } from "./interfaces";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -197,7 +198,7 @@ export async function asyncCreateParagraphs(
     let payloads = []
     let courseParagraphs = []
     cleanParagraphs.forEach((paragraph: string, slideIndex: number) => {
-      let payload = {
+      let payload: Payload = {
         timestamp: date,
         courseName: courseName,
         courseCode: courseCode,
@@ -214,14 +215,23 @@ export async function asyncCreateParagraphs(
       switch (assetsSource) {
 
         case 'openai':
-          payload['promptStatus'] = "waiting";
-          payload['dalleStatus'] = "waiting-prompt";
-          payload['prompts'] = [];
+
+          payload = {
+            ...payload,
+            promptStatus: "waiting",
+            dalleStatus: "waiting-prompt",
+            prompts: []
+          };
+
           break;
 
         case 'vecteezy':
-          payload['assetStatus'] = "waiting";
-          break;
+
+          payload = {
+            ...payload,
+            assetStatus: "waiting",
+
+          };
 
         default:
           break;
@@ -255,7 +265,7 @@ export async function asyncCreateParagraphs(
       courseParagraphs.push(courseParagraph)
     });
 
-   
+
     const slide = db.collection("slide")
     await slide.insertMany(payloads)
 
