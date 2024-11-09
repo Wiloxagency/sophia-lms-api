@@ -51,6 +51,7 @@ export async function asyncCreateContent(
     });
 
     console.info(courseStructure)
+    console.info(course)
 
     if (course.slideshowGlobalAssetsSource=="vecteezy") {
         findVecteezyAssets(course.details.title, course.code, courseStructure, db)
