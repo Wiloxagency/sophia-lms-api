@@ -27,7 +27,7 @@ export async function findVecteezyAssets(courseName: string, courseCode: string,
                 term: query,
                 content_type: "video",
                 page: 1,
-                per_page: 30,
+                per_page: 50,
                 sort_by: "relevance",
                 ai_generated: false,
             }
@@ -42,7 +42,7 @@ export async function findVecteezyAssets(courseName: string, courseCode: string,
                 term: query,
                 content_type: "photo",
                 page: 1,
-                per_page: 30,
+                per_page: 50,
                 sort_by: "relevance",
                 ai_generated: false,
             }
@@ -52,9 +52,17 @@ export async function findVecteezyAssets(courseName: string, courseCode: string,
     }
 }
 
-async function saveAssetsToDB(assets: any[], sectionIndex: number, courseName: string, courseCode: string, assetType: string, collection: any) {
+async function saveAssetsToDB(
+    assets: any[], 
+    sectionIndex: number, 
+    courseName: string, 
+    courseCode: string, 
+    assetType: string, 
+    collection: any) {
+
     const documents = assets.map(asset => ({
-        thumbnail_dimensions: asset.thumbnail_dimensions,
+        asset_id: asset.id,
+        preview_dimensions: asset.preview_dimensions,
         preview_url: asset.preview_url,
         sectionIndex,
         courseName,
