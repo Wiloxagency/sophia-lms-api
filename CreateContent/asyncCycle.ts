@@ -34,7 +34,8 @@ export async function asyncCreateContent(
                     languageName: course.languageName,
                     voice: course.voice,
                     generationType: course.generationType, 
-                    vectorStoreId: course.vectorStoreId ? course.vectorStoreId : ""
+                    vectorStoreId: course.vectorStoreId ? course.vectorStoreId : "",
+                    slideshowGlobalAssetsSource: course.slideshowGlobalAssetsSource
                 },
             }
         );
