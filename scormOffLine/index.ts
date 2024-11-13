@@ -39,32 +39,25 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const lessonFolder = `${courseCode}/Scorm-S${sectionIndex + 1}-L${elementIndex + 1}`;
             const assetsFolder = `${lessonFolder}/assets`;
 
-            // Copy base files to each lesson folder
             await copyScormBaseFiles(containerClient, lessonFolder, assetsFolder);
-
-            // Track all asset file paths for imsmanifest.xml
             const assetFiles = [];
 
-            // Upload each photo, video, and audio in paragraphs to assets folder
             const paragraphs = [];
             for (const paragraph of element.elementLesson?.paragraphs || []) {
                 const paragraphData = { ...paragraph };
 
-                // Upload image
                 if (paragraph.imageData?.finalImage?.url) {
                     const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.imageData.finalImage.url);
                     paragraphData.imageData.finalImage.url = `./assets/${uploadedImagePath}`;
                     assetFiles.push(`./assets/${uploadedImagePath}`);
                 }
 
-                // Upload video
                 if (paragraph.videoData?.finalVideo?.url) {
                     const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.videoData.finalVideo.url);
                     paragraphData.videoData.finalVideo.url = `./assets/${uploadedVideoPath}`;
                     assetFiles.push(`./assets/${uploadedVideoPath}`);
                 }
 
-                // Upload audio
                 if (paragraph.audioUrl) {
                     const uploadedAudioPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.audioUrl, false);
                     paragraphData.audioUrl = `./assets/${uploadedAudioPath}`;
@@ -74,41 +67,108 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 paragraphs.push(paragraphData);
             }
 
-            // Generate slideshow.json content with updated relative URLs
-            const slideshowContent = {
-                courseCover: course.details.title,
+            const urlCover = await uploadFileFromUrl(containerClient, assetsFolder, course.details.cover, true);
+            const urlMusicBg = course.slideshowBackgroundMusicUrl ? await uploadFileFromUrl(containerClient, assetsFolder, "https://app.iasophia.com" + course.slideshowBackgroundMusicUrl, true): undefined;
+            assetFiles.push("./assets/" + urlCover);
+            let slideshowContent: any = {
+                courseCover: "./assets/" + urlCover,
                 sectionTitle: section.title,
                 type: "Lección Engine",
                 title: "Presentation",
                 elementCode: element.elementCode,
                 elementLesson: {
-                    lessonTheme: element.elementLesson?.lessonTheme || "",
+                    lessonTheme: element.elementLesson?.lessonTheme || "1",
                     paragraphs: paragraphs
-                }
+                },
+                colorThemeName: course.slideshowColorThemeName
             };
+            if (urlMusicBg) {
+                slideshowContent = {
+                    ...slideshowContent,
+                    backgroundMusicUrl: "assets/" + urlMusicBg
+                }
+                assetFiles.push("./assets/" + urlMusicBg);
+            }
 
-            // Upload slideshow.json file to the appropriate lesson folder
             const slideshowJsonPath = `${lessonFolder}/slideshow.json`;
             await uploadJsonFile(containerClient, slideshowJsonPath, slideshowContent);
             assetFiles.push(`./slideshow.json`);
 
-            // Generate imsmanifest.xml content
+            assetFiles.push(`./assets/index-2Tsry1jk.css`);
+            assetFiles.push(`./assets/index-v9j7IkEp.js`);
+
             const courseTitle = course.details.title;
             const courseId = courseTitle.split(" ").slice(0, 4).join("_");
             const imsmanifestContent = generateImsManifestXml(courseTitle, courseId, assetFiles);
 
-            // Upload imsmanifest.xml file to the appropriate lesson folder
             const imsmanifestPath = `${lessonFolder}/imsmanifest.xml`;
             await uploadXmlFile(containerClient, imsmanifestPath, imsmanifestContent);
             assetFiles.push(`./imsmanifest.xml`);
 
-            // Compress the lesson folder into a .zip file
             await zipLessonFolder(context, containerClient, lessonFolder);
         }
     }
 
-    context.res = { status: 200, body: "Course assets, audio files, slideshow.json, imsmanifest.xml, and zip files created successfully." };
+    // Delete all Scorm-S<m>-L<n> folders, keeping only the .zip files
+    await deleteScormFolders(containerClient, courseCode);
+
+    // Compress the entire course directory into a single .zip file
+    await zipCourseDirectory(context, containerClient, courseCode);
+
+    // Delete individual Scorm-S<m>-L<n>.zip files
+    await deleteLessonZips(containerClient, courseCode);
+
+    context.res = { status: 200, body: "Course compressed into single .zip, and lesson zips deleted successfully." };
 };
+
+// Function to delete Scorm-S<m>-L<n> folders after zipping
+async function deleteScormFolders(containerClient: ContainerClient, courseCode: string) {
+    for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
+        const folderPattern = /Scorm-S\d+-L\d+\/(?!.*\.zip$)/;
+        if (folderPattern.test(blob.name)) {
+            console.info(`Deleting ${blob.name}`)
+            await containerClient.deleteBlob(blob.name);
+        }
+    }
+}
+
+// Function to zip the entire course directory
+async function zipCourseDirectory(context: Context, containerClient: ContainerClient, courseCode: string) {
+    const zipFileName = `${courseCode}.zip`;
+    const zipFilePath = join(tmpdir(), `${uuidv4()}.zip`);
+    const output = createWriteStream(zipFilePath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    archive.pipe(output);
+
+    for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
+        const blobClient = containerClient.getBlobClient(blob.name);
+        const blobData = await blobClient.download();
+        archive.append(blobData.readableStreamBody, { name: blob.name.replace(`${courseCode}/`, "") });
+    }
+
+    await archive.finalize();
+    await new Promise((resolve, reject) => {
+        output.on("close", resolve);
+        output.on("error", reject);
+    });
+
+    // Upload the single .zip file to Azure Blob Storage
+    const zipBlobClient = containerClient.getBlockBlobClient(zipFileName);
+    await zipBlobClient.uploadFile(zipFilePath);
+
+    // Clean up the temporary zip file
+    await fs.unlink(zipFilePath);
+}
+
+// Function to delete all Scorm-S<m>-L<n>.zip files
+async function deleteLessonZips(containerClient: ContainerClient, courseCode: string) {
+    for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
+        if (blob.name.endsWith(".zip") && /Scorm-S\d+-L\d+\.zip$/.test(blob.name)) {
+            await containerClient.deleteBlob(blob.name);
+        }
+    }
+}
 
 // Function to zip a lesson folder
 async function zipLessonFolder(context: Context, containerClient: ContainerClient, lessonFolder: string) {
@@ -150,7 +210,7 @@ async function copyScormBaseFiles(containerClient: ContainerClient, lessonFolder
 
 // Function to upload files from a URL, optionally generating a new UUID name for the file
 async function uploadFileFromUrl(containerClient: ContainerClient, folder: string, fileUrl: string, generateNewName: boolean = true): Promise<string> {
-    const extension = fileUrl.split(".").pop() || "";
+    const extension = fileUrl.split("?")[0].split(".").pop() || "";
     const fileName = generateNewName ? `${uuidv4()}.${extension}` : fileUrl.split("/").pop(); // Use original name if generateNewName is false
     const blobName = `${folder}/${fileName}`;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
