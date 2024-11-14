@@ -11,31 +11,14 @@ import {
     sendSCORM2DownloadLinkEmail,
     sendSCORMDownloadLinkEmail,
     sendScormUnderConstructionEmail,
-  } from "../nodemailer/sendMiscEmails";
+} from "../nodemailer/sendMiscEmails";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-
-    const { courseCode, selectedElements, userName, userEmail } = req.body;
-    if (!courseCode || !selectedElements || !userName || !userEmail) {
-        context.res = { status: 400, body: "Some parameters missed." };
-        return;
-    }
-
-    
-
-    const database = createConnection();
-    const db = await database;
-    const course = await db.collection("course").findOne({ code: courseCode });
-    if (!course) {
-        context.res = { status: 404, body: "Course not found." };
-        return;
-    }
-
-    sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
+async function createScorm(context: Context, course: any, selectedElements:any[], userEmail: string, userName: string) {
+    const courseCode = course.code;
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
@@ -48,46 +31,46 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     for (const [sectionIndex, elementIndex] of selectedElements) {
         const section = course.sections?.[sectionIndex];
         const element = section?.elements?.[elementIndex];
-    
+
         // Solo procesar si el elemento existe y es de tipo "Lección Engine"
         if (element && element.type === "Lección Engine") {
             const lessonFolder = `${courseCode}/Scorm-S${sectionIndex + 1}-L${elementIndex + 1}`;
             const assetsFolder = `${lessonFolder}/assets`;
-    
+
             await copyScormBaseFiles(containerClient, lessonFolder, assetsFolder);
             const assetFiles = [];
-    
+
             const paragraphs = [];
             for (const paragraph of element.elementLesson?.paragraphs || []) {
                 const paragraphData = { ...paragraph };
-    
+
                 if (paragraph.imageData?.finalImage?.url) {
                     const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.imageData.finalImage.url);
                     paragraphData.imageData.finalImage.url = `./assets/${uploadedImagePath}`;
                     assetFiles.push(`./assets/${uploadedImagePath}`);
                 }
-    
+
                 if (paragraph.videoData?.finalVideo?.url) {
                     const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.videoData.finalVideo.url);
                     paragraphData.videoData.finalVideo.url = `./assets/${uploadedVideoPath}`;
                     assetFiles.push(`./assets/${uploadedVideoPath}`);
                 }
-    
+
                 if (paragraph.audioUrl) {
                     const uploadedAudioPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.audioUrl, false);
                     paragraphData.audioUrl = `./assets/${uploadedAudioPath}`;
                     assetFiles.push(`./assets/${uploadedAudioPath}`);
                 }
-    
+
                 paragraphs.push(paragraphData);
             }
-    
+
             const urlCover = await uploadFileFromUrl(containerClient, assetsFolder, course.details.cover, true);
             const urlMusicBg = course.slideshowBackgroundMusicUrl
                 ? await uploadFileFromUrl(containerClient, assetsFolder, "https://app.iasophia.com" + course.slideshowBackgroundMusicUrl, true)
                 : undefined;
             assetFiles.push("./assets/" + urlCover);
-    
+
             let slideshowContent: any = {
                 courseCover: "./assets/" + urlCover,
                 sectionTitle: section.title,
@@ -100,7 +83,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 colorThemeName: course.slideshowColorThemeName
             };
-    
+
             if (urlMusicBg) {
                 slideshowContent = {
                     ...slideshowContent,
@@ -108,22 +91,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 };
                 assetFiles.push("./assets/" + urlMusicBg);
             }
-    
+
             const slideshowJsonPath = `${lessonFolder}/slideshow.json`;
             await uploadJsonFile(containerClient, slideshowJsonPath, slideshowContent);
             assetFiles.push(`./slideshow.json`);
-    
+
             assetFiles.push(`./assets/index-8qi2pXCp.css`);
             assetFiles.push(`./assets/index-AAmY0ZWt.js`);
-    
+
             const courseTitle = course.details.title;
             const courseId = courseTitle.split(" ").slice(0, 4).join("_");
             const imsmanifestContent = generateImsManifestXml(courseTitle, courseId, assetFiles);
-    
+
             const imsmanifestPath = `${lessonFolder}/imsmanifest.xml`;
             await uploadXmlFile(containerClient, imsmanifestPath, imsmanifestContent);
             assetFiles.push(`./imsmanifest.xml`);
-    
+
             await zipLessonFolder(context, containerClient, lessonFolder);
         }
     }
@@ -137,9 +120,38 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // Delete individual Scorm-S<m>-L<n>.zip files
     await deleteLessonZips(containerClient, courseCode);
 
-    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip" )
+    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
 
-    context.res = { status: 200, body: "Course compressed into single .zip, and lesson zips deleted successfully." };
+}
+
+const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+
+    const { courseCode, selectedElements, userName, userEmail } = req.body;
+    if (!courseCode || !selectedElements || !userName || !userEmail) {
+        context.res = { status: 400, body: "Some parameters missed." };
+        return;
+    }
+    const database = createConnection();
+    const db = await database;
+    const course = await db.collection("course").findOne({ code: courseCode });
+    if (!course) {
+        context.res = { status: 404, body: "Course not found." };
+        return;
+    }
+
+    sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
+
+    createScorm(context, course, selectedElements, userEmail, userName);
+
+    context.res = {
+        status: 200,
+        headers: {
+          "Content-Type": "application/xml",
+        },
+        body: {
+          message: "Start scorm creation"
+        },
+      };
 };
 
 // Function to delete Scorm-S<m>-L<n> folders after zipping
