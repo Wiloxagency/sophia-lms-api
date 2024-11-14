@@ -127,6 +127,42 @@ export async function sendSCORMDownloadLinkEmail(
   }
 }
 
+export async function sendSCORM2DownloadLinkEmail(
+  recipientEmail: string,
+  recipientName: string,
+  courseName: string,
+  SCORMFileName: string
+) {
+  const source = fs
+    .readFileSync("nodemailer/templates/generic.html", "utf-8")
+    .toString();
+  const template = handlebars.compile(source);
+  const replacements = {
+    username: recipientName,
+    message:
+      "El enlace de descarga de tu SCORM para el curso " +
+      courseName +
+      " es: " +
+      "https://sophieassets.blob.core.windows.net/scormol/" +
+      SCORMFileName,
+  };
+  htmlToSend = template(replacements);
+
+  try {
+    const info = await transporter.sendMail({
+      from: '"Sophia" <hola@iasophia.com>',
+      to: recipientEmail,
+      // bcc: "LeoLeto@protonmail.com, Lexp2008@gmail.com, Leonardojbarreto@gmail.com",
+      subject: "Tu SCORM está listo 💡",
+      // text: "Hello world",
+      // html: await readFile('nodemailer/welcome.html', 'utf8'),
+      html: htmlToSend,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function sendValidationEmail(
   recipientEmail: string,
   recipientName: string,

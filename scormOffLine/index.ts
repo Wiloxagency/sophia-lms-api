@@ -6,18 +6,26 @@ import archiver from "archiver";
 import { tmpdir } from "os";
 import { join } from "path";
 import { createWriteStream, promises as fs } from "fs";
+import {
+    sendFailedSCORMCreationEmail,
+    sendSCORM2DownloadLinkEmail,
+    sendSCORMDownloadLinkEmail,
+    sendScormUnderConstructionEmail,
+  } from "../nodemailer/sendMiscEmails";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    console.info(req.body)
-    const { courseCode, selectedElements } = req.body;
-    if (!courseCode || !selectedElements) {
-        context.res = { status: 400, body: "Course code and selectedElements are required." };
+
+    const { courseCode, selectedElements, userName, userEmail } = req.body;
+    if (!courseCode || !selectedElements || !userName || !userEmail) {
+        context.res = { status: 400, body: "Some parameters missed." };
         return;
     }
+
+    
 
     const database = createConnection();
     const db = await database;
@@ -27,7 +35,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return;
     }
 
-    console.info(course);
+    sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
@@ -40,9 +48,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     for (const [sectionIndex, elementIndex] of selectedElements) {
         const section = course.sections?.[sectionIndex];
         const element = section?.elements?.[elementIndex];
-    
-        console.info(`section ${sectionIndex}:`, section);
-        console.info(`element ${elementIndex}:`, element);
     
         // Solo procesar si el elemento existe y es de tipo "Lección Engine"
         if (element && element.type === "Lección Engine") {
@@ -132,6 +137,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // Delete individual Scorm-S<m>-L<n>.zip files
     await deleteLessonZips(containerClient, courseCode);
 
+    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip" )
+
     context.res = { status: 200, body: "Course compressed into single .zip, and lesson zips deleted successfully." };
 };
 
@@ -140,7 +147,6 @@ async function deleteScormFolders(containerClient: ContainerClient, courseCode: 
     for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
         const folderPattern = /Scorm-S\d+-L\d+\/(?!.*\.zip$)/;
         if (folderPattern.test(blob.name)) {
-            console.info(`Deleting ${blob.name}`)
             await containerClient.deleteBlob(blob.name);
         }
     }
