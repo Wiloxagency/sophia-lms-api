@@ -94,8 +94,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             await uploadJsonFile(containerClient, slideshowJsonPath, slideshowContent);
             assetFiles.push(`./slideshow.json`);
 
-            assetFiles.push(`./assets/index-2Tsry1jk.css`);
-            assetFiles.push(`./assets/index-v9j7IkEp.js`);
+            assetFiles.push(`./assets/index-8qi2pXCp.css`);
+            assetFiles.push(`./assets/index-AAmY0ZWt.js`);
 
             const courseTitle = course.details.title;
             const courseId = courseTitle.split(" ").slice(0, 4).join("_");
