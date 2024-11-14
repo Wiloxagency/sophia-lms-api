@@ -12,9 +12,10 @@ const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    const courseCode = req.query.code;
-    if (!courseCode) {
-        context.res = { status: 400, body: "Course code is required." };
+    console.info(req.body)
+    const { courseCode, selectedElements } = req.body;
+    if (!courseCode || !selectedElements) {
+        context.res = { status: 400, body: "Course code and selectedElements are required." };
         return;
     }
 
@@ -26,6 +27,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return;
     }
 
+    console.info(course);
+
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
     // Delete existing course directory if it exists
@@ -34,42 +37,52 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
     // Process URLs, upload files, create slideshow.json, imsmanifest.xml, and zip each lesson folder
-    for (const [sectionIndex, section] of course.sections.entries()) {
-        for (const [elementIndex, element] of section.elements.entries()) {
+    for (const [sectionIndex, elementIndex] of selectedElements) {
+        const section = course.sections?.[sectionIndex];
+        const element = section?.elements?.[elementIndex];
+    
+        console.info(`section ${sectionIndex}:`, section);
+        console.info(`element ${elementIndex}:`, element);
+    
+        // Solo procesar si el elemento existe y es de tipo "Lección Engine"
+        if (element && element.type === "Lección Engine") {
             const lessonFolder = `${courseCode}/Scorm-S${sectionIndex + 1}-L${elementIndex + 1}`;
             const assetsFolder = `${lessonFolder}/assets`;
-
+    
             await copyScormBaseFiles(containerClient, lessonFolder, assetsFolder);
             const assetFiles = [];
-
+    
             const paragraphs = [];
             for (const paragraph of element.elementLesson?.paragraphs || []) {
                 const paragraphData = { ...paragraph };
-
+    
                 if (paragraph.imageData?.finalImage?.url) {
                     const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.imageData.finalImage.url);
                     paragraphData.imageData.finalImage.url = `./assets/${uploadedImagePath}`;
                     assetFiles.push(`./assets/${uploadedImagePath}`);
                 }
-
+    
                 if (paragraph.videoData?.finalVideo?.url) {
                     const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.videoData.finalVideo.url);
                     paragraphData.videoData.finalVideo.url = `./assets/${uploadedVideoPath}`;
                     assetFiles.push(`./assets/${uploadedVideoPath}`);
                 }
-
+    
                 if (paragraph.audioUrl) {
                     const uploadedAudioPath = await uploadFileFromUrl(containerClient, assetsFolder, paragraph.audioUrl, false);
                     paragraphData.audioUrl = `./assets/${uploadedAudioPath}`;
                     assetFiles.push(`./assets/${uploadedAudioPath}`);
                 }
-
+    
                 paragraphs.push(paragraphData);
             }
-
+    
             const urlCover = await uploadFileFromUrl(containerClient, assetsFolder, course.details.cover, true);
-            const urlMusicBg = course.slideshowBackgroundMusicUrl ? await uploadFileFromUrl(containerClient, assetsFolder, "https://app.iasophia.com" + course.slideshowBackgroundMusicUrl, true): undefined;
+            const urlMusicBg = course.slideshowBackgroundMusicUrl
+                ? await uploadFileFromUrl(containerClient, assetsFolder, "https://app.iasophia.com" + course.slideshowBackgroundMusicUrl, true)
+                : undefined;
             assetFiles.push("./assets/" + urlCover);
+    
             let slideshowContent: any = {
                 courseCover: "./assets/" + urlCover,
                 sectionTitle: section.title,
@@ -82,29 +95,30 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 },
                 colorThemeName: course.slideshowColorThemeName
             };
+    
             if (urlMusicBg) {
                 slideshowContent = {
                     ...slideshowContent,
                     backgroundMusicUrl: "assets/" + urlMusicBg
-                }
+                };
                 assetFiles.push("./assets/" + urlMusicBg);
             }
-
+    
             const slideshowJsonPath = `${lessonFolder}/slideshow.json`;
             await uploadJsonFile(containerClient, slideshowJsonPath, slideshowContent);
             assetFiles.push(`./slideshow.json`);
-
+    
             assetFiles.push(`./assets/index-8qi2pXCp.css`);
             assetFiles.push(`./assets/index-AAmY0ZWt.js`);
-
+    
             const courseTitle = course.details.title;
             const courseId = courseTitle.split(" ").slice(0, 4).join("_");
             const imsmanifestContent = generateImsManifestXml(courseTitle, courseId, assetFiles);
-
+    
             const imsmanifestPath = `${lessonFolder}/imsmanifest.xml`;
             await uploadXmlFile(containerClient, imsmanifestPath, imsmanifestContent);
             assetFiles.push(`./imsmanifest.xml`);
-
+    
             await zipLessonFolder(context, containerClient, lessonFolder);
         }
     }
