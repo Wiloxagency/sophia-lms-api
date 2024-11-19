@@ -5,19 +5,20 @@ import { createConnection } from "../shared/mongo";
 import archiver from "archiver";
 import { tmpdir } from "os";
 import { join } from "path";
+import fetch from "node-fetch";
 import { createWriteStream, promises as fs } from "fs";
 import {
     sendFailedSCORMCreationEmail,
     sendSCORM2DownloadLinkEmail,
-    sendSCORMDownloadLinkEmail,
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
+import { downloadQuiz } from "../Quiz/download";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
-async function createScorm(context: Context, course: any, selectedElements:any[], userEmail: string, userName: string) {
+async function createScorm(context: Context, course: any, selectedElements: any[], userEmail: string, userName: string) {
     const courseCode = course.code;
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -34,7 +35,8 @@ async function createScorm(context: Context, course: any, selectedElements:any[]
 
         // Solo procesar si el elemento existe y es de tipo "Lección Engine"
         if (element && element.type === "Lección Engine") {
-            const lessonFolder = `${courseCode}/Scorm-S${sectionIndex + 1}-L${elementIndex + 1}`;
+            const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
+            const lessonFolder = `${sectionFolder}/Section-${sectionIndex + 1}-Item-${elementIndex + 1}-Scorm`;
             const assetsFolder = `${lessonFolder}/assets`;
 
             await copyScormBaseFiles(containerClient, lessonFolder, assetsFolder);
@@ -108,20 +110,58 @@ async function createScorm(context: Context, course: any, selectedElements:any[]
             assetFiles.push(`./imsmanifest.xml`);
 
             await zipLessonFolder(context, containerClient, lessonFolder);
+        } else if (element && element.type === "file") {
+            const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
+            const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-${element.elementFile.name}`;
+            const fileUrl = element.elementFile.url;
+
+            // Subir archivo al directorio Section<n>
+            const uploadedFileName = await uploadFileFromUrl(containerClient, sectionFolder, fileUrl, false, fileName);
+            console.info(`Archivo subido correctamente: ${sectionFolder}/${uploadedFileName}`);
+        } else if (
+            element.type === "shortAnswer" ||
+            element.type === "trueOrFalse" ||
+            element.type === "completion" ||
+            element.type === "quizz"
+        ) {
+            const docUrlQuiz = await downloadQuiz(
+                courseCode,
+                sectionIndex.toString(),
+                elementIndex.toString()
+            );
+
+            docUrlQuiz.substring(docUrlQuiz.lastIndexOf("/") + 1);
+
+            const response = await fetch(docUrlQuiz);
+            if (!response.ok) {
+                throw new Error("Falha ao buscar o arquivo.");
+            }
+
+            const fileQuiz = await response.buffer();
+
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+
+            const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
+            const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-Quiz-${element.type}.docx`;
+
+            const QuizzFileName = `${sectionFolder}/${fileName }`;
+            const blockBlobClient =
+                containerClient.getBlockBlobClient(QuizzFileName);
+            await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+
         }
     }
 
-    // Delete all Scorm-S<m>-L<n> folders, keeping only the .zip files
-    await deleteScormFolders(containerClient, courseCode);
+    // Delete all Section folders, keeping only the .zip files in each Section<m>
+    await deleteSectionFolders(containerClient, courseCode);
 
     // Compress the entire course directory into a single .zip file
     await zipCourseDirectory(context, containerClient, courseCode);
 
-    // Delete individual Scorm-S<m>-L<n>.zip files
+    // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
     sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
-
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -146,23 +186,28 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     context.res = {
         status: 200,
         headers: {
-          "Content-Type": "application/xml",
+            "Content-Type": "application/xml",
         },
         body: {
-          message: "Start scorm creation"
+            message: "Start scorm creation"
         },
-      };
+    };
 };
 
-// Function to delete Scorm-S<m>-L<n> folders after zipping
-async function deleteScormFolders(containerClient: ContainerClient, courseCode: string) {
+
+// Function to delete Section folders after zipping
+async function deleteSectionFolders(containerClient: ContainerClient, courseCode: string) {
     for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
-        const folderPattern = /Scorm-S\d+-L\d+\/(?!.*\.zip$)/;
-        if (folderPattern.test(blob.name)) {
+        // Eliminar exclusivamente carpetas con el nuevo patrón Section-<m>-Item<n>-Scorm
+        const scormFolderPattern = /Section\d+\/Section-\d+-Item-\d+-Scorm\/(?!.*\.zip$)/;
+        if (scormFolderPattern.test(blob.name)) {
             await containerClient.deleteBlob(blob.name);
         }
     }
 }
+
+
+
 
 // Function to zip the entire course directory
 async function zipCourseDirectory(context: Context, containerClient: ContainerClient, courseCode: string) {
@@ -196,9 +241,12 @@ async function zipCourseDirectory(context: Context, containerClient: ContainerCl
 // Function to delete all Scorm-S<m>-L<n>.zip files
 async function deleteLessonZips(containerClient: ContainerClient, courseCode: string) {
     for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
-        if (blob.name.endsWith(".zip") && /Scorm-S\d+-L\d+\.zip$/.test(blob.name)) {
-            await containerClient.deleteBlob(blob.name);
+        // Preservar el zip principal
+        if (blob.name === `${courseCode}.zip`) {
+            continue;
         }
+        // Eliminar cualquier otro archivo o carpeta
+        await containerClient.deleteBlob(blob.name);
     }
 }
 
@@ -241,9 +289,10 @@ async function copyScormBaseFiles(containerClient: ContainerClient, lessonFolder
 }
 
 // Function to upload files from a URL, optionally generating a new UUID name for the file
-async function uploadFileFromUrl(containerClient: ContainerClient, folder: string, fileUrl: string, generateNewName: boolean = true): Promise<string> {
+async function uploadFileFromUrl(containerClient: ContainerClient, folder: string, fileUrl: string, generateNewName: boolean = true, optionalName?: string): Promise<string> {
     const extension = fileUrl.split("?")[0].split(".").pop() || "";
-    const fileName = generateNewName ? `${uuidv4()}.${extension}` : fileUrl.split("/").pop(); // Use original name if generateNewName is false
+    let fileName = generateNewName ? `${uuidv4()}.${extension}` : fileUrl.split("/").pop(); // Use original name if generateNewName is false
+    fileName = optionalName ? optionalName : fileName
     const blobName = `${folder}/${fileName}`;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
     const response = await fetch(fileUrl);
