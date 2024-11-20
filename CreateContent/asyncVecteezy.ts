@@ -48,7 +48,7 @@ export async function AsyncVecteezyCycle() {
                     height: vecteezyDoc.preview_dimensions.height
                 }
                 : {
-                    url: "./slide-placeholder.png",
+                    url: "./assets/slide-placeholder.png",
                     width: 1024,
                     height: 576 // Dimensiones estándar de imagen de placeholder
                 };
