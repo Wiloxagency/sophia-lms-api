@@ -16,7 +16,7 @@ export async function AsyncVecteezyCycle() {
     const slides = await slideCollection.find({ assetStatus: "waiting" }).toArray();
 
     for (const slideDoc of slides) {
-        const { courseCode, sectionIndex, slideIndex } = slideDoc;
+        const { courseCode, sectionIndex, elementIndex, slideIndex } = slideDoc;
 
         try {
             // Determinar el tipo de asset: video para slideIndex par, foto para impar
@@ -52,14 +52,15 @@ export async function AsyncVecteezyCycle() {
                     width: 1024,
                     height: 576 // Dimensiones estándar de imagen de placeholder
                 };
-
+            assetType = vecteezyDoc ? assetType : "image"
+            
             // Determinar el campo de actualización en `course` según el tipo de asset
             const updateField = assetType === "video"
-                ? `sections.${sectionIndex}.elements.0.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo`
-                : `sections.${sectionIndex}.elements.0.elementLesson.paragraphs.${slideIndex}.imageData.finalImage`;
+                ? `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo`
+                : `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage`;
 
             const currentSrtPath =
-                `sections.${sectionIndex}.elements.0.elementLesson.paragraphs.${slideIndex}.srt`;
+                `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.srt`;
 
             // Actualizar el documento course con la información obtenida
             await courseCollection.updateOne(
