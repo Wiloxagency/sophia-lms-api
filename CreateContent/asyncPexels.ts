@@ -81,7 +81,7 @@ export async function AsyncPexelsCycle() {
             // Actualizar el estado de `assetStatus` en el documento de `slide` a "created"
             await slideCollection.updateOne(
                 { _id: slideDoc._id },
-                { $set: { assetStatus: "created" } }
+                { $set: { pexelsStatus: "created" } }
             );
 
         } catch (error) {
