@@ -3,13 +3,11 @@ import {
   contentGeneration,
   introductionGeneration,
 } from "./prompts";
-import { paragraphCreation } from "../interfaces/paragraph";
 import { saveLog } from "../shared/saveLog";
 import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
-import { findVecteezyAssets } from "./vecteezy";
 import { Payload } from "./interfaces";
 
 const openai = new OpenAI({
@@ -230,6 +228,14 @@ export async function asyncCreateParagraphs(
           payload = {
             ...payload,
             assetStatus: "waiting",
+
+          };
+
+        case 'pexels':
+
+          payload = {
+            ...payload,
+            pexelsStatus: "waiting",
 
           };
 

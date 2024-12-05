@@ -4,6 +4,7 @@ import { AsyncTextToSpeechCycle } from "../CreateContent/asyncCreateAudios";
 import { AsyncDalleImgCycle } from "../CreateContent/asyncCreateDalleImage";
 import { AsyncTitleCycle } from "../CreateContent/asyncCreateTitles";
 import { AsyncVecteezyCycle } from "../CreateContent/asyncVecteezy";
+import { AsyncPexelsCycle } from "../CreateContent/asyncPexels";
 
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
     var timeStamp = new Date().toISOString();
@@ -21,6 +22,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
     setTimeout(() => {
         AsyncDalleImgCycle()
         AsyncVecteezyCycle()
+        AsyncPexelsCycle()
     }, 15000);
 };
 

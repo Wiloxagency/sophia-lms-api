@@ -14,5 +14,6 @@ export interface Payload {
     dalleStatus?: string;
     prompts?: any[];
     assetStatus?: string;
+    pexelsStatus?: string;
   }
   

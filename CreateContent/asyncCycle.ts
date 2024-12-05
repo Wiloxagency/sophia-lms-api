@@ -2,6 +2,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
 import { asyncCreateParagraphsWithAgent } from "./asyncCreateParagraphsWithAgent";
+import { findPexelsAssets } from "./pexels";
 import { findVecteezyAssets } from "./vecteezy";
 
 const database = createConnection();
@@ -33,7 +34,7 @@ export async function asyncCreateContent(
                     language: course.language,
                     languageName: course.languageName,
                     voice: course.voice,
-                    generationType: course.generationType, 
+                    generationType: course.generationType,
                     vectorStoreId: course.vectorStoreId ? course.vectorStoreId : ""
                 },
             }
@@ -53,13 +54,15 @@ export async function asyncCreateContent(
     console.info(courseStructure)
     console.info(course)
 
-    if (course.slideshowGlobalAssetsSource=="vecteezy") {
+    if (course.slideshowGlobalAssetsSource == "vecteezy") {
         findVecteezyAssets(course.details.title, course.code, courseStructure, db)
-      }
+    } else if (course.slideshowGlobalAssetsSource == "pexels") {
+        findPexelsAssets(course.details.title, course.code, courseStructure, db)
+    }
 
     course.sections.forEach((sectionItem: any, sectionIndex: number) => {
         sectionItem.elements.forEach((lessonItem: any, lessonIndex: number) => {
-            if ( course.generationType == "generatedByDocuments") {
+            if (course.generationType == "generatedByDocuments") {
                 asyncCreateParagraphsWithAgent(
                     course.vectorStoreId,
                     course.code,
@@ -87,9 +90,9 @@ export async function asyncCreateContent(
                     lessonIndex
                 )
             }
-            
+
         });
     });
 
-    
+
 }

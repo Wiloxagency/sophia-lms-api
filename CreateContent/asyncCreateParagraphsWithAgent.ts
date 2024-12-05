@@ -129,18 +129,22 @@ export async function asyncCreateParagraphsWithAgent(
                 switch (assetsSource) {
 
                     case 'openai':
-                      payload['promptStatus'] = "waiting";
-                      payload['dalleStatus'] = "waiting-prompt";
-                      payload['prompts'] = [];
-                      break;
-            
+                        payload['promptStatus'] = "waiting";
+                        payload['dalleStatus'] = "waiting-prompt";
+                        payload['prompts'] = [];
+                        break;
+
                     case 'vecteezy':
-                      payload['assetStatus'] = "waiting";
-                      break;
-            
+                        payload['assetStatus'] = "waiting";
+                        break;
+
+                    case 'pexels':
+                        payload['pexelsStatus'] = "waiting";
+                        break;
+
                     default:
-                      break;
-                  }
+                        break;
+                }
 
                 let courseParagraph = {
 
