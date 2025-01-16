@@ -1,6 +1,7 @@
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
-import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
+// import { asyncCreateParagraphs } from "./asyncCreateParagrahs";
+import { asyncCreateSlides } from "./asyncCreateSlides";
 import { asyncCreateParagraphsWithAgent } from "./asyncCreateParagraphsWithAgent";
 import { findPexelsAssets } from "./pexels";
 import { findVecteezyAssets } from "./vecteezy";
@@ -77,7 +78,7 @@ export async function asyncCreateContent(
                     lessonIndex
                 )
             } else {
-                asyncCreateParagraphs(
+                asyncCreateSlides(
                     course.code,
                     course.details.title,
                     courseStructure,

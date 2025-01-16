@@ -1,6 +1,7 @@
 import {
   conclusionGeneration,
   contentGeneration,
+  slideGeneration,
   introductionGeneration,
 } from "./prompts";
 import { saveLog } from "../shared/saveLog";
@@ -8,7 +9,16 @@ import { extraWords } from "../Language/extrawords";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
-import { Payload } from "./interfaces";
+import { GlassTemplate } from "../themesTemplates/GlassTemplate";
+import { 
+  InputData,
+  MetaTag, 
+  OutputData, 
+  OutputSlide, 
+  Payload, 
+  SlideContent, 
+  TemplateComponent 
+} from "./interfaces";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,65 +26,117 @@ const openai = new OpenAI({
 
 const database = createConnection()
 
-export function cleanText(text: string): string {
-  return text
-    .trimStart()
-    .replace(/\n\s*\n/g, "\n")
-    .replace(/  +/g, " ")
-    .replace(/^ +/gm, "")
-    .replace(/(?<=[a-z])\s?\n/, ". ")
-    .replace(/\*/g, "")
-    .replace(/\#/g, "")
-    .replace(/"/g, "");
-}
+type Template = TemplateComponent[];
 
-function splitParagraphByThreshold(text: string): string[] {
-  let out: string[] = [];
-  let threshold = 400;
-  let numItems = 0;
+function findBestTemplateMatch(slide: SlideContent, themeName: string): Template | null {
+  let templates: Template[] = GlassTemplate;
 
-  text
-    .trim()
-    .split(".")
-    .forEach((chunk) => {
-      if (numItems > 0) {
-        if (chunk.length + out[numItems - 1].length < threshold) {
-          if (chunk.trim().length > 0) {
-            out[numItems - 1] += " " + chunk.trim() + ".";
-          }
-        } else {
-          out.push(chunk.trim() + ".");
-          numItems++;
-        }
-      } else {
-        out.push(chunk.trim() + ".");
-        numItems++;
-      }
-    });
-  return out;
-}
+  let bestMatch: Template | null = null;
+  let bestScore = Number.NEGATIVE_INFINITY;
 
-export function splitParagraphs(text: string, autoBreak: boolean): string[] {
-  let validParagraphs = text.split("\n").filter((p) => {
-    return p.length >= 50;
-  });
-  let paragraphs: string[] = [];
+  for (const template of templates) {
+    const meta = template[0] as MetaTag;
+    let score = 0;
 
-  validParagraphs.forEach((validParagraph) => {
-    if (autoBreak) {
-      splitParagraphByThreshold(validParagraph).forEach((p) => {
-        paragraphs.push(p.replace(/\n/g, ""));
-      });
-    } else {
-      paragraphs.push(validParagraph.replace(/\n/g, ""));
+    // Check title length constraints
+    const titleLen = slide.title?.length || 0;
+    if (titleLen >= meta.elements.title.min && titleLen <= meta.elements.title.max) {
+      score += 2;
     }
-  });
-  return paragraphs.filter((p) => {
-    return p.trim().length >= 2;
-  });
+
+    // Check text length constraints
+    const textLen = slide.text?.length || 0;
+    if (textLen >= meta.elements.text.min && textLen <= meta.elements.text.max) {
+      score += 2;
+    }
+
+    // Check sections matching
+    const slidesSections = slide.sections || [];
+    const templateSections = meta.elements.sections;
+
+    if (slidesSections.length === templateSections.length) {
+      score += 3;
+
+      // Check each section's constraints
+      slidesSections.forEach((slideSection, index) => {
+        const templateSection = templateSections[index];
+        const subtitleLen = slideSection.subtitle?.length || 0;
+        const textLen = slideSection.text?.length || 0;
+
+        if (subtitleLen >= templateSection.title.min &&
+          subtitleLen <= templateSection.title.max) {
+          score += 1;
+        }
+
+        if (textLen >= templateSection.text.min &&
+          textLen <= templateSection.text.max) {
+          score += 1;
+        }
+      });
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = template;
+    }
+  }
+
+  return bestMatch;
 }
 
-export async function asyncCreateParagraphs(
+// Helper function to clean text from HTML, markup and special characters
+function cleanText(text: string): string {
+  // Remove HTML tags
+  let cleanedText = text.replace(/<[^>]*>/g, '');
+  // Remove markdown bold/italic markers
+  cleanedText = cleanedText.replace(/\*\*|\*/g, '');
+  // Remove any other special characters if needed
+  return cleanedText;
+}
+
+// Function to generate audio script from slide content
+function generateAudioScript(slideContent: SlideContent): string {
+  const titleText = cleanText(slideContent.title);
+  const mainText = cleanText(slideContent.text);
+
+  const sectionsText = slideContent.sections.map(section => {
+    const subtitle = cleanText(section.subtitle);
+    const text = cleanText(section.text);
+    return `${subtitle}: ${text}`;
+  }).join(' ');
+
+  return `${titleText}: ${mainText} ${sectionsText}`;
+}
+
+// Main transformation function
+function transformSlides(input: InputData): OutputData {
+  const transformedSlides: OutputSlide[] = input.slides.map(inputSlide => {
+    const slideContent: SlideContent = {
+      title: inputSlide.title,
+      text: inputSlide.text,
+      sections: inputSlide.sections
+    };
+
+    // Using type assertion to ensure empty array matches never[]
+    const emptyArray: Array<never> = [] as Array<never>;
+
+    return {
+      slideTemplate: '',
+      slideContent,
+      audioScript: generateAudioScript(slideContent),
+      audioUrl: '',
+      assets: emptyArray
+    };
+  });
+
+  return {
+    slides: transformedSlides
+  };
+}
+
+
+
+export async function asyncCreateSlides(
   courseCode: string,
   courseName: string,
   courseStructure: string[],
@@ -152,6 +214,9 @@ export async function asyncCreateParagraphs(
       break;
   }
 
+  //Temp
+  prompt = slideGeneration.prompt;
+
   prompt = prompt
     .replace(/v{courseName}/g, formattedCourseName)
     .replace(/v{languageName}/g, languageName)
@@ -161,19 +226,88 @@ export async function asyncCreateParagraphs(
 
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+
+    const response = await openai.beta.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
       messages: [
         {
-          role: "system",
-          content: contentGeneration.role,
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": slideGeneration.role
+            }
+          ]
         },
         {
-          role: "user",
-          content: prompt,
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": prompt
+            }
+          ]
         },
+        {
+          "role": "assistant",
+          "refusal": "I'm sorry, I can't assist with that request."
+        }
       ],
+      response_format: {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "presentation",
+          "strict": true,
+          "schema": {
+
+
+            "type": "object",
+            "properties": {
+              "slides": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "sections": {
+
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "subtitle": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["subtitle", "text"]
+                      }
+
+
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["title", "text", "sections"]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": ["slides"]
+          }
+        }
+      }
     });
+
+
+
 
     updateCourseTokens(
       courseCode,
@@ -181,21 +315,83 @@ export async function asyncCreateParagraphs(
       response.usage.completion_tokens
     );
 
-    let data = response.choices[0].message.content.trim();
-
-    const formattedData =
-      data.charAt(0).toUpperCase() + data.slice(1);
-    const paragraphs = splitParagraphs(formattedData, true);
-
-    const cleanParagraphs = paragraphs.map((paragraph) => {
-      return cleanText(paragraph);
-    });
+    const slidesData: any = response.choices[0].message.parsed || []
 
     let date = new Date()
 
+    // let payloads = []
+    // let courseSlides = []
+    // slidesData.slides.forEach((slide: any, slideIndex: number) => {
+    //   let payload: Payload = {
+    //     timestamp: date,
+    //     courseName: courseName,
+    //     courseCode: courseCode,
+    //     sectionIndex: sectionIndex,
+    //     elementIndex: elementIndex,
+    //     slideIndex: slideIndex,
+    //     paragraph: "",
+    //     language: languageIso,
+    //     voice: voice,
+    //     ttsStatus: "waiting",
+    //     titleStatus: "waiting",
+    //   }
+
+    //   switch (assetsSource) {
+
+    //     case 'openai':
+
+    //       payload = {
+    //         ...payload,
+    //         promptStatus: "waiting",
+    //         dalleStatus: "waiting-prompt",
+    //         prompts: []
+    //       };
+
+    //       break;
+
+    //     case 'vecteezy':
+
+    //       payload = {
+    //         ...payload,
+    //         assetStatus: "waiting",
+
+    //       };
+
+    //     case 'pexels':
+
+    //       payload = {
+    //         ...payload,
+    //         pexelsStatus: "waiting",
+
+    //       };
+
+    //     default:
+    //       break;
+    //   }
+    //   let courseSlide = {
+    //     "slideTemplate": "",
+    //     "slideContent": slide,
+    //     "audioScript": "",
+    //     "assets": [],
+    //   }
+
+    //   payloads.push(payload)
+    //   courseSlides.push(courseSlides)
+    // });
+
+
+    // const slide = db.collection("slide")
+    // await slide.insertMany(payloads)
+
+    let slidesArrayPath =
+      `sections.${sectionIndex}.elements.${elementIndex}.elementLesson`;
+
+    const formattedSlidesData = transformSlides(slidesData)
     let payloads = []
-    let courseParagraphs = []
-    cleanParagraphs.forEach((paragraph: string, slideIndex: number) => {
+    formattedSlidesData.slides.forEach((element, slideIndex) => {
+      const templateElement = findBestTemplateMatch(element.slideContent, "glass")
+      element.slideTemplate = templateElement[0].code
+      
       let payload: Payload = {
         timestamp: date,
         courseName: courseName,
@@ -203,9 +399,10 @@ export async function asyncCreateParagraphs(
         sectionIndex: sectionIndex,
         elementIndex: elementIndex,
         slideIndex: slideIndex,
-        paragraph: paragraph,
+        paragraph: element.audioScript,
         language: languageIso,
         voice: voice,
+        assets: templateElement[0].elements.media,
         ttsStatus: "waiting",
         titleStatus: "waiting",
       }
@@ -242,56 +439,27 @@ export async function asyncCreateParagraphs(
         default:
           break;
       }
-      let courseParagraph = {
-
-        "content": paragraph,
-        "audioScript": paragraph,
-        "imageData": {
-          "finalImage": {
-            "url": null,
-            "width": 0,
-            "height": 0
-          },
-        },
-        "videoData": {
-          "thumb": {
-            "url": "",
-            "width": 0,
-            "height": 0
-          },
-          "finalVideo": {
-            "url": "",
-            "width": 0,
-            "height": 0
-          }
-        }
-      }
-
       payloads.push(payload)
-      courseParagraphs.push(courseParagraph)
-    });
 
+    });
 
     const slide = db.collection("slide")
     await slide.insertMany(payloads)
-
-    let paragraphsArrayPath =
-      `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs`;
 
     await db.collection("course").findOneAndUpdate(
       { code: courseCode },
       {
         $set: {
-          [paragraphsArrayPath]: courseParagraphs
+          [slidesArrayPath]: formattedSlidesData
         },
       }
     );
 
   } catch (error) {
     await saveLog(
-      `Error: ${error.message} creating Paragraph for course: ${courseCode}.`,
+      `Error: ${error.message} creating Slides for course: ${courseCode}.`,
       "Error",
-      "asyncCreateParagraphs()",
+      "asyncCreateSlides()",
       "Courses/{courseCode}/CreateContent"
     );
     console.error(error);

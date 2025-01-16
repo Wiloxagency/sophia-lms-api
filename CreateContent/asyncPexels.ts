@@ -1,85 +1,210 @@
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 
-const database = createConnection();
+// Asset type configurations
+const ASSET_CONFIGS = {
+    'icon-b': {
+        defaultAsset: {
+            preview_url: "/assets/icon-black.png",
+            preview_dimensions: { width: 512, height: 512 }
+        },
+        assetType: "icon",
+        orientation: "portrait"
+    },
+    'icon-w': {
+        defaultAsset: {
+            preview_url: "/assets/icon-white.png",
+            preview_dimensions: { width: 512, height: 512 }
+        },
+        assetType: "icon",
+        orientation: "portrait"
+    },
+    'video-h': {
+        defaultAsset: {
+            url: "/assets/slide-placeholder-h.png",
+            assetType: "photo",
+            width: 1024,
+            height: 576,
+            orientation: "landscape"
+        },
+        assetType: "video",
+        orientation: "landscape",
+        fallbackType: "photo"
+    },
+    'video-v': {
+        defaultAsset: {
+            url: "/assets/slide-placeholder-v.png",
+            assetType: "photo",
+            width: 576,
+            height: 1024,
+            orientation: "portrait"
+        },
+        assetType: "video",
+        orientation: "portrait",
+        fallbackType: "photo"
+    },
+    'image-h': {
+        defaultAsset: {
+            url: "/assets/slide-placeholder-h.png",
+            assetType: "photo",
+            width: 1024,
+            height: 576,
+            orientation: "landscape"
+        },
+        assetType: "photo",
+        orientation: "landscape"
+    },
+    'image-v': {
+        defaultAsset: {
+            url: "/assets/slide-placeholder-v.png",
+            assetType: "photo",
+            width: 576,
+            height: 1024,
+            orientation: "portrait"
+        },
+        assetType: "photo",
+        orientation: "portrait"
+    },
+    'image-q': {
+        defaultAsset: {
+            url: "/assets/slide-placeholder-q.png",
+            assetType: "photo",
+            width: 1024,
+            height: 1024,
+            orientation: "square"
+        },
+        assetType: "photo",
+        orientation: "square"
+    }
+};
+
+async function findPexelsAsset(pexelsCollection: any, usedAssetsCollection: any, params: any) {
+    const { courseCode, sectionIndex, assetType, orientation } = params;
+    const usedAssetIds = await usedAssetsCollection.distinct("asset_id");
+    
+    // Try with section index
+    let doc = await pexelsCollection.findOne({
+        courseCode,
+        sectionIndex,
+        assetType,
+        orientation,
+        asset_id: { $nin: usedAssetIds }
+    });
+
+    // Try without section index
+    if (!doc) {
+        doc = await pexelsCollection.findOne({
+            courseCode,
+            assetType,
+            orientation,
+            asset_id: { $nin: usedAssetIds }
+        });
+    }
+
+    return doc;
+}
+
+async function processAsset(asset: string, params: any, collections: any) {
+    const { pexelsCollection, usedAssetsCollection } = collections;
+    const config = ASSET_CONFIGS[asset];
+
+    if (!config) {
+        await saveLog(
+            `Error: Incorrect asset type for Pexels in course: ${params.courseCode}, sectionIndex ${params.sectionIndex}, slideIndex ${params.slideIndex}`,
+            "Error",
+            "AsyncPexelsCycle()",
+            "Courses/{courseCode}/CreateContent"
+        );
+        return null;
+    }
+
+    // For icon types, return default asset directly
+    if (config.assetType === "icon") {
+        return config.defaultAsset;
+    }
+
+    // Try to find primary asset type
+    let pexelsDoc = await findPexelsAsset(pexelsCollection, usedAssetsCollection, {
+        ...params,
+        assetType: config.assetType,
+        orientation: config.orientation
+    });
+
+    // If video not found and fallback type exists, try with fallback
+    if (!pexelsDoc && config.fallbackType) {
+        pexelsDoc = await findPexelsAsset(pexelsCollection, usedAssetsCollection, {
+            ...params,
+            assetType: config.fallbackType,
+            orientation: config.orientation
+        });
+    }
+
+    // If no asset found, use default
+    if (!pexelsDoc) {
+        return config.defaultAsset;
+    }
+
+    // Register used asset
+    if (pexelsDoc.asset_id) {
+        await usedAssetsCollection.insertOne({ asset_id: pexelsDoc.asset_id });
+    }
+
+    return pexelsDoc;
+}
+
+function formatAssetData(pexelsDoc: any, assetType: string) {
+    return {
+        url: pexelsDoc.preview_url,
+        assetType: assetType,
+        width: pexelsDoc.preview_dimensions.width,
+        height: pexelsDoc.preview_dimensions.height,
+        orientation: pexelsDoc.preview_dimensions.width > pexelsDoc.preview_dimensions.height
+            ? "landscape"
+            : pexelsDoc.preview_dimensions.width < pexelsDoc.preview_dimensions.height
+                ? "portrait"
+                : "square"
+    };
+}
 
 export async function AsyncPexelsCycle() {
     console.info('AsyncPexelsCycle function ran at:' + new Date().toISOString());
 
-    const db = await database;
-    const slideCollection = db.collection("slide");
-    const pexelsCollection = db.collection("pexels");
-    const courseCollection = db.collection("course");
-    const usedAssetsCollection = db.collection("used_assets"); // Nueva colección para registrar los assets usados
+    const db = await createConnection();
+    const collections = {
+        slideCollection: db.collection("slide"),
+        pexelsCollection: db.collection("pexels"),
+        courseCollection: db.collection("course"),
+        usedAssetsCollection: db.collection("used_assets")
+    };
 
-    // Obtener todos los documentos de slide con pexelsStatus igual a "waiting"
-    const slides = await slideCollection.find({ pexelsStatus: "waiting" }).toArray();
+    const slides = await collections.slideCollection.find({ pexelsStatus: "waiting" }).toArray();
 
     for (const slideDoc of slides) {
-        const { courseCode, sectionIndex, elementIndex, slideIndex } = slideDoc;
+        const { courseCode, sectionIndex, elementIndex, slideIndex, assets } = slideDoc;
+        let assetsData = [];
 
         try {
-            // Determinar el tipo de asset: video para slideIndex par, foto para impar
-            const isEvenSlideIndex = slideIndex % 2 === 0;
-            let assetType = isEvenSlideIndex ? "video" : "photo";
+            for (const asset of assets) {
+                const pexelsDoc = await processAsset(
+                    asset,
+                    { courseCode, sectionIndex, slideIndex },
+                    { pexelsCollection: collections.pexelsCollection, usedAssetsCollection: collections.usedAssetsCollection }
+                );
 
-            // Intentar buscar un documento en pexels con el tipo de asset seleccionado que no haya sido usado
-            let pexelsDoc = await pexelsCollection.findOne({
-                courseCode,
-                sectionIndex,
-                assetType,
-                asset_id: { $nin: await usedAssetsCollection.distinct("asset_id") }
-            });
-
-            // Si no se encuentra un asset, intentar sin `sectionIndex`
-            if (!pexelsDoc) {
-                pexelsDoc = await pexelsCollection.findOne({
-                    courseCode,
-                    assetType,
-                    asset_id: { $nin: await usedAssetsCollection.distinct("asset_id") }
-                });
+                if (pexelsDoc) {
+                    const config = ASSET_CONFIGS[asset];
+                    assetsData.push(formatAssetData(pexelsDoc, config.assetType));
+                }
             }
 
-            // Si aún no se encuentra un asset, utilizar la foto por defecto
-            const finalData = pexelsDoc
-                ? {
-                    url: pexelsDoc.preview_url,
-                    width: pexelsDoc.preview_dimensions.width,
-                    height: pexelsDoc.preview_dimensions.height
-                }
-                : {
-                    url: "./assets/slide-placeholder.png",
-                    width: 1024,
-                    height: 576 // Dimensiones estándar de imagen de placeholder
-                };
-            assetType = pexelsDoc ? assetType : "image"
+            const updateField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets`;
             
-            // Determinar el campo de actualización en `course` según el tipo de asset
-            const updateField = assetType === "video"
-                ? `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.videoData.finalVideo`
-                : `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage`;
-
-            const currentSrtPath =
-                `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.srt`;
-
-            // Actualizar el documento course con la información obtenida
-            await courseCollection.updateOne(
+            await collections.courseCollection.updateOne(
                 { code: courseCode },
-                {
-                    $set: {
-                        [updateField]: finalData,
-                        [currentSrtPath]: []
-                    }
-                }
+                { $set: { [updateField]: assetsData } }
             );
 
-            // Si se encontró un documento en pexels, registrar su `asset_id` en `used_assets` en lugar de eliminarlo directamente
-            if (pexelsDoc) {
-                await usedAssetsCollection.insertOne({ asset_id: pexelsDoc.asset_id });
-            }
-
-            // Actualizar el estado de `assetStatus` en el documento de `slide` a "created"
-            await slideCollection.updateOne(
+            await collections.slideCollection.updateOne(
                 { _id: slideDoc._id },
                 { $set: { pexelsStatus: "created" } }
             );
@@ -94,7 +219,7 @@ export async function AsyncPexelsCycle() {
         }
     }
 
-    // Al final, eliminar los documentos de `pexels` que han sido registrados en `used_assets`
-    const usedAssetIds = await usedAssetsCollection.distinct("asset_id");
-    await pexelsCollection.deleteMany({ asset_id: { $in: usedAssetIds } });
+    // Cleanup used assets
+    const usedAssetIds = await collections.usedAssetsCollection.distinct("asset_id");
+    await collections.pexelsCollection.deleteMany({ asset_id: { $in: usedAssetIds } });
 }

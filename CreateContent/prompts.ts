@@ -54,7 +54,27 @@ export const searchImages = "We have a course in v{languageName} called: \"v{cou
 // Images finder - GPT-3
 export const searchImagesGpt3 = "We have a course in spanish called: \"v{courseName}\", the first module of the course is: \"v{sectionTitle}\" and the first paragraph of the module contains the following information:\n###\n\"v{paragraphContent}\"\n###\nConsidering the previous information, write in English a short and accurate title related to that paragraph in the context of the course and module.\nThe phrase must not exceed 5 words.\n###\nThe phrase is:"
 
-// Agentic prompt - gpt-4o
+// Prompt - gpt-4o
+// Create a content slide based in sections
+export const slideGeneration = {
+"role": "You are an expert in the area of content development",
+"prompt": `Considering the context of the course \"v{courseName}\", 
+create an extensive content in v{languageName} explaining the subject \"v{text}\", 
+the paragraphs must be relevant and the information must be exclusively from that subject. 
+The generated content will be use in 10 slides of a lesson like a presentation.
+Each slide must have a title and a text. Some slides may contain between 0 and 4 sections; 
+It is very important that the number of sections varies across the slides. 
+Some slides with a large title and a lot of text should not have any sections, 
+while others should have only one section, and some should have 2, 3, or 4 sections. 
+The distribution should ensure that no specific number of sections predominates. 
+The more extensive the subtitles and texts are, the more sections that slide should have.
+At least two slides must have no sections, at least two slides must have 1 section, 
+at least two must have 2 sections, at least one must have 3 sections, 
+and at least one must have 4 sections. All slides must have a title and text.
+No slide should have more than 4 sections.
+`}
+
+// Agentic} prompt - gpt-4o
 // Extract paragraphs for a course based in document
 export const contentParagraphsAgent = {
     "name": "Professional Assistant",

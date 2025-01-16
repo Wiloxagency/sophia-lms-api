@@ -75,8 +75,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                             "title": "Presentation",
                             "elementCode": uuidv4(),
                             "elementLesson": {
-                                "lessonTheme": lessonTheme,
-                                "paragraphs": []
+                                "lessonTheme": lessonTheme
                             }
 
                         }

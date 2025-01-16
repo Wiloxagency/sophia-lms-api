@@ -70,6 +70,6 @@ async function saveAssetsToDB(
         assetType,
     }));
 
-    console.info(`${documents.length }${assetType}s saved.`)
+    console.info(`${documents.length } ${assetType}s saved.`)
     await collection.insertMany(documents);
 }

@@ -23,7 +23,7 @@ const httpTrigger: AzureFunction = async function (
   while others should have only one section, and some should have 2, 3, or 4 sections. 
   The distribution should ensure that no specific number of sections predominates. 
   The more extensive the subtitles and texts are, the more sections that slide should have.
-  At least two slide must have no sections, at least two slide must have 1 section, 
+  At least two slides must have no sections, at least two slides must have 1 section, 
   at least two must have 2 sections, at least one must have 3 sections, 
   and at least one must have 4 sections. All slides must have a title and text.
   No slide should have more than 4 sections.
@@ -104,12 +104,6 @@ const httpTrigger: AzureFunction = async function (
           },
           "additionalProperties": false,
           "required": ["slides"]
-
-
-
-
-
-
         }
       }
     }

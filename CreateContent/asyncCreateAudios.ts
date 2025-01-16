@@ -122,7 +122,7 @@ const generateTTS = async (slideItem: any, db: Db) => {
         console.info("Audio saved:", audioUrl)
 
         let currentAudioPath =
-            `sections.${slideItem.sectionIndex}.elements.${slideItem.elementIndex}.elementLesson.paragraphs.${slideItem.slideIndex}.audioUrl`;
+            `sections.${slideItem.sectionIndex}.elements.${slideItem.elementIndex}.elementLesson.slides.${slideItem.slideIndex}.audioUrl`;
         await db.collection("course").findOneAndUpdate(
             { code: slideItem.courseCode },
             {
@@ -137,7 +137,7 @@ const generateTTS = async (slideItem: any, db: Db) => {
 
     } catch (err) {
         reverseStatus (slideItem)
-        await saveLog(`Error creating audio for course: ${slideItem.courseCode}, sectionIndex ${slideItem.sectionIndex}, elementIndex ${slideItem.elementIndex}, paragraphIndex ${slideItem.slideIndex}.`, "Error", "asyncCreateAudios()", "Courses/{courseCode}/CreateContent")
+        await saveLog(`Error creating audio for course: ${slideItem.courseCode}, sectionIndex ${slideItem.sectionIndex}, elementIndex ${slideItem.elementIndex}, slideIndex ${slideItem.slideIndex}.`, "Error", "asyncCreateAudios()", "Courses/{courseCode}/CreateContent")
     }
 
 }

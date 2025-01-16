@@ -2,8 +2,8 @@ import { AzureFunction, Context } from "@azure/functions"
 import { AsyncPromptCycle } from "../CreateContent/asyncCreateDallePrompt";
 import { AsyncTextToSpeechCycle } from "../CreateContent/asyncCreateAudios";
 import { AsyncDalleImgCycle } from "../CreateContent/asyncCreateDalleImage";
-import { AsyncTitleCycle } from "../CreateContent/asyncCreateTitles";
-import { AsyncVecteezyCycle } from "../CreateContent/asyncVecteezy";
+// import { AsyncTitleCycle } from "../CreateContent/asyncCreateTitles";
+// import { AsyncVecteezyCycle } from "../CreateContent/asyncVecteezy";
 import { AsyncPexelsCycle } from "../CreateContent/asyncPexels";
 
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
@@ -15,13 +15,13 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
     }
     context.log('Timer trigger function ran!', timeStamp);   
 
-    AsyncPromptCycle()
+    // AsyncPromptCycle()
     AsyncTextToSpeechCycle()
-    AsyncTitleCycle()
+    // AsyncTitleCycle()
     
     setTimeout(() => {
         AsyncDalleImgCycle()
-        AsyncVecteezyCycle()
+        // AsyncVecteezyCycle()
         AsyncPexelsCycle()
     }, 15000);
 };
