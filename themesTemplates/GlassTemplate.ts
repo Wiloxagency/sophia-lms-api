@@ -19,10 +19,14 @@ export const GlassTemplate: Template[] = [
                 },
                 "text": {
                     "min": 0,
-                    "max": 13
+                    "max": 14
                 },
                 "sections": []
             }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
         },
         {
             "component": "card",
@@ -32,7 +36,7 @@ export const GlassTemplate: Template[] = [
             "top": "25%",
             "padding": "6cqw",
             "extraClasses": "glass justify-center",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "iconPosition": "absolute",
             "iconHeight": "30%",
             "iconRight": "4%",
@@ -76,6 +80,10 @@ export const GlassTemplate: Template[] = [
                 },
                 "sections": []
             }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
         },
         {
             "component": "background",
@@ -164,6 +172,10 @@ export const GlassTemplate: Template[] = [
             }
         },
         {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
             "component": "background",
             "backgroundColor": "#e3e5fa"
         },
@@ -250,6 +262,10 @@ export const GlassTemplate: Template[] = [
             }
         },
         {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
             "component": "mediaWithVMirror",
             "video": "[video-v]",
             "rightOrLeft": "right",
@@ -296,6 +312,10 @@ export const GlassTemplate: Template[] = [
             }
         },
         {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
             "component": "mediaWithMirror",
             "video": "[video-h]",
             "layer": 1,
@@ -317,7 +337,7 @@ export const GlassTemplate: Template[] = [
             "borderRadius": "1.5rem",
             "bgColor": "#e3e5fa",
             "padding": "1cqw",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "iconWidth": "clamp(40px, 30%, 30%)",
             "iconMargingRight": "4%",
             "title": "[sections.0.subtitle]",
@@ -370,7 +390,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 12
+                            "max": 30
                         }
                     },
                     {
@@ -380,11 +400,15 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 12
+                            "max": 30
                         }
                     }
                 ]
             }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
         },
         {
             "component": "background",
@@ -419,7 +443,7 @@ export const GlassTemplate: Template[] = [
             "titleFontSize": 1.2,
             "text": "[sections.0.text]",
             "textFontSize": 1,
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "iconWidth": "clamp(40px, 3%, 3%)",
             "layer": 4,
             "display": true
@@ -438,7 +462,7 @@ export const GlassTemplate: Template[] = [
             "titleFontSize": 1.2,
             "text": "[sections.1.text]",
             "textFontSize": 1,
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "iconWidth": "clamp(40px, 3%, 3%)",
             "iconMargingRight": "1cqw",
             "layer": 4,
@@ -521,6 +545,10 @@ export const GlassTemplate: Template[] = [
                     }
                 ]
             }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
         },
         {
             "component": "card",
@@ -688,6 +716,10 @@ export const GlassTemplate: Template[] = [
             }
         },
         {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
             "component": "background",
             "backgroundColor": "#e3e5fa"
         },
@@ -714,7 +746,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRL",
             "id": "iconRL1",
-            "icon-b": "[icon]",
+            "icon": "[icon-w]",
             "width": "33%",
             "height": "8%",
             "top": "10%",
@@ -725,7 +757,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRL",
             "id": "iconRL2",
-            "icon-b": "[icon]",
+            "icon": "[icon-w]",
             "width": "33%",
             "height": "8%",
             "top": "53%",
@@ -800,11 +832,11 @@ export const GlassTemplate: Template[] = [
                 ],
                 "title": {
                     "min": 1,
-                    "max": 2
+                    "max": 20
                 },
                 "text": {
                     "min": 1,
-                    "max": 25
+                    "max": 40
                 },
                 "sections": [
                     {
@@ -839,6 +871,10 @@ export const GlassTemplate: Template[] = [
                     }
                 ]
             }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
         },
         {
             "component": "background",
@@ -879,7 +915,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT1",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "10%",
             "right": "3%",
@@ -897,7 +933,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT2",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "41%",
             "right": "3%",
@@ -915,7 +951,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT3",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "72%",
             "right": "3%",
@@ -1018,6 +1054,10 @@ export const GlassTemplate: Template[] = [
             }
         },
         {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
             "component": "background",
             "backgroundColor": "#e3e5fa"
         },
@@ -1045,7 +1085,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT1",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "32%",
             "right": "52%",
@@ -1065,7 +1105,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT2",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "32%",
             "right": "3%",
@@ -1085,7 +1125,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT3",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "63%",
             "right": "52%",
@@ -1105,7 +1145,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "iconRT",
             "id": "iconRT4",
-            "icon-b": "[icon]",
+            "icon": "[icon-b]",
             "width": "45%",
             "top": "63%",
             "right": "3%",

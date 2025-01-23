@@ -1,15 +1,67 @@
 import { BlobServiceClient } from '@azure/storage-blob';
-import path from 'path';
+import { GlassTemplate } from '../themesTemplates/GlassTemplate';
+import { findBestTemplateMatch } from './findBestTemplateMatch';
+import { createConnection } from '../shared/mongo';
+
+const database = createConnection()
+
+// Helper function to slice text based on specified delimiters and max length
+function sliceText(text: string, maxLength: number, isTitle: boolean = false): string {
+    // If text is within limits, return as is
+    if (text.length <= maxLength) {
+        return text;
+    }
+
+    // Define delimiters based on content type
+    const delimiters = isTitle ? 
+        ['. ', ': '] : 
+        ['. '];
+
+    let bestSlice = text.substring(0, maxLength);
+    let bestEndPosition = 0;
+
+    // Try each delimiter
+    for (const delimiter of delimiters) {
+        const lastIndex = text.lastIndexOf(delimiter, maxLength);
+        if (lastIndex > bestEndPosition) {
+            bestEndPosition = lastIndex;
+            bestSlice = text.substring(0, lastIndex + 1).trim();
+        }
+    }
+
+    // If no delimiter found, force cut at maxLength
+    if (bestEndPosition === 0) {
+        bestSlice = text.substring(0, maxLength).trim() + "...";
+    }
+
+    return bestSlice;
+}
+
+// Helper function to validate and slice content against constraints
+function processContentWithConstraints(
+    content: string, 
+    constraints: { min: number; max: number },
+    isTitle: boolean = false
+): string {
+    const words = content.split(' ');
+    
+    if (words.length < constraints.min) {
+        return content; // Return as is if too short
+    }
+    
+    if (words.length > constraints.max) {
+        return sliceText(content, content.split(' ', constraints.max + 1).join(' ').length, isTitle);
+    }
+    
+    return content;
+}
 
 export async function fillTemplate(slides: any, presentationName: string) {
-    try {
-        // Load GlassTemplate
-        const glassTemplatePath = path.join(__dirname, '../themesTemplates/GlassTemplate.ts');
-        const GlassTemplate = require(glassTemplatePath).GlassTemplate;
 
+    try {
         // Process each slide
-        const processedSlides = slides.slides.map((slide: any) => {
-            // Find matching template in GlassTemplate
+        const processedSlides = slides.map((slide: any) => {
+            // Rest of the existing code remains unchanged...
             const templateCode = slide.slideTemplate;
             const template = GlassTemplate.find((t: any) => 
                 t[0].component === "meta-tag" && t[0].code === templateCode
@@ -18,6 +70,14 @@ export async function fillTemplate(slides: any, presentationName: string) {
             if (!template) {
                 throw new Error(`Template not found for code: ${templateCode}`);
             }
+
+            // Get constraints from meta-tag
+            const metaTag = template[0];
+            const constraints = {
+                title: metaTag.elements.title,
+                text: metaTag.elements.text,
+                sections: metaTag.elements.sections
+            };
 
             // Create a deep copy of the template to modify
             const processedTemplate = JSON.parse(JSON.stringify(template));
@@ -28,6 +88,12 @@ export async function fillTemplate(slides: any, presentationName: string) {
                     return component;
                 }
 
+                // Process audio replacement
+                if (component.component === "audio") {
+                    component.audioUrl = slide.audioUrl
+                    return component;
+                }
+                
                 // Replace media placeholders
                 const mediaTypes = {
                     "video-h": (assetType: string, orientation: string) => assetType == "video" && orientation == "landscape",
@@ -39,9 +105,9 @@ export async function fillTemplate(slides: any, presentationName: string) {
                     "icon-w": (assetType: string) => assetType == "icon"
                 };
 
-                // Replace video placeholders
+                // Process media replacements
                 if (component.video) {
-                    const videoType = component.video.slice(1, -1); // Remove brackets
+                    const videoType = component.video.slice(1, -1);
                     const matchingAsset = slide.assets.find((asset: any) => 
                         asset.assetType === "video" && mediaTypes[videoType](asset.assetType, asset.orientation)
                     );
@@ -50,7 +116,6 @@ export async function fillTemplate(slides: any, presentationName: string) {
                     }
                 }
 
-                // Replace image placeholders
                 if (component.image) {
                     const imageType = component.image.slice(1, -1);
                     const matchingAsset = slide.assets.find((asset: any) => 
@@ -61,7 +126,6 @@ export async function fillTemplate(slides: any, presentationName: string) {
                     }
                 }
 
-                // Replace icon placeholders
                 if (component.icon) {
                     const iconType = component.icon.slice(1, -1);
                     const matchingAsset = slide.assets.find((asset: any) => 
@@ -72,42 +136,61 @@ export async function fillTemplate(slides: any, presentationName: string) {
                     }
                 }
 
-                // Replace title placeholder
+                // Process title with constraints
                 if (component.title && component.title.startsWith("[") && component.title.endsWith("]")) {
                     if (component.title === "[title]") {
-                        component.title = slide.slideContent.title;
+                        component.title = processContentWithConstraints(
+                            slide.slideContent.title,
+                            constraints.title,
+                            true
+                        );
                     } else if (component.title.startsWith("[sections.")) {
                         const sectionIndex = parseInt(component.title.match(/\d+/)[0]);
-                        component.title = slide.slideContent.sections[sectionIndex]?.subtitle || "";
+                        const sectionContent = slide.slideContent.sections[sectionIndex]?.subtitle || "";
+                        if (constraints.sections && constraints.sections[sectionIndex]) {
+                            component.title = processContentWithConstraints(
+                                sectionContent,
+                                constraints.sections[sectionIndex].title,
+                                true
+                            );
+                        }
                     }
                 }
 
-                // Replace text placeholder
+                // Process text with constraints
                 if (component.text && component.text.startsWith("[") && component.text.endsWith("]")) {
                     if (component.text === "[text]") {
-                        component.text = slide.slideContent.text;
+                        component.text = processContentWithConstraints(
+                            slide.slideContent.text,
+                            constraints.text,
+                            false
+                        );
                     } else if (component.text.startsWith("[sections.")) {
                         const sectionIndex = parseInt(component.text.match(/\d+/)[0]);
-                        component.text = slide.slideContent.sections[sectionIndex]?.text || "";
+                        const sectionContent = slide.slideContent.sections[sectionIndex]?.text || "";
+                        if (constraints.sections && constraints.sections[sectionIndex]) {
+                            component.text = processContentWithConstraints(
+                                sectionContent,
+                                constraints.sections[sectionIndex].text,
+                                false
+                            );
+                        }
                     }
                 }
+
+                
 
                 return component;
             });
         });
 
-        // Create the final presentation object
-        const presentation = {
-            slides: processedSlides
-        };
-
-        // Save to Azure Blob Storage
+        // Save presentation object to Azure Blob Storage
         const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
         const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
         const containerClient = blobServiceClient.getContainerClient("presentations");
         const blobClient = containerClient.getBlockBlobClient(`${presentationName}.json`);
 
-        await blobClient.upload(JSON.stringify(presentation), JSON.stringify(presentation).length);
+        await blobClient.upload(JSON.stringify(processedSlides), JSON.stringify(processedSlides).length);
 
         return { status: "success", message: `Presentation ${presentationName}.json created successfully` };
 
