@@ -48,13 +48,22 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             slides[slideIndex].slideTemplate = templateElement[0].code
         }
 
+        // Get global presentation data
+        const globalData = {
+            "defaultTemplate":"GlassTemplate",
+            "defaultTheme":courseData.slideshowColorThemeName,
+            "musicTrack": courseData.slideshowBackgroundMusicUrl
+        }
+
         // 3. Send slides through fillTemplate function
-        await fillTemplate(slides, presentationName);
+        await fillTemplate(slides, globalData, presentationName);
 
         // 4. Return "Ok" response
+
         context.res = {
             status: 200,
-            body: "Ok"
+            headers: { "Content-Type": "application/json" },
+            body: { "response": "Ok" }
         };
 
     } catch (error) {

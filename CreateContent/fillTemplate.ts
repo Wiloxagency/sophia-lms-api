@@ -56,11 +56,11 @@ function processContentWithConstraints(
     return content;
 }
 
-export async function fillTemplate(slides: any, presentationName: string) {
+export async function fillTemplate(slides: any, globalData:any, presentationName: string) {
 
     try {
         // Process each slide
-        const processedSlides = slides.map((slide: any) => {
+        let processedSlides = slides.map((slide: any) => {
             // Rest of the existing code remains unchanged...
             const templateCode = slide.slideTemplate;
             const template = GlassTemplate.find((t: any) => 
@@ -177,12 +177,12 @@ export async function fillTemplate(slides: any, presentationName: string) {
                         }
                     }
                 }
-
-                
-
                 return component;
             });
         });
+
+        // Add globaldata to presentation
+        processedSlides.unshift(globalData);
 
         // Save presentation object to Azure Blob Storage
         const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
