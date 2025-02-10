@@ -28,6 +28,7 @@ const httpTrigger: AzureFunction = async function (
       const Courses = db.collection("course");
       const course = req.body.course;
       course.creationDate = new Date();
+      course.isNewSlideStructure = true;
       const resp = Courses.insertOne(course);
 
       const body = await resp;

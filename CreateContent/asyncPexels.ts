@@ -21,11 +21,8 @@ const ASSET_CONFIGS = {
     },
     'video-h': {
         defaultAsset: {
-            url: "/assets/slide-placeholder-h.png",
-            assetType: "photo",
-            width: 1024,
-            height: 576,
-            orientation: "landscape"
+            preview_url: "/assets/slide-placeholder-h.png",
+            preview_dimensions: { width: 1024, height: 576 },
         },
         assetType: "video",
         orientation: "landscape",
@@ -33,11 +30,8 @@ const ASSET_CONFIGS = {
     },
     'video-v': {
         defaultAsset: {
-            url: "/assets/slide-placeholder-v.png",
-            assetType: "photo",
-            width: 576,
-            height: 1024,
-            orientation: "portrait"
+            preview_url: "/assets/slide-placeholder-v.png",
+            preview_dimensions: { width: 576, height: 1024 },
         },
         assetType: "video",
         orientation: "portrait",
@@ -45,33 +39,24 @@ const ASSET_CONFIGS = {
     },
     'image-h': {
         defaultAsset: {
-            url: "/assets/slide-placeholder-h.png",
-            assetType: "photo",
-            width: 1024,
-            height: 576,
-            orientation: "landscape"
+            preview_url: "/assets/slide-placeholder-h.png",
+            preview_dimensions: { width: 1024, height: 576 },
         },
         assetType: "photo",
         orientation: "landscape"
     },
     'image-v': {
         defaultAsset: {
-            url: "/assets/slide-placeholder-v.png",
-            assetType: "photo",
-            width: 576,
-            height: 1024,
-            orientation: "portrait"
+            preview_url: "/assets/slide-placeholder-v.png",
+            preview_dimensions: { width: 576, height: 1024 },
         },
         assetType: "photo",
         orientation: "portrait"
     },
     'image-q': {
         defaultAsset: {
-            url: "/assets/slide-placeholder-q.png",
-            assetType: "photo",
-            width: 1024,
-            height: 1024,
-            orientation: "square"
+            preview_url: "/assets/slide-placeholder-q.png",
+            preview_dimensions: { width: 1024, height: 1024 },
         },
         assetType: "photo",
         orientation: "square"
@@ -193,6 +178,9 @@ export async function AsyncPexelsCycle() {
 
                 if (pexelsDoc) {
                     const config = ASSET_CONFIGS[asset];
+                    if (!pexelsDoc.preview_dimensions) {
+                        console.info(pexelsDoc)
+                    }
                     assetsData.push(formatAssetData(pexelsDoc, config.assetType));
                 }
             }

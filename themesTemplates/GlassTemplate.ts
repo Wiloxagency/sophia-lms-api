@@ -3,64 +3,7 @@ import { TemplateComponent } from "../CreateContent/interfaces";
 type Template = TemplateComponent[];
 
 export const GlassTemplate: Template[] = [
-    [
-        {
-            "component": "meta-tag",
-            "code": "PO-00",
-            "description": "Portada del curso",
-            "elements": {
-                "media": [
-                    "icon-b",
-                    "video-h"
-                ],
-                "title": {
-                    "min": 1,
-                    "max": 10
-                },
-                "text": {
-                    "min": 0,
-                    "max": 14
-                },
-                "sections": []
-            }
-        },
-        {
-            "component": "audio",
-            "audioUrl": "[audio-url]"
-        },
-        {
-            "component": "card",
-            "id": "card1",
-            "width": "100%",
-            "height": "50%",
-            "top": "25%",
-            "padding": "6cqw",
-            "extraClasses": "glass justify-center",
-            "icon": "[icon-b]",
-            "iconPosition": "absolute",
-            "iconHeight": "30%",
-            "iconRight": "4%",
-            "title": "[title]",
-            "titleFontSize": 6,
-            "titleFontColor": "#FFF",
-            "titleLineHeight": "6cqw",
-            "text": "[text]",
-            "textFontSize": 3.5,
-            "textFontColor": "#FFF",
-            "textExtraClasses": "#FFF",
-            "textMarginTop": "1cqw",
-            "layer": 3,
-            "display": true
-        },
-        {
-            "component": "video",
-            "video": "[video-h]",
-            "width": "100%",
-            "height": "100%",
-            "layer": 1,
-            "display": true
-        }
-    ],
+    
     [
         {
             "component": "meta-tag",
@@ -282,6 +225,64 @@ export const GlassTemplate: Template[] = [
     [
         {
             "component": "meta-tag",
+            "code": "00-03",
+            "description": "Portada del curso",
+            "elements": {
+                "media": [
+                    "icon-b",
+                    "video-h"
+                ],
+                "title": {
+                    "min": 1,
+                    "max": 10
+                },
+                "text": {
+                    "min": 0,
+                    "max": 14
+                },
+                "sections": []
+            }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
+            "component": "card",
+            "id": "card1",
+            "width": "100%",
+            "height": "50%",
+            "top": "25%",
+            "padding": "6cqw",
+            "extraClasses": "glass justify-center",
+            "icon": "[icon-b]",
+            "iconPosition": "absolute",
+            "iconHeight": "30%",
+            "iconRight": "4%",
+            "title": "[title]",
+            "titleFontSize": 6,
+            "titleFontColor": "#FFF",
+            "titleLineHeight": "6cqw",
+            "text": "[text]",
+            "textFontSize": 3.5,
+            "textFontColor": "#FFF",
+            "textExtraClasses": "#FFF",
+            "textMarginTop": "1cqw",
+            "layer": 3,
+            "display": true
+        },
+        {
+            "component": "video",
+            "video": "[video-h]",
+            "width": "100%",
+            "height": "100%",
+            "layer": 1,
+            "display": true
+        }
+    ],
+    [
+        {
+            "component": "meta-tag",
             "code": "01-00",
             "description": "Slide con video horizontal",
             "elements": {
@@ -360,6 +361,126 @@ export const GlassTemplate: Template[] = [
             "position": "relative",
             "alignment": "flex items-center justify-center",
             "layer": 2,
+            "display": true
+        }
+    ],
+    [
+        {
+            "component": "meta-tag",
+            "code": "01-05",
+            "description": "Slide sin fotos ni video",
+            "elements": {
+                "media": [],
+                "title": {
+                    "min": 1,
+                    "max": 15
+                },
+                "text": {
+                    "min": 1,
+                    "max": 40
+                },
+                "sections": [
+                    {
+                        "title": {
+                            "min": 1,
+                            "max": 10
+                        },
+                        "text": {
+                            "min": 1,
+                            "max": 25
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
+            "component": "background",
+            "backgroundColor": "#e3e5fa"
+        },
+        {
+            "component": "card",
+            "id": "card1",
+            "width": "50%",
+            "padding": "5cqw",
+            "bgColor": "rgb(125, 194, 255, 0.7)",
+            "title": "[title]",
+            "titleFontSize": 3.5,
+            "titleFontColor": "#2e2e2e",
+            "titleFontWeight": "200",
+            "text": "[text]",
+            "textMarginTop": "1cqw",
+            "textFontSize": 2,
+            "layer": 5,
+            "extraClasses": "glass-12-sb justify-center",
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card2",
+            "width": "50%",
+            "right":"0",
+            "padding": "2cqw",
+            "bgColor": "rgb(227, 229, 250, 0.7)",
+            "layer": 5,
+            "extraClasses": "glass-12-sb",
+            "display": true
+        },
+        {
+            "component": "circle",
+            "id": "circle1",
+            "stopColor1": "#7dc2ff",
+            "stopColor2": "#1674c7",
+            "width": "45%",
+            "height": "45%",
+            "top": "60%",
+            "right": "-18%",
+            "layer": 6,
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card3",
+            "top": "30%",
+            "right":"5%",
+            "width": "48%",
+            "height": "40%",
+            "extraClasses": "glass justify-center",
+            "padding": "2cqw",
+            "title": "[sections.0.subtitle]",
+            "titleFontSize": 2.2,
+            "text": "[sections.0.text]",
+            "textFontSize": 1.7,
+            "textMarginTop": "1cqw",
+            "layer": 7,
+            "display": true
+        },
+    
+        {
+            "component": "star",
+            "id": "star1",
+            "stopColor1": "#7dc2ff",
+            "stopColor2": "#1674c7",
+            "width": "40%",
+            "height": "40%",
+            "top": "12%",
+            "right": "68%",
+            "layer": 1,
+            "display": true
+        },
+        {
+            "component": "circle",
+            "id": "circle2",
+            "stopColor1": "#7dc2ff",
+            "stopColor2": "#1674c7",
+            "width": "30%",
+            "height": "30%",
+            "top": "85%",
+            "right": "36%",
+            "layer": 3,
             "display": true
         }
     ],
@@ -986,6 +1107,207 @@ export const GlassTemplate: Template[] = [
             "top": "70%",
             "right": "35%",
             "layer": 1,
+            "display": true
+        }
+    ],
+    [
+        {
+            "component": "meta-tag",
+            "code": "03-01",
+            "description": "Slide con tres imágenes horizontales",
+            "elements": {
+                "media": [
+                    "image-h",
+                    "image-h",
+                    "image-h"
+                ],
+                "title": {
+                    "min": 1,
+                    "max": 10
+                },
+                "text": {
+                    "min": 1,
+                    "max": 40
+                },
+                "sections": [
+                    {
+                        "title": {
+                            "min": 1,
+                            "max": 7
+                        },
+                        "text": {
+                            "min": 1,
+                            "max": 30
+                        }
+                    },
+                    {
+                        "title": {
+                            "min": 1,
+                            "max": 7
+                        },
+                        "text": {
+                            "min": 1,
+                            "max": 30
+                        }
+                    },
+                    {
+                        "title": {
+                            "min": 1,
+                            "max": 7
+                        },
+                        "text": {
+                            "min": 1,
+                            "max": 30
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+        {
+            "component": "background",
+            "backgroundColor": "#e3e5fa"
+        },
+        {
+            "component": "card",
+            "id": "card4",
+            "title": "[title]",
+            "titleFontSize": 3,
+            "titleFontColor": "#000",
+            "titleLineHeight": "1.1",
+            "width": "30%",
+            "height": "20%",
+            "right": "65%",
+            "top": "5%",
+            "layer": 4,
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card2",
+            "text": "[text]",
+            "textFontSize": 2,
+            "textFontColor": "#000",
+            "textFontWeight": "200",
+            "width": "55%",
+            "height": "20%",
+            "right": "5.3%",
+            "top": "5%",
+            "layer": 4,
+            "display": true
+        },
+        {
+            "component": "img",
+            "id": "img1",
+            "image": "[image-h]",
+            "width": "28%",
+            "height": "28%",
+            "top": "34%",
+            "right": "66.6%",
+            "imgExtraClasses":"rounded-top",
+            "layer": 8,
+            "display": true
+        },
+        {
+            "component": "img",
+            "id": "img2",
+            "image": "[image-h]",
+            "width": "28%",
+            "height": "28%",
+            "top": "34%",
+            "right": "35.95%",
+            "imgExtraClasses":"rounded-top",
+            "layer": 8,
+            "display": true
+        },
+        {
+            "component": "img",
+            "id": "img3",
+            "image": "[image-h]",
+            "width": "28%",
+            "height": "28%",
+            "top": "34%",
+            "right": "5.3%",
+            "imgExtraClasses":"rounded-top",
+            "layer": 8,
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card1",
+            "top": "62%",
+            "right": "66.6%",
+            "width": "28%",
+            "height": "30%",
+            "extraClasses": "glass justify-top",
+            "padding": "1cqw",
+            "title": "[sections.0.subtitle]",
+            "titleFontSize": 1.6,
+            "text": "[sections.0.text]",
+            "textFontSize": 1.4,
+            "textMarginTop": "1cqw",
+            "layer": 4,
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card2",
+            "top": "62%",
+            "right": "35.95%",
+            "width": "28%",
+            "height": "30%",
+            "extraClasses": "glass justify-top",
+            "padding": "1cqw",
+            "title": "[sections.1.subtitle]",
+            "titleFontSize": 1.6,
+            "text": "[sections.1.text]",
+            "textFontSize": 1.4,
+            "textMarginTop": "1cqw",
+            "layer": 4,
+            "display": true
+        },
+        {
+            "component": "card",
+            "id": "card3",
+            "top": "62%",
+            "right": "5.3%",
+            "width": "28%",
+            "height": "30%",
+            "extraClasses": "glass justify-top",
+            "padding": "1cqw",
+            "title": "[sections.2.subtitle]",
+            "titleFontSize": 1.6,
+            "text": "[sections.2.text]",
+            "textFontSize": 1.4,
+            "textMarginTop": "1cqw",
+            "layer": 4,
+            "display": true
+        },
+        {
+            "component": "star",
+            "id": "star1",
+            "stopColor1": "#7dc2ff",
+            "stopColor2": "#1674c7",
+            "width": "60%",
+            "height": "60%",
+            "top": "30%",
+            "right": "70%",
+            "layer": 1,
+            "display": true
+        },
+        {
+            "component": "circle",
+            "id": "circle1",
+            "stopColor1": "#7dc2ff",
+            "stopColor2": "#1674c7",
+            "width": "30%",
+            "height": "30%",
+            "top": "85%",
+            "right": "20%",
+            "layer": 3,
             "display": true
         }
     ],
