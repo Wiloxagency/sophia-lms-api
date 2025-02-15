@@ -96,6 +96,8 @@ The new structure is based on five templates:
 
 Each section must contain a subtitle and text.
 The goal is to create a varied presentation by using different templates, restructuring the content to fit as many different templates as possible. 
+You should not complement, complete or create new content, the text of the slides must remain exactly the same, you should only alter their structure, 
+join or separate the slides and only modify or create new titles if necessary.
 When merging slides, use the most relevant title or create a new title or subtitle based on the slide content.
 When split slides,  create the new titles or subtitles based on the slide content.
 `}
