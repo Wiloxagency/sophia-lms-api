@@ -7,6 +7,7 @@ import { AsyncDalleImgCycle } from "../CreateContent/asyncCreateDalleImage";
 import { AsyncPexelsCycle } from "../CreateContent/asyncPexels";
 
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
+    return
     var timeStamp = new Date().toISOString();
     
     if (myTimer.isPastDue)
