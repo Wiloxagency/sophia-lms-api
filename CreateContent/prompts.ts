@@ -57,8 +57,8 @@ export const searchImagesGpt3 = "We have a course in spanish called: \"v{courseN
 // Prompt - gpt-4o
 // Create a content slide based in sections
 export const slideGeneration = {
-"role": "You are an expert in the area of content development",
-"prompt": `Considering the context of the course \"v{courseName}\", 
+    "role": "You are an expert in the area of content development",
+    "prompt": `Considering the context of the course \"v{courseName}\", 
 create an extensive content in v{languageName} explaining the subject \"v{text}\", 
 the paragraphs must be relevant and the information must be exclusively from that subject. 
 The generated content will be use in 10 slides of a lesson like a presentation.
@@ -74,13 +74,41 @@ and at least one must have 4 sections. All slides must have a title and text.
 No slide should have more than 4 sections.
 `}
 
+// Prompt - gpt-4o
+// Create a content slide based in sections
+export const slideMigration = {
+    "role": "You are an expert in Instructional Design",
+    "prompt":
+        `I have the following content, which corresponds to several slides from a presentation called: \"v{presentationName}\", 
+from a course called: \"v{courseName}\":
+
+v{presentationContent}
+
+Transform the current structure into a more varied one based on templates. 
+You should reorganize the content while avoiding repeated titles as much as possible, merging or splitting slide content as needed to fit the new structure. 
+The new structure is based on five templates:
+
+1. Template with a title and a main text, without sections.
+2. Template with a title and a main text, with one section.
+3. Template with a title and a main text, with two sections.
+4. Template with a title and a main text, with three sections.
+5. Template with a title and a main text, with four sections.
+
+Each section must contain a subtitle and text.
+The goal is to create a varied presentation by using different templates, restructuring the content to fit as many different templates as possible. 
+You should not complement, complete or create new content, the text of the slides must remain exactly the same, you should only alter their structure, 
+join or separate the slides and only modify or create new titles if necessary.
+When merging slides, use the most relevant title or create a new title or subtitle based on the slide content.
+When split slides,  create the new titles or subtitles based on the slide content.
+`}
+
 // Agentic} prompt - gpt-4o
 // Extract paragraphs for a course based in document
 export const contentParagraphsAgent = {
     "name": "Professional Assistant",
     "instructions": "You are an expert academic. Use only de provided documents to answer questions.",
     "prompt": "Write in v{languageName} a relevant answer for this question:\n" +
-    "\"v{sectionName}\".\n" +
+        "\"v{sectionName}\".\n" +
         "The answer must be based from that subject extracted for the provided documents.\n" +
         "If the answer is not in the provided documents, translate if necessary to v{languageName} this answer: \"The answer is not in the selected document(s).\" \n" +
         "Do not use any markup language neither bold or italic letters, do not use titles, subtitles, etc., write in a simple plane text format.\n"
