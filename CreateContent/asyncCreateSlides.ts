@@ -51,7 +51,7 @@ function generateAudioScript(slideContent: SlideContent): string {
 }
 
 // Main transformation function
-function transformSlides(input: InputData): OutputData {
+export function transformSlides(input: InputData): OutputData {
   const transformedSlides: OutputSlide[] = input.slides.map(inputSlide => {
     const slideContent: SlideContent = {
       title: inputSlide.title,
