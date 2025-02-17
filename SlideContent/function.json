@@ -6,7 +6,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["post"],
-      "route": "v2/courses/{courseCode}/sections/{sectionIndex}/elements/{elementIndex}/slides/{slideIndex}/blocks/{blockIndex}"
+      "route": "v2/courses/{courseCode}/sections/{sectionIndex}/elements/{elementIndex}/slides/{slideIndex}/content"
     },
     {
       "type": "http",
@@ -14,5 +14,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/SlideBlock/index.js"
+  "scriptFile": "../dist/SlideContent/index.js"
 }
