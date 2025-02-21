@@ -256,13 +256,15 @@ export type LessonSlide = {
     source: string;
     pronunciation: string;
   }[];
-  assets: {
-    url: string;
-    assetType: "icon" | "photo" | "video";
-    width: number;
-    height: number;
-    orientation: "square" | "landscape" | "portrait";
-  }[];
+  assets: LessonSlideAsset[];
+};
+
+export type LessonSlideAsset = {
+  url: string;
+  assetType: "icon" | "photo" | "video";
+  width: number;
+  height: number;
+  orientation: "square" | "landscape" | "portrait";
 };
 
 export type SlideContent = {
