@@ -98,7 +98,7 @@ const httpTrigger: AzureFunction = async function (
         assetType: assetType,
         width: assetType === "photo" ? 1200 : -1,
         height: assetType === "photo" ? 675 : -1,
-        orientation: assetType === "photo" ? "landscape" : "landscape",
+        orientation: assetType === "photo" ? "landscape" : "portrait",
       };
 
       const resp = await Courses.findOneAndUpdate(
