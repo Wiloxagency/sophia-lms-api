@@ -17,34 +17,97 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  async function uploadResource() {
-    const { fields, files } = await parseMultipartFormData(req);
-    const courseCode = fields[0].value;
-    const sectionIndex = fields[1].value;
-    const elementIndex = fields[2].value;
-    const slideIndex = fields[3].value;
-    const assetIndex = fields[4].value;
-    const resourceType = fields[5].value;
-    const userCode = fields[6].value;
-    const isSelfManageable = fields[7].value;
-
-    const imageOrVideoFile = files[0];
+  async function uploadSlideAsset() {
     try {
+      const { fields, files } = await parseMultipartFormData(req);
+      const courseCode = fields[0].value;
+      const sectionIndex = fields[1].value;
+      const elementIndex = fields[2].value;
+      const slideIndex = fields[3].value;
+      const assetIndex = fields[4].value;
+      const assetType = fields[5].value;
+      const userCode = fields[6].value;
+      const isSelfManageable = fields[7].value;
+
+      const imageOrVideoFile = files[0];
+
       const db = await database;
       const Courses = db.collection("course");
+
+      const blobServiceClient = BlobServiceClient.fromConnectionString(
+        AZURE_STORAGE_CONNECTION_STRING
+      );
+      let blobName = uuidv4();
+      let containerClient: ContainerClient;
+      let assetPath: string;
+      let bufferToUpload: Buffer;
+
+      if (assetType !== "video" && assetType !== "photo") {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: {
+            message: "Invalid `assetType`",
+          },
+        };
+        return;
+      }
+
+      if (assetType === "video") {
+        containerClient = blobServiceClient.getContainerClient("videos");
+        blobName += ".mp4";
+        bufferToUpload = imageOrVideoFile.bufferFile;
+        assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}`;
+      } else {
+        bufferToUpload = await sharp(imageOrVideoFile.bufferFile)
+          .resize(1200, 675)
+          .toFormat("webp")
+          .toBuffer();
+        containerClient = blobServiceClient.getContainerClient("images");
+        blobName += ".webp";
+        assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
+      }
+
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
+
+      const assetPayload: LessonSlideAsset = {
+        url: blockBlobClient.url,
+        assetType: assetType,
+        width: -1,
+        height: -1,
+        orientation: assetType === "photo" ? "landscape" : "portrait",
+      };
+
+      await Courses.findOneAndUpdate(
+        { code: courseCode },
+        {
+          $set: {
+            [assetPath]: assetPayload,
+          },
+        }
+      );
+
+      let remainingCredits = null;
+
+      if (isSelfManageable) {
+        remainingCredits = await updateUserCreditConsumption(userCode, "eiv");
+      }
 
       context.res = {
         status: 201,
         headers: {
           "Content-Type": "application/json",
         },
-        // body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
       };
     } catch (error) {
       await saveLog(
-        `Error  updating an image, error ${error.message}`,
+        `Error uploading asset, error ${error.message}`,
         "Error",
-        "updateImage()",
+        "uploadSlideAsset()",
         "SlideAsset"
       );
 
@@ -110,8 +173,6 @@ const httpTrigger: AzureFunction = async function (
         }
       );
 
-      console.log(" resp: ", resp);
-
       let remainingCredits = null;
 
       if (isSelfManageable) {
@@ -150,6 +211,7 @@ const httpTrigger: AzureFunction = async function (
 
   switch (req.method) {
     case "POST":
+      await uploadSlideAsset();
       break;
 
     case "DELETE":
