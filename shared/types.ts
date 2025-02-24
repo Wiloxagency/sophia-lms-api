@@ -252,11 +252,13 @@ export type LessonSlide = {
   slideContent: SlideContent;
   audioScript: string;
   audioUrl: string;
+  assets: LessonSlideAsset[];
   alternativePronunciations?: {
     source: string;
     pronunciation: string;
   }[];
-  assets: LessonSlideAsset[];
+  isFullscreenAsset?: boolean;
+  indexFullscreenAsset?: number;
 };
 
 export type LessonSlideAsset = {

@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "authLevel": "admin",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["get", "post", "put"],
+      "route": "v2/courses/{courseCode}/sections/{sectionIndex}/elements/{elementIndex}/slides/{slideIndex}"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/Slide/index.js"
+}
