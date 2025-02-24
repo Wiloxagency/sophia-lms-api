@@ -50,7 +50,7 @@ const httpTrigger: AzureFunction = async function (
           "Content-Type": "application/json",
         },
         body: {
-          message: "Error updating slide",
+          message: "Slide update failed",
         },
       };
     }

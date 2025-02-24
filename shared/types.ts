@@ -259,6 +259,7 @@ export type LessonSlide = {
   }[];
   isFullscreenAsset?: boolean;
   indexFullscreenAsset?: number;
+  isVideoOnly?: boolean;
 };
 
 export type LessonSlideAsset = {
