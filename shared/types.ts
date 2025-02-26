@@ -260,6 +260,8 @@ export type LessonSlide = {
   isFullscreenAsset?: boolean;
   indexFullscreenAsset?: number;
   isVideoOnly?: boolean;
+  keepBackgroundMusic?: boolean;
+  isSlideDurationManuallySet?: boolean;
 };
 
 export type LessonSlideAsset = {
