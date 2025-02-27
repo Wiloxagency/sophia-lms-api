@@ -252,17 +252,24 @@ export type LessonSlide = {
   slideContent: SlideContent;
   audioScript: string;
   audioUrl: string;
+  assets: LessonSlideAsset[];
   alternativePronunciations?: {
     source: string;
     pronunciation: string;
   }[];
-  assets: {
-    url: string;
-    assetType: "icon" | "photo" | "video";
-    width: number;
-    height: number;
-    orientation: "square" | "landscape" | "portrait";
-  }[];
+  isFullscreenAsset?: boolean;
+  indexFullscreenAsset?: number;
+  isVideoOnly?: boolean;
+  keepBackgroundMusic?: boolean;
+  isSlideDurationManuallySet?: boolean;
+};
+
+export type LessonSlideAsset = {
+  url: string;
+  assetType: "icon" | "photo" | "video";
+  width: number;
+  height: number;
+  orientation: "square" | "landscape" | "portrait";
 };
 
 export type SlideContent = {
