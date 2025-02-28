@@ -61,7 +61,7 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
     try {
         // Process each slide
         let processedSlides = slides.map((slide: any) => {
-            // Rest of the existing code remains unchanged...
+
             const templateCode = slide.slideTemplate;
             const template = GlassTemplate.find((t: any) => 
                 t[0].component === "meta-tag" && t[0].code === templateCode
@@ -108,31 +108,40 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
                 // Process media replacements
                 if (component.video) {
                     const videoType = component.video.slice(1, -1);
-                    const matchingAsset = slide.assets.find((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
                         asset.assetType === "video" && mediaTypes[videoType](asset.assetType, asset.orientation)
                     );
-                    if (matchingAsset) {
-                        component.video = matchingAsset.url;
+                    
+                    if (matchingAssetIndex !== -1) {
+                        component.video = slide.assets[matchingAssetIndex].url;
+                        // Remove the asset from slide.assets
+                        slide.assets.splice(matchingAssetIndex, 1);
                     }
                 }
 
                 if (component.image) {
                     const imageType = component.image.slice(1, -1);
-                    const matchingAsset = slide.assets.find((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
                         asset.assetType === "photo" && mediaTypes[imageType](asset.assetType, asset.orientation)
                     );
-                    if (matchingAsset) {
-                        component.image = matchingAsset.url;
+                    
+                    if (matchingAssetIndex !== -1) {
+                        component.image = slide.assets[matchingAssetIndex].url;
+                        // Remove the asset from slide.assets
+                        slide.assets.splice(matchingAssetIndex, 1);
                     }
                 }
 
                 if (component.icon) {
                     const iconType = component.icon.slice(1, -1);
-                    const matchingAsset = slide.assets.find((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
                         asset.assetType === "icon" && mediaTypes[iconType](asset.assetType)
                     );
-                    if (matchingAsset) {
-                        component.icon = matchingAsset.url;
+                    
+                    if (matchingAssetIndex !== -1) {
+                        component.icon = slide.assets[matchingAssetIndex].url;
+                        // Remove the asset from slide.assets
+                        slide.assets.splice(matchingAssetIndex, 1);
                     }
                 }
 
