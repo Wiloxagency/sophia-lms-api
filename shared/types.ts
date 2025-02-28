@@ -259,9 +259,10 @@ export type LessonSlide = {
   }[];
   isFullscreenAsset?: boolean;
   indexFullscreenAsset?: number;
-  isVideoOnly?: boolean;
-  keepBackgroundMusic?: boolean;
+  isVideoAudioUsed?: boolean;
+  isBackgroundMusicKept?: boolean;
   isSlideDurationManuallySet?: boolean;
+  slideDuration: number;
 };
 
 export type LessonSlideAsset = {
