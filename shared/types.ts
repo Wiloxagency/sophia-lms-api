@@ -262,7 +262,7 @@ export type LessonSlide = {
   isVideoAudioUsed?: boolean;
   isBackgroundMusicKept?: boolean;
   isSlideDurationManuallySet?: boolean;
-  slideDuration: number;
+  slideDuration?: number;
 };
 
 export type LessonSlideAsset = {

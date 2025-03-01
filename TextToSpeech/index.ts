@@ -11,6 +11,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   const audioData = req.body;
+  const isNewSlideStructure = req.body.isNewSlideStructure;
 
   // console.log(audioData)
   // return
@@ -26,20 +27,29 @@ const httpTrigger: AzureFunction = async function (
   );
 
   // const srt = await createSrt(newAudio.url, audioData.text, audioData.courseCode)
-
-  const srt = await createTranscriptionJob(
-    audioData.courseCode,
-    audioData.sectionIndex,
-    audioData.elementIndex,
-    audioData.paragraphIndex,
-    newAudio.url,
-    audioData.language
-  );
+  
+  if (!isNewSlideStructure) {
+    const srt = await createTranscriptionJob(
+      audioData.courseCode,
+      audioData.sectionIndex,
+      audioData.elementIndex,
+      audioData.paragraphIndex,
+      newAudio.url,
+      audioData.language
+    );
+  }
 
   try {
     const db = await database;
     const Course = db.collection("course");
-    const audioPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.audioUrl`;
+    let audioPath: string;
+
+    if (isNewSlideStructure) {
+      audioPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.slides.${audioData.paragraphIndex}.audioUrl`;
+    } else {
+      audioPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.audioUrl`;
+    }
+
     // const srtPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.srt`;
     await Course.findOneAndUpdate(
       { code: audioData.courseCode },
