@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createConnection } from "../shared/mongo";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
 import { saveLog } from "../shared/saveLog";
-import { LessonSlideAsset } from "../shared/types";
+import { CourseData, LessonSlideAsset } from "../shared/types";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
 const database = createConnection();
 
@@ -17,6 +17,59 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  async function createSlideAsset() {
+    const { courseCode, sectionIndex, elementIndex, slideIndex, assetIndex } =
+      req.params;
+
+    const assetPayload: LessonSlideAsset = req.body;
+
+    try {
+      const db = await database;
+      const Courses = db.collection<CourseData>("course");
+      const assetsPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets`;
+
+      const resp = await Courses.findOneAndUpdate(
+        { code: courseCode },
+        {
+          $push: {
+            [assetsPath]: {
+              $each: [assetPayload],
+              $position: assetIndex,
+            },
+          },
+        }
+        // { returnDocument: "after" }
+      );
+
+      context.res = {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Slide asset created",
+        },
+      };
+    } catch (error) {
+      await saveLog(
+        `Error  updating slide asset, error ${error.message}`,
+        "Error",
+        "createSlideAsset()",
+        "SlideAsset"
+      );
+
+      context.res = {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          message: "Slide asset creation failed",
+        },
+      };
+    }
+  }
+
   async function uploadSlideAsset() {
     try {
       const { fields, files } = await parseMultipartFormData(req);
@@ -132,7 +185,7 @@ const httpTrigger: AzureFunction = async function (
       let uploadedAssetUrl: string;
 
       const db = await database;
-      const Courses = db.collection("course");
+      const Courses = db.collection<CourseData>("course");
       const assetField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
 
       if (assetType === "photo") {
@@ -211,7 +264,11 @@ const httpTrigger: AzureFunction = async function (
 
   switch (req.method) {
     case "POST":
-      await uploadSlideAsset();
+      if (req.headers["content-type"]?.includes("multipart/form-data")) {
+        await uploadSlideAsset();
+      } else {
+        await createSlideAsset();
+      }
       break;
 
     case "DELETE":

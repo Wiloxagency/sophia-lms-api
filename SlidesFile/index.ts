@@ -6,7 +6,6 @@ import { findBestTemplateMatch } from "../CreateContent/findBestTemplateMatch";
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-    context.log('HTTP trigger function processed a request.');
 
     const { courseCode, sectionIndex, elementIndex, matchTemplate, slideIndex } = req.body;
 
