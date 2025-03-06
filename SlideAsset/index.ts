@@ -18,8 +18,8 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   async function createSlideAsset() {
-    const { courseCode, sectionIndex, elementIndex, slideIndex, assetIndex } =
-      req.params;
+    const { courseCode, sectionIndex, elementIndex, slideIndex } = req.params;
+    const assetIndex = parseInt(req.params.assetIndex, 10);
 
     const assetPayload: LessonSlideAsset = req.body;
 
@@ -34,7 +34,7 @@ const httpTrigger: AzureFunction = async function (
           $push: {
             [assetsPath]: {
               $each: [assetPayload],
-              $position: assetIndex,
+              // $position: assetIndex,
             },
           },
         }
