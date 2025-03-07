@@ -11,6 +11,8 @@ import {
   updateUserCreditConsumption,
 } from "../shared/creditConsumption";
 
+import { saveFile } from "../shared/SaveAssetsHD";
+
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
@@ -854,7 +856,10 @@ const httpTrigger: AzureFunction = async function (
         .toFormat("webp")
         .toBuffer();
 
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
+      const urlFile =  await saveFile(courseCode, imageFile.filename,compressedImageBuffer)
+      console.log("*-*-*-* urlFile ", urlFile)
+
+      /*const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
       const containerClient = blobServiceClient.getContainerClient("images");
@@ -864,14 +869,23 @@ const httpTrigger: AzureFunction = async function (
       await blockBlobClient.upload(
         compressedImageBuffer,
         compressedImageBuffer.length
-      );
+      );*/
 
       const key = "details.cover";
-      await Courses.updateOne(
+      /*await Courses.updateOne(
         { code: courseCode },
         {
           $set: {
             [key]: blockBlobClient.url,
+          },
+        }
+      );*/
+
+      await Courses.updateOne(
+        { code: courseCode },
+        {
+          $set: {
+            [key]: urlFile,
           },
         }
       );
@@ -883,7 +897,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 201,
         headers: { "Content-Type": "application/json" },
-        body: { imageUrl: blockBlobClient.url },
+        body: { imageUrl: urlFile },
       };
     } catch (error) {
       await saveLog(
