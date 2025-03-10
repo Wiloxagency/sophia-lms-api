@@ -35,6 +35,7 @@ const migrationCycle = async (
 
     prompt = prompt
         .replace(/v{presentationName}/g, presentationName)
+        .replace(/v{language}/g, course.languageName)
         .replace(/v{courseName}/g, courseName)
         .replace(/v{presentationContent}/g, JSON.stringify(slides))
 

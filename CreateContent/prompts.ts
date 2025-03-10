@@ -94,6 +94,7 @@ The new structure is based on five templates:
 4. Template with a title and a main text, with three sections.
 5. Template with a title and a main text, with four sections.
 
+Keep the current language (v{language}).
 Each section must contain a subtitle and text.
 The goal is to create a varied presentation by using different templates, restructuring the content to fit as many different templates as possible. 
 You should not complement, complete or create new content, the text of the slides must remain exactly the same, you should only alter their structure, 
