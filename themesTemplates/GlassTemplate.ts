@@ -283,6 +283,40 @@ export const GlassTemplate: Template[] = [
     [
         {
             "component": "meta-tag",
+            "code": "00-04",
+            "description": "Portada del curso",
+            "elements": {
+                "media": [
+                    "video-h"
+                ],
+                "title": {
+                    "min": 0,
+                    "max": 0
+                },
+                "text": {
+                    "min": 0,
+                    "max": 0
+                },
+                "sections": []
+            }
+        },
+        {
+            "component": "audio",
+            "audioUrl": "[audio-url]"
+        },
+ 
+        {
+            "component": "video",
+            "video": "[video-h]",
+            "width": "100%",
+            "height": "100%",
+            "layer": 1,
+            "display": true
+        }
+    ],
+    [
+        {
+            "component": "meta-tag",
             "code": "01-00",
             "description": "Slide con video horizontal",
             "elements": {
