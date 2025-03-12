@@ -527,7 +527,8 @@ export const GlassTemplate: Template[] = [
                 "media": [
                     "icon-b",
                     "icon-b",
-                    "image-q"
+                    "image-q",
+                    "video-h"
                 ],
                 "title": {
                     "min": 1,
@@ -583,7 +584,7 @@ export const GlassTemplate: Template[] = [
             "textMarginTop": "1cqw",
             "textFontSize": 2,
             "layer": 5,
-            "extraClasses": "glass-12",
+            "extraClasses": "glass-12 justify-center",
             "display": true
         },
         {
@@ -627,6 +628,16 @@ export const GlassTemplate: Template[] = [
             "component": "img",
             "id": "img1",
             "image": "[image-q]",
+            "width": "50%",
+            "height": "80%",
+            "right": "0px",
+            "layer": 6,
+            "display": true
+        },
+        {
+            "component": "video",
+            "id": "video1",
+            "video": "[video-h]",
             "width": "50%",
             "height": "80%",
             "right": "0px",
