@@ -56,11 +56,68 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
+  async function deleteSlide() {
+    const { courseCode, sectionIndex, elementIndex, slideIndex } = req.params;
+
+    try {
+      const db = await database;
+      const Courses = db.collection<CourseData>("course");
+
+      const updateQuery = {
+        $unset: {
+          [`sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}`]:
+            1 as 1, // Explicitly setting the type
+        },
+      };
+
+      const cleanupQuery = {
+        $pull: {
+          [`sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides`]:
+            null,
+        },
+      };
+
+      // Unset the slide first (set it to `null`)
+      const updatedCourse = await Courses.findOneAndUpdate(
+        { code: courseCode },
+        updateQuery,
+        { returnDocument: "after" }
+      );
+
+      if (!updatedCourse) {
+        context.res = { status: 404, body: { message: "Course not found" } };
+        return;
+      }
+
+      // Remove null values from the slides array
+      await Courses.updateOne({ code: courseCode }, cleanupQuery);
+
+      context.res = {
+        status: 200,
+        body: { message: "Slide deleted successfully" },
+      };
+    } catch (error) {
+      await saveLog(
+        `Error deleting slide, error ${error.message}`,
+        "Error",
+        "deleteSlide()",
+        "courses/{courseCode}/sections/{sectionIndex}/elements/{elementIndex}/slides/{slideIndex}"
+      );
+
+      context.res = {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+        body: { message: "Slide deletion failed" },
+      };
+    }
+  }
+
   switch (req.method) {
     case "POST":
       break;
 
     case "DELETE":
+      await deleteSlide();
       break;
 
     case "PUT":
