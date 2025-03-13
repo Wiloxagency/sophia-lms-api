@@ -95,12 +95,21 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
                 }
                 
                 // Replace media placeholders
+                // const mediaTypes = {
+                //     "video-h": (assetType: string, orientation: string) => assetType == "video" && orientation == "landscape",
+                //     "video-v": (assetType: string, orientation: string) => assetType == "video" && orientation == "portrait",
+                //     "image-h": (assetType: string, orientation: string) => assetType == "photo" && orientation == "landscape",
+                //     "image-v": (assetType: string, orientation: string) => assetType == "photo" && orientation == "portrait",
+                //     "image-q": (assetType: string, orientation: string) => assetType == "photo" && orientation == "square",
+                //     "icon-b": (assetType: string) => assetType == "icon",
+                //     "icon-w": (assetType: string) => assetType == "icon"
+                // };
                 const mediaTypes = {
-                    "video-h": (assetType: string, orientation: string) => assetType == "video" && orientation == "landscape",
-                    "video-v": (assetType: string, orientation: string) => assetType == "video" && orientation == "portrait",
-                    "image-h": (assetType: string, orientation: string) => assetType == "photo" && orientation == "landscape",
-                    "image-v": (assetType: string, orientation: string) => assetType == "photo" && orientation == "portrait",
-                    "image-q": (assetType: string, orientation: string) => assetType == "photo" && orientation == "square",
+                    "video-h": (assetType: string, orientation: string) => assetType == "video",
+                    "video-v": (assetType: string, orientation: string) => assetType == "video",
+                    "image-h": (assetType: string, orientation: string) => assetType == "photo",
+                    "image-v": (assetType: string, orientation: string) => assetType == "photo",
+                    "image-q": (assetType: string, orientation: string) => assetType == "photo",
                     "icon-b": (assetType: string) => assetType == "icon",
                     "icon-w": (assetType: string) => assetType == "icon"
                 };

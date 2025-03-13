@@ -211,6 +211,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "mediaWithVMirror",
             "video": "[video-v]",
+            "image": "[image-q]",
             "rightOrLeft": "right",
             "layer": 1,
             "title": "[title]",
@@ -527,8 +528,7 @@ export const GlassTemplate: Template[] = [
                 "media": [
                     "icon-b",
                     "icon-b",
-                    "image-q",
-                    "video-h"
+                    "image-q"
                 ],
                 "title": {
                     "min": 1,
