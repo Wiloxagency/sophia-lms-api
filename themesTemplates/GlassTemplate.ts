@@ -422,7 +422,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 25
+                            "max": 40
                         }
                     }
                 ]
