@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "authLevel": "admin",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["patch"],
+      "route": "v2/courses/{courseCode}/sections/{sectionIndex}/elements/{elementIndex}/slides/{slideIndex}/assignTemplate"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/SlideTemplate/index.js"
+}
