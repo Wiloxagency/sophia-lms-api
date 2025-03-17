@@ -412,7 +412,7 @@ export const GlassTemplate: Template[] = [
                 },
                 "text": {
                     "min": 1,
-                    "max": 40
+                    "max": 60
                 },
                 "sections": [
                     {
@@ -422,7 +422,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 40
+                            "max": 45
                         }
                     }
                 ]
@@ -1386,7 +1386,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 20
+                            "max": 30
                         }
                     },
                     {
@@ -1396,7 +1396,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 20
+                            "max": 30
                         }
                     },
                     {
@@ -1406,7 +1406,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 20
+                            "max": 30
                         }
                     },
                     {
@@ -1416,7 +1416,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 20
+                            "max": 30
                         }
                     }
                 ]
