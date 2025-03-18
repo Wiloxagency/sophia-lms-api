@@ -27,7 +27,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   // const srt = await createSrt(newAudio.url, audioData.text, audioData.courseCode)
-  
+
   if (!isNewSlideStructure) {
     const srt = await createTranscriptionJob(
       audioData.courseCode,
@@ -43,11 +43,14 @@ const httpTrigger: AzureFunction = async function (
     const db = await database;
     const Course = db.collection("course");
     let audioPath: string;
+    let audioScriptPath: string;
 
     if (isNewSlideStructure) {
       audioPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.slides.${audioData.paragraphIndex}.audioUrl`;
+      audioScriptPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.slides.${audioData.paragraphIndex}.audioScript`;
     } else {
       audioPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.audioUrl`;
+      audioScriptPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.audioScript`;
     }
 
     // const srtPath = `sections.${audioData.sectionIndex}.elements.${audioData.elementIndex}.elementLesson.paragraphs.${audioData.paragraphIndex}.srt`;
@@ -56,6 +59,7 @@ const httpTrigger: AzureFunction = async function (
       {
         $set: {
           [audioPath]: newAudio.url,
+          [audioScriptPath]: audioData.audioScript,
           // , [srtPath]: srt
         },
       }

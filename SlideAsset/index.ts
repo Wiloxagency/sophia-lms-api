@@ -112,7 +112,7 @@ const httpTrigger: AzureFunction = async function (
         containerClient = blobServiceClient.getContainerClient("videos");
         blobName += ".mp4";
         bufferToUpload = imageOrVideoFile.bufferFile;
-        assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}`;
+        assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
       } else {
         bufferToUpload = await sharp(imageOrVideoFile.bufferFile)
           .resize(1200, 675)
