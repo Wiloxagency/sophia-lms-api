@@ -4,8 +4,17 @@ import { MetaTag, SlideContent, TemplateComponent } from "./interfaces";
 type Template = TemplateComponent[];
 
 function countWords(text: string): number {
-    return text.split(" ").length
+  return text.split(" ").length
 }
+
+function countWordsNew(text: string): number {
+  // Remove content inside <s></s> tags
+  const cleanedText = text.replace(/<s>.*?<\/s>/g, "");
+  
+  // Split by spaces and filter out empty strings
+  return cleanedText.trim().split(/\s+/).filter(word => word !== "").length;
+}
+
 export function findBestTemplateMatch(slide: SlideContent, themeName: string): Template | null {
   let templates: Template[] = GlassTemplate;
 
