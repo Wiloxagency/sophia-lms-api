@@ -412,7 +412,7 @@ export const GlassTemplate: Template[] = [
                 },
                 "text": {
                     "min": 1,
-                    "max": 60
+                    "max": 100
                 },
                 "sections": [
                     {
@@ -422,7 +422,7 @@ export const GlassTemplate: Template[] = [
                         },
                         "text": {
                             "min": 1,
-                            "max": 45
+                            "max": 60
                         }
                     }
                 ]
