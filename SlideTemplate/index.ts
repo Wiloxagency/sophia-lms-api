@@ -87,6 +87,7 @@ const httpTrigger: AzureFunction = async function (
       body: {
         response: "Slide template assigned",
         slideTemplate: assignedTemplate,
+        completeAssets: completeAssets,
       },
     };
   } catch (error) {
