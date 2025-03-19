@@ -79,14 +79,14 @@ function createPlaceholder(media: string): LessonSlideAsset {
       orientation: "landscape",
     },
     "icon-b": {
-      url: "https://dummyimage.com/100x100/000/fff&text=B", // Black icon
+      url: "https://fonts.gstatic.com/s/i/materialicons/star/v10/24px.svg", // Black icon
       assetType: "icon",
       width: 100,
       height: 100,
       orientation: "square",
     },
     "icon-w": {
-      url: "https://dummyimage.com/150x100/fff/000&text=W", // White icon
+      url: "https://fonts.gstatic.com/s/i/materialicons/star/v10/24px.svg", // White icon
       assetType: "icon",
       width: 150,
       height: 100,
