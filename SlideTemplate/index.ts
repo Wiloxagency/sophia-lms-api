@@ -1,8 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
-import { CourseData } from "../shared/types";
+import { CourseData, LessonSlide, SlideTemplates } from "../shared/types";
 import { findBestTemplateMatch } from "../CreateContent/findBestTemplateMatch";
 import { fillTemplate } from "../CreateContent/fillTemplate";
+import {
+  fillMissingAssets,
+  getMediaTypesForCode,
+} from "./layoutAssetsPlaceholder";
 
 const database = createConnection();
 
@@ -26,7 +30,7 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const slide =
+    const slide: LessonSlide =
       course.sections?.[sectionIndex]?.elements?.[elementIndex]?.elementLesson
         .slides?.[slideIndex];
 
@@ -39,7 +43,7 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const assignedTemplate = findBestTemplateMatch(
+    const assignedTemplate: SlideTemplates = findBestTemplateMatch(
       slide.slideContent,
       course.slideshowColorThemeName
     )[0].code;
@@ -59,11 +63,22 @@ const httpTrigger: AzureFunction = async function (
       presentationName
     );
 
-    const updatePath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.slideTemplate`;
+    const completeAssets = fillMissingAssets(slide, assignedTemplate);
+
+    console.log(" assignedTemplate: ", assignedTemplate);
+    console.log(" completeAssets: ", completeAssets);
+
+    const slideTemplatePath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.slideTemplate`;
+    const slideAssetsPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets`;
 
     await Courses.updateOne(
       { code: courseCode },
-      { $set: { [updatePath]: assignedTemplate } }
+      {
+        $set: {
+          [slideTemplatePath]: assignedTemplate,
+          [slideAssetsPath]: completeAssets,
+        },
+      }
     );
 
     context.res = {
@@ -72,6 +87,7 @@ const httpTrigger: AzureFunction = async function (
       body: {
         response: "Slide template assigned",
         slideTemplate: assignedTemplate,
+        completeAssets: completeAssets,
       },
     };
   } catch (error) {
