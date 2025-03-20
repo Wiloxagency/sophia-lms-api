@@ -79,14 +79,14 @@ function createPlaceholder(media: string): LessonSlideAsset {
       orientation: "landscape",
     },
     "icon-b": {
-      url: "https://fonts.gstatic.com/s/i/materialicons/star/v10/24px.svg", // Black icon
+      url: "/assets/icons/star-solid.svg", // Black icon
       assetType: "icon",
       width: 100,
       height: 100,
       orientation: "square",
     },
     "icon-w": {
-      url: "https://fonts.gstatic.com/s/i/materialicons/star/v10/24px.svg", // White icon
+      url: "/assets/icons/star-solid-white.svg", // White icon
       assetType: "icon",
       width: 150,
       height: 100,
