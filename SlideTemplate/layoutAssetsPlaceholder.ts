@@ -44,21 +44,21 @@ function mapAssetType(asset: LessonSlideAsset): string {
 function createPlaceholder(media: string): LessonSlideAsset {
   const placeholders: Record<string, LessonSlideAsset> = {
     "image-v": {
-      url: "https://picsum.photos/720/1280", // Vertical image
+      url: "/assets/placeholder_vertical_comp.png", // Vertical image
       assetType: "photo",
       width: 720,
       height: 1280,
       orientation: "portrait",
     },
     "image-h": {
-      url: "https://picsum.photos/1280/720", // Horizontal image
+      url: "/assets/slide-placeholder.png", // Horizontal image
       assetType: "photo",
       width: 1280,
       height: 720,
       orientation: "landscape",
     },
     "image-q": {
-      url: "https://picsum.photos/1000/1000", // Square image
+      url: "/assets/placeholder_square_comp.png", // Square image
       assetType: "photo",
       width: 1000,
       height: 1000,
