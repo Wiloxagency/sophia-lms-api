@@ -248,35 +248,35 @@ export type LessonParagraph = {
 };
 
 export const templates = [
-  '00-00',
-  '00-01',
-  '00-02',
-  '00-03',
-  '00-04',
-  '01-00',
-  '01-01',
-  '01-02',
-  '01-03',
-  '01-04',
-  '02-00',
-  '02-01',
-  '02-02',
-  '02-03',
-  '02-04',
-  '02-05',
-  '03-00',
-  '03-01',
-  '03-02',
-  '03-03',
-  '03-04',
-  '04-00',
-  '04-01',
-  '04-02',
-  '04-03',
-  '04-04',
-  'layout1',
-  'layout2',
-  'PO-00',
+  "00-00",
+  "00-01",
+  "00-02",
+  "00-03",
+  "00-04",
+  "01-00",
+  "01-01",
+  "01-02",
+  "01-03",
+  "01-04",
+  "02-00",
+  "02-01",
+  "02-02",
+  "02-03",
+  "02-04",
+  "02-05",
+  "03-00",
+  "03-01",
+  "03-02",
+  "03-03",
+  "03-04",
+  "04-00",
+  "04-01",
+  "04-02",
+  "04-03",
+  "04-04",
+  "layout1",
+  "layout2",
+  "PO-00",
 ] as const;
 
 export type SlideTemplates = (typeof templates)[number];
@@ -297,6 +297,8 @@ export type LessonSlide = {
   isBackgroundMusicKept?: boolean;
   isSlideDurationManuallySet?: boolean;
   slideDuration?: number;
+  isAudioExternal?: boolean;
+  externalAudioUrl?: string;
 };
 
 export type LessonSlideAsset = {
