@@ -5,6 +5,7 @@ import { downloadQuiz } from "./download";
 import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
+import { CourseData } from "../shared/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -18,26 +19,42 @@ const database = createConnection();
 async function returnArrayOfRelevantParagraphs(
   course: any,
   indexSection: number,
-  indexElement: number
+  indexElement: number,
+  isNewSlideStructure: boolean
 ): Promise<string[]> {
   let concatenatedLessonParagraphs = "";
 
   if (indexElement == -1) {
-    // THIS MEANS ALL LESSON INSIDE SECTION MUST BE USED
-
+    // THIS MEANS ALL LESSONS INSIDE SECTION MUST BE USED
     for (const lesson of course.sections[indexSection].elements) {
       if (lesson.type == "Lección Engine") {
-        for (const paragraph of lesson.elementLesson.paragraphs) {
-          concatenatedLessonParagraphs =
-            concatenatedLessonParagraphs + paragraph.content + "\n";
+        if (isNewSlideStructure) {
+          for (const slide of lesson.elementLesson.slides) {
+            for (const block of slide.slideContent.sections) {
+              concatenatedLessonParagraphs += block.text + "\n";
+            }
+          }
+        } else {
+          for (const paragraph of lesson.elementLesson.paragraphs) {
+            concatenatedLessonParagraphs += paragraph.content + "\n";
+          }
         }
       }
     }
   } else {
-    for (const paragraph of course.sections[indexSection].elements[indexElement]
-      .elementLesson.paragraphs) {
-      concatenatedLessonParagraphs =
-        concatenatedLessonParagraphs + paragraph.content + "\n";
+    if (isNewSlideStructure) {
+      for (const slide of course.sections[indexSection].elements[indexElement]
+        .elementLesson.slides) {
+        for (const block of slide.slideContent.sections) {
+          concatenatedLessonParagraphs += block.text + "\n";
+        }
+      }
+    } else {
+      for (const paragraph of course.sections[indexSection].elements[
+        indexElement
+      ].elementLesson.paragraphs) {
+        concatenatedLessonParagraphs += paragraph.content + "\n";
+      }
     }
   }
 
@@ -80,12 +97,12 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   const createShortAnswerQuiz = async () => {
     const db = await database;
-    const Courses = db.collection("course");
+    const Courses = db.collection<CourseData>("course");
     const isSelfManageable = req.body.isSelfManageable;
     try {
-      let coursePromise = Courses.findOne({ code: req.body.courseCode });
-      let course = await coursePromise;
+      let course = await Courses.findOne({ code: req.body.courseCode });
       let remainingCredits = null;
+      const isNewSlideStructure = course.isNewSlideStructure;
 
       if (isSelfManageable) {
         remainingCredits = await updateUserCreditConsumption(
@@ -97,7 +114,8 @@ const httpTrigger: AzureFunction = async function (
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
         req.body.indexSection,
-        req.body.indexElement
+        req.body.indexElement,
+        isNewSlideStructure
       );
 
       let quizList = [];
@@ -182,11 +200,11 @@ const httpTrigger: AzureFunction = async function (
 
   const createMultipleChoiceQuiz = async () => {
     const db = await database;
-    const Courses = db.collection("course");
+    const Courses = db.collection<CourseData>("course");
     const isSelfManageable = req.body.isSelfManageable;
     try {
-      let coursePromise = Courses.findOne({ code: req.body.courseCode });
-      let course = await coursePromise;
+      let course = await Courses.findOne({ code: req.body.courseCode });
+      const isNewSlideStructure = course.isNewSlideStructure;
       let remainingCredits = null;
 
       if (isSelfManageable) {
@@ -199,7 +217,8 @@ const httpTrigger: AzureFunction = async function (
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
         req.body.indexSection,
-        req.body.indexElement
+        req.body.indexElement,
+        isNewSlideStructure
       );
 
       let quizList = [];
@@ -286,11 +305,12 @@ const httpTrigger: AzureFunction = async function (
 
   const createCompletionQuiz = async () => {
     const db = await database;
-    const Courses = db.collection("course");
+    const Courses = db.collection<CourseData>("course");
     const isSelfManageable = req.body.isSelfManageable;
     try {
       let course = await Courses.findOne({ code: req.body.courseCode });
       let remainingCredits = null;
+      const isNewSlideStructure = course.isNewSlideStructure;
 
       if (isSelfManageable)
         remainingCredits = await updateUserCreditConsumption(
@@ -301,7 +321,8 @@ const httpTrigger: AzureFunction = async function (
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
         req.body.indexSection,
-        req.body.indexElement
+        req.body.indexElement,
+        isNewSlideStructure
       );
 
       let quizList = [];
@@ -408,12 +429,12 @@ const httpTrigger: AzureFunction = async function (
 
   const createTrueOrFalseQuiz = async () => {
     const db = await database;
-    const Courses = db.collection("course");
+    const Courses = db.collection<CourseData>("course");
     const isSelfManageable = req.body.isSelfManageable;
     try {
       let course = await Courses.findOne({ code: req.body.courseCode });
       let remainingCredits = null;
-
+      const isNewSlideStructure = course.isNewSlideStructure;
       if (isSelfManageable) {
         remainingCredits = await updateUserCreditConsumption(
           req.body.userCode,
@@ -424,7 +445,8 @@ const httpTrigger: AzureFunction = async function (
       const arrayOfRelevantParagraphs = await returnArrayOfRelevantParagraphs(
         course,
         req.body.indexSection,
-        req.body.indexElement
+        req.body.indexElement,
+        isNewSlideStructure
       );
 
       let quizList = [];
