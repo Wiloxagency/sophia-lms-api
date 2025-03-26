@@ -90,7 +90,7 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
 
                 // Process audio replacement
                 if (component.component === "audio") {
-                    component.audioUrl = slide.audioUrl
+                    component.audioUrl = slide.isAudioExternal === true ? slide.externalAudioUrl : slide.audioUrl
                     return component;
                 }
                 
