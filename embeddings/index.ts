@@ -3,6 +3,8 @@ import { saveLog } from "../shared/saveLog"
 import { createConnection } from "../shared/mongo"
 import parseMultipartFormData from "@anzp/azure-function-multipart"
 import { BlobServiceClient } from "@azure/storage-blob"
+import { saveFile } from "../shared/SaveAssetsHD"
+
 const database = createConnection()
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -141,6 +143,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             }
 
             await blockBlobClient.upload(output, output.length)
+            //const urlFile = await saveFile(null, responseMessage.files[0].filename, output);
+            
             await blockBlobClient.setMetadata(metadata)
 
             context.res = {

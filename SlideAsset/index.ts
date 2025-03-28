@@ -9,6 +9,7 @@ import { saveLog } from "../shared/saveLog";
 import { LessonSlideAsset } from "../shared/types";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
 const database = createConnection();
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -70,11 +71,13 @@ const httpTrigger: AzureFunction = async function (
         assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
       }
 
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
+      //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      //await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
+      const urlFile = await saveFile(courseCode, blobName, bufferToUpload);
 
       const assetPayload: LessonSlideAsset = {
-        url: blockBlobClient.url,
+        //url: blockBlobClient.url,
+        url: urlFile,
         assetType: assetType,
         width: -1,
         height: -1,
@@ -101,7 +104,9 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        //body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        body: { url: urlFile, remainingCredits: remainingCredits },
+        
       };
     } catch (error) {
       await saveLog(
@@ -147,11 +152,13 @@ const httpTrigger: AzureFunction = async function (
         const blobServiceClient = BlobServiceClient.fromConnectionString(
           AZURE_STORAGE_CONNECTION_STRING
         );
-        const containerClient = blobServiceClient.getContainerClient("images");
+        //const containerClient = blobServiceClient.getContainerClient("images");
         const blobName = uuidv4() + ".jpeg";
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        await blockBlobClient.upload(outputBuffer, outputBuffer.length);
-        uploadedAssetUrl = blockBlobClient.url;
+        //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+        //await blockBlobClient.upload(outputBuffer, outputBuffer.length);
+        const urlFile = await saveFile(courseCode, blobName, outputBuffer);
+        //uploadedAssetUrl = blockBlobClient.url;
+        uploadedAssetUrl = urlFile;
       } else if (assetType === "video") {
         uploadedAssetUrl = assetUrl;
       }

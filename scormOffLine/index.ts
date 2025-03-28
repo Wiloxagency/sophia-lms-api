@@ -13,6 +13,7 @@ import {
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 import { downloadQuiz } from "../Quiz/download";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
@@ -145,9 +146,9 @@ async function createScorm(context: Context, course: any, selectedElements: any[
             const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-Quiz-${element.type}.docx`;
 
             const QuizzFileName = `${sectionFolder}/${fileName }`;
-            const blockBlobClient =
-                containerClient.getBlockBlobClient(QuizzFileName);
-            await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+            //const blockBlobClient =containerClient.getBlockBlobClient(QuizzFileName);
+            //await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+            const urlFile = await saveFile(courseCode, fileName, fileQuiz,"scormol");
 
         }
     }

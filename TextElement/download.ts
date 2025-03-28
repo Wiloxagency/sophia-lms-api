@@ -5,6 +5,7 @@ import { Packer } from "docx";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { saveLog } from "../shared/saveLog";
 import { v4 as uuidv4 } from "uuid";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const database = createConnection();
 const AZURE_STORAGE_CONNECTION_STRING =
@@ -50,12 +51,15 @@ export  const downloadTextElementAsDoc = async (
       const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
-      const containerClient = blobServiceClient.getContainerClient("files");
+      //const containerClient = blobServiceClient.getContainerClient("files");
       const blobName = uuidv4() + ".docx";
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(textElementBuffer, textElementBuffer.length);
+      //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      //await blockBlobClient.upload(textElementBuffer, textElementBuffer.length);
 
-      return blockBlobClient.url;
+      const urlFile = await saveFile(courseCode, blobName, textElementBuffer, "Files");
+
+      //return blockBlobClient.url;
+      return urlFile;
     } catch (error) {
       await saveLog(
         `Error downloading text element: ${error.message}`,

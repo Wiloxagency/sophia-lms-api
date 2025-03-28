@@ -5,6 +5,7 @@ import { createConnection } from "../shared/mongo"
 import { v4 as uuidv4 } from 'uuid'
 import sharp = require("sharp")
 import { saveLog } from "../shared/saveLog"
+import { saveFile } from "../shared/SaveAssetsHD"
 
 const database = createConnection()
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
@@ -22,19 +23,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
                 files,
             }
             const courseCode = responseMessage.fields[0].value
-            const sectionIndex = responseMessage.fields[1].value
+            //const sectionIndex = responseMessage.fields[1].value
             const output = responseMessage.files[0].bufferFile as Buffer
-            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
-            const containerClient = blobServiceClient.getContainerClient("files")
-            const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
-            await blockBlobClient.upload(output, output.length)
-
+            //const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+            //const containerClient = blobServiceClient.getContainerClient("files")
+            //const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
+            //await blockBlobClient.upload(output, output.length)
+            
+            const urlFile = await saveFile(courseCode, responseMessage.files[0].filename, output);
             context.res = {
                 "status": 201,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": { "url": blockBlobClient.url }
+                //"body": { "url": blockBlobClient.url }
+                "body": { "url": urlFile}
             }
         } catch (error) {
             await saveLog(`Error uploading file, error: ${error.message} `, "Error", "AzureFunction()", "ElementFile")

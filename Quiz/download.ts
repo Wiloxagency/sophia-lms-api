@@ -4,6 +4,7 @@ import { DocumentCreator } from "../shared/downloadElementAsDoc";
 import { v4 as uuidv4 } from "uuid";
 import { Packer } from "docx";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { saveFile } from "../shared/SaveAssetsHD";
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
@@ -56,11 +57,14 @@ export const downloadQuiz = async (
     const blobServiceClient = BlobServiceClient.fromConnectionString(
       AZURE_STORAGE_CONNECTION_STRING
     );
-    const containerClient = blobServiceClient.getContainerClient("quizzes");
+    //const containerClient = blobServiceClient.getContainerClient("quizzes");
     const blobName = uuidv4() + ".docx";
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    await blockBlobClient.upload(quizBuffer, quizBuffer.length);
-    return blockBlobClient.url;
+    //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    //await blockBlobClient.upload(quizBuffer, quizBuffer.length);
+    const urlFile = await saveFile(courseCode, blobName, quizBuffer);
+    
+    //return blockBlobClient.url;
+    return urlFile;
   } catch (error) {
     await saveLog(
       `Error downloading quiz: ${error.message}`,

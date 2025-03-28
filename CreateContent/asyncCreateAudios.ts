@@ -8,6 +8,8 @@ import rp = require('request-promise')
 import { saveLog } from "../shared/saveLog";
 import { v4 as uuidv4 } from "uuid"; // Import the UUID generator
 import xmlbuilder = require("xmlbuilder")
+import { saveFile } from "../shared/SaveAssetsHD";
+import { Writable } from "stream";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -98,12 +100,12 @@ export async function getAccessToken(subscriptionKey: string, slideItem: any, db
 }
 
 const generateTTS = async (slideItem: any, db: Db) => {
-
     const blobName = `${uuidv4()}.mp3`;
 
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY, slideItem, db)
         const blobService = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING)
+        
         const writableStream = blobService.createWriteStreamToBlockBlob(
             "speeches",
             blobName,
@@ -117,9 +119,14 @@ const generateTTS = async (slideItem: any, db: Db) => {
         // await textToSpeech(accessToken, slideItem.paragraph, writableStream, slideItem.voice, slideItem.language, slideItem.courseCode)
 
         await textToSpeech(accessToken, writableStream, slideItem)
-        const audioUrl = blobService.getUrl("speeches") + "/" + blobName
+        //const audioUrl = blobService.getUrl("speeches") + "/" + blobName
 
-        console.info("Audio saved:", audioUrl)
+        const buffer = await streamToBuffer(writableStream);
+        const urlFile = await saveFile(slideItem.courseCode, blobName, buffer);
+
+        //console.info("Audio saved:", audioUrl)
+
+        console.info("Audio saved :", urlFile )
 
         let currentAudioPath =
             `sections.${slideItem.sectionIndex}.elements.${slideItem.elementIndex}.elementLesson.slides.${slideItem.slideIndex}.audioUrl`;
@@ -127,7 +134,8 @@ const generateTTS = async (slideItem: any, db: Db) => {
             { code: slideItem.courseCode },
             {
                 $set: {
-                    [currentAudioPath]: audioUrl
+                    //[currentAudioPath]: audioUrl
+                    [currentAudioPath]: urlFile
                 },
             }
         );
@@ -185,5 +193,14 @@ export async function AsyncTextToSpeechCycle() {
     processNextSlide();
 
 }
+
+const streamToBuffer = async (stream: Writable): Promise<Buffer> => {
+    const chunks: Buffer[] = [];
+    return new Promise((resolve, reject) => {
+        stream.on("data", (chunk) => chunks.push(chunk));
+        stream.on("end", () => resolve(Buffer.concat(chunks)));
+        stream.on("error", reject);
+    });
+};
 
 

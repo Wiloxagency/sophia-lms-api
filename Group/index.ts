@@ -4,6 +4,7 @@ import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 
@@ -511,6 +512,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const containerClient = blobServiceClient.getContainerClient("certificates")
             const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
             await blockBlobClient.upload(output, output.length)
+            //const urlFile = await saveFile(organizationCode, responseMessage.files[0].filename, output);
 
             const updateOrganizationResponse = await Organizations.updateOne(
                 { organizationCode: organizationCode },

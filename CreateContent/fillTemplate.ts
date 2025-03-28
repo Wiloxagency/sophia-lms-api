@@ -2,6 +2,7 @@ import { BlobServiceClient } from '@azure/storage-blob';
 import { GlassTemplate } from '../themesTemplates/GlassTemplate';
 import { findBestTemplateMatch } from './findBestTemplateMatch';
 import { createConnection } from '../shared/mongo';
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const database = createConnection()
 
@@ -194,12 +195,17 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
         processedSlides.unshift(globalData);
 
         // Save presentation object to Azure Blob Storage
-        const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-        const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-        const containerClient = blobServiceClient.getContainerClient("presentations");
-        const blobClient = containerClient.getBlockBlobClient(`${presentationName}.json`);
+        //const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+        //const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+        //const containerClient = blobServiceClient.getContainerClient("presentations");
+        //const blobClient = containerClient.getBlockBlobClient(`${presentationName}.json`);
 
-        await blobClient.upload(JSON.stringify(processedSlides), JSON.stringify(processedSlides).length);
+        //await blobClient.upload(JSON.stringify(processedSlides), JSON.stringify(processedSlides).length);
+
+
+        // Convertir el contenido JSON en un buffer
+        const bufferData = Buffer.from(JSON.stringify(processedSlides));
+        await saveFile(presentationName, `${presentationName}.json`, bufferData);
 
         return { status: "success", message: `Presentation ${presentationName}.json created successfully` };
 

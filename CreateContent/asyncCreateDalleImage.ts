@@ -5,6 +5,7 @@ import OpenAI from "openai";
 import sharp = require("sharp");
 import { Db } from "mongodb";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -145,10 +146,13 @@ const generateImage = async (currentItem: any, db: Db) => {
 
         const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
         const blobName = uuidv4() + ".jpeg";
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        await blockBlobClient.upload(output, output.length);
+        //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+        //await blockBlobClient.upload(output, output.length);
 
-        console.info("Image saved:", blockBlobClient.url)
+        const urlFile = await saveFile(currentItem.courseCode, blobName, output);
+
+        //console.info("Image saved:", blockBlobClient.url)
+        console.info("Image saved:", urlFile)
 
         let currentParagraphArrayPath =
             `sections.${currentItem.sectionIndex}.elements.${currentItem.elementIndex}.elementLesson.paragraphs.${currentItem.slideIndex}.imageData.finalImage`;
@@ -163,7 +167,8 @@ const generateImage = async (currentItem: any, db: Db) => {
                 $set: {
                     [currentParagraphArrayPath]:
                     {
-                        url: blockBlobClient.url,
+                        //url: blockBlobClient.url,
+                        url:urlFile,
                         width: randomSize.width,
                         height: randomSize.height
                     },

@@ -7,7 +7,8 @@ import xmlbuilder from "xmlbuilder"
 import rp = require('request-promise')
 import { createAudioWithoutCourse, getAccessToken } from "../CreateContent/createAudios"
 import fs from "fs"
-import { main } from "./summarize"
+import { main } from "./summarize";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const axios = require('axios');
 
@@ -31,12 +32,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             const blockBlobClient = containerClient.getBlockBlobClient(responseMessage.files[0].filename)
             await blockBlobClient.upload(output, output.length)
 
+            //const urlFile = await saveFile(null, responseMessage.files[0].filename, output);
+
             context.res = {
                 "status": 201,
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": { "url": blockBlobClient.url }
+                 "body": { "url": blockBlobClient.url }
+                //"body": { "url": urlFile }
             }
         } catch (error) {
             await saveLog(`Error uploading file, error: ${error.message} `, "Error", "AzureFunction()", "ElementFile")

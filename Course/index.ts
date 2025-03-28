@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
+
 import { BlobServiceClient } from "@azure/storage-blob";
 import sharp = require("sharp");
 import { updateCourseDuration } from "../shared/updateCourseDuration";
@@ -823,7 +824,7 @@ const httpTrigger: AzureFunction = async function (
     } catch (error) {
       await saveLog(
         `Error deleting course by code: ${req.body.course.code}` +
-          error.message,
+        error.message,
         "Error",
         "deleteCourse()",
         "Courses/{courseCode?}"
@@ -841,7 +842,9 @@ const httpTrigger: AzureFunction = async function (
   };
 
   const uploadCourseCover = async (req: HttpRequest) => {
+    
     try {
+
       const db = await database;
       const Courses = db.collection("course");
 
@@ -851,15 +854,7 @@ const httpTrigger: AzureFunction = async function (
       const isSelfManageable = fields[2].value;
       const imageFile = files[0];
 
-      const compressedImageBuffer = await sharp(imageFile.bufferFile)
-        .resize(1200, 675)
-        .toFormat("webp")
-        .toBuffer();
-
-      const urlFile =  await saveFile(courseCode, imageFile.filename,compressedImageBuffer)
-      console.log("*-*-*-* urlFile ", urlFile)
-
-      /*const blobServiceClient = BlobServiceClient.fromConnectionString(
+      /* const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
       const containerClient = blobServiceClient.getContainerClient("images");
@@ -869,25 +864,28 @@ const httpTrigger: AzureFunction = async function (
       await blockBlobClient.upload(
         compressedImageBuffer,
         compressedImageBuffer.length
-      );*/
+      ); */
 
-      const key = "details.cover";
-      /*await Courses.updateOne(
-        { code: courseCode },
-        {
-          $set: {
-            [key]: blockBlobClient.url,
-          },
-        }
-      );*/
+      let filename = imageFile.filename.replace(/\.+/g, ".");
+
+      if (!Buffer.isBuffer(imageFile.bufferFile)) {
+        throw new Error("El archivo no tiene un buffer válido");
+      }
+
+      const compressedImageBuffer = await sharp(imageFile.bufferFile)
+        .resize(1200, 675)
+        .toFormat("webp")
+        .toBuffer();
+
+      const urlFile = await saveFile(courseCode, filename, compressedImageBuffer);
+
+      if (!urlFile) {
+        throw new Error("No se pudo guardar el archivo.");
+      }
 
       await Courses.updateOne(
         { code: courseCode },
-        {
-          $set: {
-            [key]: urlFile,
-          },
-        }
+        { $set: { "details.cover": urlFile } }
       );
 
       if (isSelfManageable) {
@@ -901,22 +899,19 @@ const httpTrigger: AzureFunction = async function (
       };
     } catch (error) {
       await saveLog(
-        `Error uploading course cover. ` + error.message,
+        `Error uploading course cover: ${error.message}`,
         "Error",
         "uploadCourseCover()",
         "Courses"
       );
+      console.log("Error UploadCourseCover ", error.message);
       context.res = {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          message: "Error uploading course cover",
-        },
+        body: { message: "Error uploading course cover" },
       };
     }
   };
+
 
   switch (req.method) {
     case "POST":

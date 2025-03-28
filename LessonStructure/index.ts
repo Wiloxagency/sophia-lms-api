@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { BlobServiceClient } from "@azure/storage-blob";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 // Interfaces
 interface Section {
@@ -237,6 +238,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         await blockBlobClient.upload(JSON.stringify(optimizedSlides, null, 2), 
                                    JSON.stringify(optimizedSlides, null, 2).length);
 
+        //const bufferData = Buffer.from(JSON.stringify(optimizedSlides, null, 2));                       
+        //const urlFile = await saveFile(null, outputFilename, bufferData);
         context.res = {
             status: 200,
             body: {

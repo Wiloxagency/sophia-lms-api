@@ -7,6 +7,7 @@ import sharp = require("sharp");
 import { v4 as uuidv4 } from "uuid";
 import { saveLog } from "../shared/saveLog";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const database = createConnection();
 const AZURE_STORAGE_CONNECTION_STRING =
@@ -95,10 +96,11 @@ const httpTrigger: AzureFunction = async function (
       const blobServiceClient = BlobServiceClient.fromConnectionString(
         AZURE_STORAGE_CONNECTION_STRING
       );
-      const containerClient = blobServiceClient.getContainerClient("images");
+      //const containerClient = blobServiceClient.getContainerClient("images");
       const blobName = uuidv4() + ".jpeg";
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(output, output.length);
+      //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      //await blockBlobClient.upload(output, output.length);
+      const urlFile = await saveFile(courseCode, blobName, output);
       const imageField = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData`;
 
       const resp = Courses.findOneAndUpdate(
@@ -112,7 +114,8 @@ const httpTrigger: AzureFunction = async function (
                 height: -1,
               },
               finalImage: {
-                url: blockBlobClient.url,
+                //url: blockBlobClient.url,
+                url: urlFile,
                 width: -1,
                 height: -1,
               },
@@ -141,7 +144,8 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        //body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        body: { url: urlFile, remainingCredits: remainingCredits },
       };
     } catch (error) {
       await saveLog(
@@ -212,14 +216,16 @@ const httpTrigger: AzureFunction = async function (
         fieldKeyToUpdate = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.paragraphs.${slideIndex}.imageData.finalImage.url`;
       }
 
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
+      //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+      //await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
+      const urlFile = await saveFile(courseCode, blobName, bufferToUpload);
 
       await Courses.findOneAndUpdate(
         { code: courseCode },
         {
           $set: {
-            [fieldKeyToUpdate]: blockBlobClient.url,
+            //[fieldKeyToUpdate]: blockBlobClient.url,
+            [fieldKeyToUpdate]: urlFile,
           },
         }
       );
@@ -247,7 +253,8 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        //body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        body: { url: urlFile, remainingCredits: remainingCredits },
       };
     } catch (error) {
       await saveLog(

@@ -13,6 +13,8 @@ import {
   sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 
+import { saveFile } from "../shared/SaveAssetsHD";
+
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 
@@ -300,9 +302,10 @@ const httpTrigger: AzureFunction = async function (
 
     if (zipBufferCourse) {
       const LessonBlobName = `S${scormPayload.sectionIndex}-${scormPayload.courseCode}/Scorm-S${scormPayload.sectionIndex}-L${scormPayload.lessonCounter}.zip`;
-      const blockBlobClient =
-        containerClient.getBlockBlobClient(LessonBlobName);
-      await blockBlobClient.upload(zipBufferCourse, zipBufferCourse.length);
+      //const blockBlobClient =containerClient.getBlockBlobClient(LessonBlobName);
+      //await blockBlobClient.upload(zipBufferCourse, zipBufferCourse.length);
+      await saveFile(scormPayload.courseCode, LessonBlobName, zipBufferCourse,"Scorms" );
+      
     }
   }
 
@@ -454,9 +457,9 @@ const httpTrigger: AzureFunction = async function (
                 const LessonFileName = `S${
                   sectionIndex + 1
                 }-${courseCode}/${fileName}`;
-                const blockBlobClient =
-                  containerClient.getBlockBlobClient(LessonFileName);
-                await blockBlobClient.upload(fileContent, fileContent.length);
+                //const blockBlobClient =containerClient.getBlockBlobClient(LessonFileName);
+                //await blockBlobClient.upload(fileContent, fileContent.length);
+                await saveFile(courseCode, LessonFileName, fileContent, "Scorms");
                 numberRecourses++;
               } else if (element.type === "html") {
                 if (element.elementText.content && element.elementText.cover) {
@@ -483,9 +486,9 @@ const httpTrigger: AzureFunction = async function (
                     sectionIndex + 1
                   }-T${htmlFileCount}.docx`;
 
-                  const blockBlobClient =
-                    containerClient.getBlockBlobClient(HtmlFileName);
-                  await blockBlobClient.upload(fileHtml, fileHtml.length);
+                  //const blockBlobClient =containerClient.getBlockBlobClient(HtmlFileName);
+                  //await blockBlobClient.upload(fileHtml, fileHtml.length);
+                  await saveFile(courseCode, HtmlFileName, fileHtml,"Scorms");
                   htmlFileCount++;
                 } else {
                   const HtmlFileName = `S${
@@ -524,9 +527,9 @@ const httpTrigger: AzureFunction = async function (
                 }-${courseCode}/Quiz-S${
                   sectionIndex + 1
                 }-Q${quizFileCount}.docx`;
-                const blockBlobClient =
-                  containerClient.getBlockBlobClient(QuizzFileName);
-                await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+                //const blockBlobClient =containerClient.getBlockBlobClient(QuizzFileName);
+                //await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+                await saveFile(courseCode, QuizzFileName, fileQuiz,"Scorms");
                 quizFileCount++;
                 numberRecourses++;
               }
@@ -577,8 +580,9 @@ const httpTrigger: AzureFunction = async function (
 
         const zipBuffer = zipCourse.toBuffer();
         const zipBlobName = zipFileName;
-        const blockBlobClient = containerClient.getBlockBlobClient(zipBlobName);
-        await blockBlobClient.uploadData(zipBuffer);
+        //const blockBlobClient = containerClient.getBlockBlobClient(zipBlobName);
+        //await blockBlobClient.uploadData(zipBuffer);
+        await saveFile(courseCode, zipBlobName, zipBuffer,"Scorms");
         console.log(
           `Arquivo ZIP '${zipFileName}' salvo no container '${containerName}'`
         );

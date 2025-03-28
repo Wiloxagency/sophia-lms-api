@@ -12,6 +12,7 @@ import {
   topicCategories,
 } from "../TopicCategorizer/categorizer";
 import { createConnection } from "../shared/mongo";
+import { saveFile } from "../shared/SaveAssetsHD"
 
 const database = createConnection;
 
@@ -253,14 +254,16 @@ export async function findImages(
           })
         ).data as Buffer;
         const output = await sharp(input).resize(1200, 675).jpeg().toBuffer();
-        const blobServiceClient = BlobServiceClient.fromConnectionString(
-          AZURE_STORAGE_CONNECTION_STRING
-        );
-        const containerClient = blobServiceClient.getContainerClient("images");
+        //const blobServiceClient = BlobServiceClient.fromConnectionString(
+        //  AZURE_STORAGE_CONNECTION_STRING
+        //);
+        //const containerClient = blobServiceClient.getContainerClient("images");
         const blobName = uuidv4() + ".jpeg";
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        await blockBlobClient.upload(output, output.length);
-        finalImage.url = blockBlobClient.url;
+        //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+        //await blockBlobClient.upload(output, output.length);
+        const urlFile = await saveFile(courseCode, blobName, output);
+        //finalImage.url = blockBlobClient.url;
+        finalImage.url = urlFile;
         finalImage.width = 1200;
         finalImage.height = 675;
         response = {

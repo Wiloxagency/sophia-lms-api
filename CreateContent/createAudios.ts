@@ -4,6 +4,8 @@ import rp = require('request-promise')
 import { v4 as uuidv4 } from 'uuid'
 import xmlbuilder = require("xmlbuilder")
 import { saveLog } from "../shared/saveLog"
+import { Writable } from "stream";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
@@ -70,6 +72,49 @@ function textToSpeech(accessToken: string, text: string, writableStream: any, vo
     });
 }
 
+
+function textToSpeechAsBuffer(accessToken: string, text: string, voice: string, language: string, courseCode?: string): Promise<Buffer> {
+    const languageCode = language;
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            const xml_body = xmlbuilder
+                .create("speak")
+                .att("version", "1.0")
+                .att("xml:lang", "en-us")
+                .ele("voice")
+                .att("xml:lang", "en-us")
+                .att("name", `Microsoft Server Speech Text to Speech Voice (${languageCode}, ${voice})`)
+                .txt(text)
+                .end();
+
+            const body = xml_body.toString();
+
+            const options = {
+                method: "POST",
+                baseUrl: "https://eastus2.tts.speech.microsoft.com/",
+                url: "cognitiveservices/v1",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "cache-control": "no-cache",
+                    "User-Agent": "Mozilla/5.0",
+                    "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+                    "Content-Type": "application/ssml+xml",
+                },
+                body: body,
+                encoding: null,
+            };
+
+            const buffer = await rp(options);
+            resolve(buffer);
+        } catch (error) {
+            saveLog(`Error creating text to speech for course: ${courseCode}, ` + error.message, "Error", "textToSpeech()", "Courses/{courseCode}/CreateContent")
+            reject(error);
+        }
+    });
+}
+
+
 export async function createAudio(
     text: string,
     voice: string,
@@ -83,7 +128,7 @@ export async function createAudio(
     const mp3Name = uuidv4() + ".mp3"
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY, courseCode)
-        const blobService = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING)
+        /*const blobService = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING)
         const writableStream = blobService.createWriteStreamToBlockBlob(
             "speeches",
             mp3Name,
@@ -94,9 +139,17 @@ export async function createAudio(
                 },
             },
         )
-        await textToSpeech(accessToken, text, writableStream, voice, language, courseCode)
-        const audioUrl = blobService.getUrl("speeches") + "/" + mp3Name
-        return { url: audioUrl, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex }
+        await textToSpeech(accessToken, text, writableStream, voice, language, courseCode)*/
+        //await textToSpeech(accessToken, text, writableStream, voice, language, courseCode)
+        const buffer = await textToSpeechAsBuffer(accessToken, text, voice, language, courseCode)
+        //const audioUrl = blobService.getUrl("speeches") + "/" + mp3Name
+
+        const urlFile = await saveFile(courseCode, mp3Name, buffer);
+        
+        //console.info("Audio saved:", audioUrl)
+        console.info("Audio saved:", urlFile)
+
+        return { url: urlFile, sectionIndex: sectionIndex, elementIndex: elementIndex, paragraphIndex: paragraphIndex }
 
     } catch (err) {
         await saveLog(`Error creating audio for course: ${courseCode}, sectionIndex ${sectionIndex}, elementIndex ${elementIndex}, paragraphIndex ${paragraphIndex}.`, "Error", "createAudio()", "Courses/{courseCode}/CreateContent")

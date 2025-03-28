@@ -11,6 +11,7 @@ import axios, { AxiosResponse } from "axios";
 
 import { BlobInfo } from "../DeleteElement/types";
 //import { DeleteResult } from "mongodb";
+import { saveFile } from "../shared/SaveAssetsHD";
 
 
 
@@ -486,14 +487,17 @@ async function uploadBlobFromBuffer(campusCode: string, buffer: Buffer) {
     const containerClient = blobServiceClient.getContainerClient("marketplace");
     const blobName = campusCode + ".jpg";//nombre del campus
     // Create blob client from container client
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    //const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
     // Upload buffer
-    await blockBlobClient.uploadData(buffer);
+    //await blockBlobClient.uploadData(buffer);
+    
+    const urlFile = await saveFile(campusCode, blobName, buffer);
 
     return {
       ok: true,
-      body: blockBlobClient.url,
+      //body: blockBlobClient.url,
+      body:urlFile
     };
 
     //return blockBlobClient.url
