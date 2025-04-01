@@ -12,14 +12,25 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     try {
         const db = await database;
         const course = db.collection("course");
+        const themes = db.collection("courseTheme")
 
-        // 1. Find course by courseCode
+        // 1. Find course by courseCode and Course Theme
         const courseData = await course.findOne({ code: courseCode });
 
         if (!courseData) {
             context.res = {
                 status: 404,
                 body: "Course not found"
+            };
+            return;
+        }
+
+        const courseTheme = await themes.findOne({ code: courseData.slideshowColorThemeName });
+
+        if (!courseTheme) {
+            context.res = {
+                status: 404,
+                body: "Course theme not found"
             };
             return;
         }
@@ -50,7 +61,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         // Get global presentation data
         const globalData = {
             "defaultTemplate":"GlassTemplate",
-            "defaultTheme":courseData.slideshowColorThemeName,
+            "defaultTheme":courseTheme,
             "musicTrack": courseData.slideshowBackgroundMusicUrl
         }
 

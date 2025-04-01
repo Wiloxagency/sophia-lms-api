@@ -102,7 +102,7 @@ export const GlassTemplate: Template[] = [
             "description": "Slide con video vertical",
             "elements": {
                 "media": [
-                    "video-h"
+                    "video-v"
                 ],
                 "title": {
                     "min": 1,
@@ -126,7 +126,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "video",
             "id": "video1",
-            "video": "[video-h]",
+            "video": "[video-v]",
             "height": "100%",
             "right": "20%",
             "layer": 1,
@@ -385,10 +385,10 @@ export const GlassTemplate: Template[] = [
             "title": "[sections.0.subtitle]",
             "titleFontSize": 2,
             "titleLineHeight": "2cqw",
-            "titleFontColor": "[Primary]",
+            "titleFontColor": "[PrimaryText]",
             "text": "[sections.0.text]",
             "textFontSize": 1.8,
-            "textFontColor": "[Primary]",
+            "textFontColor": "[PrimaryText]",
             "textMarginTop": "1cqw",
             "layer": 3,
             "display": true

@@ -1,9 +1,5 @@
 import { BlobServiceClient } from '@azure/storage-blob';
 import { GlassTemplate } from '../themesTemplates/GlassTemplate';
-import { findBestTemplateMatch } from './findBestTemplateMatch';
-import { createConnection } from '../shared/mongo';
-
-const database = createConnection()
 
 // Helper function to slice text based on specified delimiters and max length
 function sliceText(text: string, maxLength: number, isTitle: boolean = false): string {
@@ -13,8 +9,8 @@ function sliceText(text: string, maxLength: number, isTitle: boolean = false): s
     }
 
     // Define delimiters based on content type
-    const delimiters = isTitle ? 
-        ['. ', ': '] : 
+    const delimiters = isTitle ?
+        ['. ', ': '] :
         ['. '];
 
     let bestSlice = text.substring(0, maxLength);
@@ -39,31 +35,43 @@ function sliceText(text: string, maxLength: number, isTitle: boolean = false): s
 
 // Helper function to validate and slice content against constraints
 function processContentWithConstraints(
-    content: string, 
+    content: string,
     constraints: { min: number; max: number },
     isTitle: boolean = false
 ): string {
     const words = content.split(' ');
-    
+
     if (words.length < constraints.min) {
         return content; // Return as is if too short
     }
-    
+
     if (words.length > constraints.max) {
         return sliceText(content, content.split(' ', constraints.max + 1).join(' ').length, isTitle);
     }
-    
+
     return content;
 }
 
-export async function fillTemplate(slides: any, globalData:any, presentationName: string) {
+function replaceTemplateColors(template: any[][], theme: Record<string, string>): any[][] {
+    return template.map(row =>
+        row.map(component => JSON.parse(
+            JSON.stringify(component, (key, value) =>
+                typeof value === "string" && value.startsWith("[") && value.endsWith("]")
+                    ? theme[value.slice(1, -1)] || value
+                    : value
+            ))
+        ))
+}
+
+
+export async function fillTemplate(slides: any, globalData: any, presentationName: string) {
 
     try {
         // Process each slide
         let processedSlides = slides.map((slide: any) => {
 
             const templateCode = slide.slideTemplate;
-            const template = GlassTemplate.find((t: any) => 
+            const template = GlassTemplate.find((t: any) =>
                 t[0].component === "meta-tag" && t[0].code === templateCode
             );
 
@@ -81,7 +89,7 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
 
             // Create a deep copy of the template to modify
             const processedTemplate = JSON.parse(JSON.stringify(template));
-
+            
             // Process each component in the template
             return processedTemplate.map((component: any) => {
                 if (component.component === "meta-tag") {
@@ -93,7 +101,7 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
                     component.audioUrl = slide.isAudioExternal === true ? slide.externalAudioUrl : slide.audioUrl
                     return component;
                 }
-                
+
                 // Replace media placeholders
                 // const mediaTypes = {
                 //     "video-h": (assetType: string, orientation: string) => assetType == "video" && orientation == "landscape",
@@ -117,10 +125,10 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
                 // Process media replacements
                 if (component.video) {
                     const videoType = component.video.slice(1, -1);
-                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) =>
                         asset.assetType === "video" && mediaTypes[videoType](asset.assetType, asset.orientation)
                     );
-                    
+
                     if (matchingAssetIndex !== -1) {
                         component.video = slide.assets[matchingAssetIndex].url;
                         // Remove the asset from slide.assets
@@ -130,10 +138,10 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
 
                 if (component.image) {
                     const imageType = component.image.slice(1, -1);
-                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) =>
                         asset.assetType === "photo" && mediaTypes[imageType](asset.assetType, asset.orientation)
                     );
-                    
+
                     if (matchingAssetIndex !== -1) {
                         component.image = slide.assets[matchingAssetIndex].url;
                         // Remove the asset from slide.assets
@@ -143,10 +151,10 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
 
                 if (component.icon) {
                     const iconType = component.icon.slice(1, -1);
-                    const matchingAssetIndex = slide.assets.findIndex((asset: any) => 
+                    const matchingAssetIndex = slide.assets.findIndex((asset: any) =>
                         asset.assetType === "icon" && mediaTypes[iconType](asset.assetType)
                     );
-                    
+
                     if (matchingAssetIndex !== -1) {
                         component.icon = slide.assets[matchingAssetIndex].url;
                         // Remove the asset from slide.assets
@@ -198,6 +206,9 @@ export async function fillTemplate(slides: any, globalData:any, presentationName
                 return component;
             });
         });
+
+        processedSlides = replaceTemplateColors(processedSlides, globalData.defaultTheme.colors);
+        console.log(processedSlides);
 
         // Add globaldata to presentation
         processedSlides.unshift(globalData);
