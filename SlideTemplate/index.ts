@@ -43,10 +43,18 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const assignedTemplate: SlideTemplates = findBestTemplateMatch(
-      slide.slideContent,
-      course.slideshowColorThemeName
-    )[0].code;
+    let assignedTemplate: SlideTemplates
+    if (slide.isFullscreenAsset === true) {
+      assignedTemplate = "00-04"
+      slide.assets = [slide.assets[slide.indexFullscreenAsset]]
+    } else {
+      assignedTemplate = findBestTemplateMatch(
+        slide.slideContent,
+        course.slideshowColorThemeName
+      )[0].code;
+    }
+
+
 
     // Get global presentation data
     const globalData = {

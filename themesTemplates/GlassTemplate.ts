@@ -72,7 +72,7 @@ export const GlassTemplate: Template[] = [
             "height": "100%",
             "right": "0",
             "layer": 3,
-            "extraClasses": "glass-12",
+            "extraClasses": "glass-12-wbg",
             "display": true
         },
         {
@@ -91,7 +91,7 @@ export const GlassTemplate: Template[] = [
             "textFontColor": "[PrimaryText]",
             "textMarginTop": "2cqw",
             "layer": 3,
-            "extraClasses": "glass-12 justify-center",
+            "extraClasses": "glass-12-wbg justify-center",
             "display": true
         }
     ],
@@ -163,7 +163,7 @@ export const GlassTemplate: Template[] = [
             "height": "100%",
             "right": "0",
             "layer": 3,
-            "extraClasses": "glass-12",
+            "extraClasses": "glass-12-wbg",
             "display": true
         },
         {
@@ -182,7 +182,7 @@ export const GlassTemplate: Template[] = [
             "textFontColor": "[PrimaryText]",
             "textMarginTop": "2cqw",
             "layer": 3,
-            "extraClasses": "glass-12 justify-center",
+            "extraClasses": "glass-12-wbg justify-center",
             "display": true
         }
     ],
@@ -312,7 +312,17 @@ export const GlassTemplate: Template[] = [
  
         {
             "component": "video",
+            "id": "video1",
             "video": "[video-h]",
+            "width": "100%",
+            "height": "100%",
+            "layer": 1,
+            "display": true
+        },
+        {
+            "component": "img",
+            "id": "img1",
+            "image": "[image-h]",
             "width": "100%",
             "height": "100%",
             "layer": 1,
