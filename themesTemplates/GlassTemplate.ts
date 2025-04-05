@@ -93,7 +93,78 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 00-01 ⚠️
+  // 00-01 🟢
+  [
+    {
+      component: "meta-tag",
+      code: "00-01",
+      description: "Slide con un asset de fondo",
+      elements: {
+        media: ["image-h"],
+        title: {
+          min: 2,
+          max: 2,
+        },
+        text: {
+          min: 1,
+          max: 20,
+        },
+        sections: [
+          {
+            title: {
+              min: 1,
+              max: 8,
+            },
+            text: {
+              min: 1,
+              max: 40,
+            },
+          },
+        ],
+      },
+    },
+    {
+      component: "audio",
+      audioUrl: "[audio-url]",
+    },
+    {
+      component: "background",
+      backgroundColor: "[Primary]",
+    },
+    {
+      component: "img",
+      id: "img1",
+      image: "[image-h]",
+      width: "100%",
+      height: "100%",
+      top: "0%",
+      right: "0%",
+      layer: 2,
+      display: true,
+    },
+    {
+      component: "card",
+      id: "card1",
+      extraClasses: "p-6",
+      width: "50%",
+      height: "40%",
+      right: "45%",
+      top: "50%",
+      borderRadius: "1.5rem",
+      bgColor: "[Primary]",
+      padding: "1cqw",
+      title: "[title]",
+      titleFontSize: 2,
+      titleLineHeight: "2cqw",
+      titleFontColor: "[Primary]",
+      text: "[text]",
+      textFontSize: 1.8,
+      textFontColor: "[Primary]",
+      textMarginTop: "1cqw",
+      layer: 3,
+      display: true,
+    },
+  ],
   // 00-02
   [
     {
@@ -191,7 +262,78 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 00-04 ⚠️
+  // 00-04 🟢
+  [
+    {
+      component: "meta-tag",
+      code: "00-04",
+      description: "Slide con un asset cuadrado a la izquierda",
+      elements: {
+        media: ["image-q"],
+        title: {
+          min: 2,
+          max: 2,
+        },
+        text: {
+          min: 1,
+          max: 20,
+        },
+        sections: [
+          {
+            title: {
+              min: 1,
+              max: 8,
+            },
+            text: {
+              min: 1,
+              max: 40,
+            },
+          },
+        ],
+      },
+    },
+    {
+      component: "audio",
+      audioUrl: "[audio-url]",
+    },
+    {
+      component: "background",
+      backgroundColor: "[Primary]",
+    },
+    {
+      component: "img",
+      id: "img1",
+      image: "[image-q]",
+      width: "50%",
+      height: "100%",
+      top: "0%",
+      right: "50%",
+      layer: 2,
+      display: true,
+    },
+    {
+      component: "card",
+      id: "card1",
+      extraClasses: "p-6",
+      width: "40%",
+      height: "75%",
+      right: "5%",
+      top: "12%",
+      borderRadius: "1.5rem",
+      bgColor: "[Primary]",
+      padding: "1cqw",
+      title: "[title]",
+      titleFontSize: 2,
+      titleLineHeight: "2cqw",
+      titleFontColor: "[Primary]",
+      text: "[text]",
+      textFontSize: 1.8,
+      textFontColor: "[Primary]",
+      textMarginTop: "1cqw",
+      layer: 3,
+      display: true,
+    },
+  ],
   // 01-00
   [
     {
