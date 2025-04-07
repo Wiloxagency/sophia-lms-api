@@ -19,6 +19,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     const db = await database;
     const Courses = db.collection<CourseData>("course");
+    const themes = db.collection("courseTheme")
     const course = await Courses.findOne({ code: courseCode });
 
     if (!course) {
@@ -29,6 +30,16 @@ const httpTrigger: AzureFunction = async function (
       };
       return;
     }
+
+    const courseTheme = await themes.findOne({ code: course.slideshowColorThemeName });
+
+        if (!courseTheme) {
+            context.res = {
+                status: 404,
+                body: "Course theme not found"
+            };
+            return;
+        }
 
     const slide: LessonSlide =
       course.sections?.[sectionIndex]?.elements?.[elementIndex]?.elementLesson
@@ -43,23 +54,15 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    let assignedTemplate: SlideTemplates
-    if (slide.isFullscreenAsset === true) {
-      assignedTemplate = "00-04"
-      slide.assets = [slide.assets[slide.indexFullscreenAsset]]
-    } else {
-      assignedTemplate = findBestTemplateMatch(
+    const  assignedTemplate: SlideTemplates = findBestTemplateMatch(
         slide.slideContent,
         course.slideshowColorThemeName
       )[0].code;
-    }
-
-
-
+    
     // Get global presentation data
     const globalData = {
       defaultTemplate: "GlassTemplate",
-      defaultTheme: course.slideshowColorThemeName,
+      defaultTheme: courseTheme,
       musicTrack: course.slideshowBackgroundMusicUrl,
     };
 

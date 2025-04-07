@@ -39,6 +39,9 @@ function processContentWithConstraints(
     constraints: { min: number; max: number },
     isTitle: boolean = false
 ): string {
+    if (content==undefined || content == "" || content == null) {
+        return ""
+    }
     const words = content.split(' ');
 
     if (words.length < constraints.min) {
@@ -66,10 +69,15 @@ function replaceTemplateColors(template: any[][], theme: Record<string, string>)
 
 export async function fillTemplate(slides: any, globalData: any, presentationName: string) {
 
-    try {
+    // try {
         // Process each slide
         let processedSlides = slides.map((slide: any) => {
 
+            if (slide.isFullscreenAsset  && slide.isFullscreenAsset===true) {
+                slide.slideTemplate = "00-04"
+                slide.assets = [slide.assets[slide.indexFullscreenAsset]]
+            } 
+            
             const templateCode = slide.slideTemplate;
             const template = GlassTemplate.find((t: any) =>
                 t[0].component === "meta-tag" && t[0].code === templateCode
@@ -223,7 +231,7 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
 
         return { status: "success", message: `Presentation ${presentationName}.json created successfully` };
 
-    } catch (error) {
-        throw new Error(`Error processing template: ${error.message}`);
-    }
+    // } catch (error) {
+    //     throw new Error(`Error processing template: ${error.message}`);
+    // }
 }

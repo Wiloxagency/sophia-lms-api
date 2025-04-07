@@ -368,6 +368,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "mediaWithMirror",
             "video": "[video-h]",
+            "image": "[image-h]",
             "layer": 1,
             "title": "[title]",
             "titleFontColor": "[PrimaryText]",
