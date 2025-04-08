@@ -515,7 +515,7 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 01-02 🟢
+  // 01-02 ✅
   [
     {
       component: "meta-tag",
@@ -524,21 +524,21 @@ export const GlassTemplate: Template[] = [
       elements: {
         media: ["image-h", "image-h"],
         title: {
-          min: 2,
-          max: 2,
+          min: 1,
+          max: 10,
         },
         text: {
-          min: 1,
-          max: 20,
+          min: 20,
+          max: 40,
         },
         sections: [
           {
             title: {
               min: 1,
-              max: 8,
+              max: 10,
             },
             text: {
-              min: 1,
+              min: 20,
               max: 40,
             },
           },
@@ -585,7 +585,7 @@ export const GlassTemplate: Template[] = [
       top: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[title]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -593,7 +593,7 @@ export const GlassTemplate: Template[] = [
       text: "[text]",
       textFontSize: 1.8,
       textFontColor: "[PrimaryText]",
-      textMarginTop: "1cqw",
+      textMarginTop: "1.5cqw",
       layer: 3,
       display: true,
     },
@@ -607,7 +607,7 @@ export const GlassTemplate: Template[] = [
       top: "55%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.0.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -615,7 +615,7 @@ export const GlassTemplate: Template[] = [
       text: "[sections.0.text]",
       textFontSize: 1.8,
       textFontColor: "[PrimaryText]",
-      textMarginTop: "1cqw",
+      textMarginTop: "1.5cqw",
       layer: 3,
       display: true,
     },
