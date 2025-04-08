@@ -2109,7 +2109,7 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 03-02 🟢
+  // 03-02 ✅
   [
     {
       component: "meta-tag",
@@ -2118,42 +2118,42 @@ export const GlassTemplate: Template[] = [
       elements: {
         media: [],
         title: {
-          min: 2,
-          max: 2,
+          min: 1,
+          max: 15,
         },
         text: {
-          min: 1,
-          max: 20,
+          min: 30,
+          max: 50,
         },
         sections: [
           {
             title: {
               min: 1,
-              max: 8,
+              max: 15,
             },
             text: {
-              min: 1,
-              max: 40,
+              min: 30,
+              max: 50,
             },
           },
           {
             title: {
               min: 1,
-              max: 8,
+              max: 15,
             },
             text: {
-              min: 1,
-              max: 40,
+              min: 30,
+              max: 50,
             },
           },
           {
             title: {
               min: 1,
-              max: 8,
+              max: 15,
             },
             text: {
-              min: 1,
-              max: 40,
+              min: 30,
+              max: 50,
             },
           },
         ],
@@ -2177,7 +2177,7 @@ export const GlassTemplate: Template[] = [
       top: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[title]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -2199,7 +2199,7 @@ export const GlassTemplate: Template[] = [
       top: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.0.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -2221,7 +2221,7 @@ export const GlassTemplate: Template[] = [
       top: "51%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.1.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -2243,7 +2243,7 @@ export const GlassTemplate: Template[] = [
       top: "51%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.2.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
