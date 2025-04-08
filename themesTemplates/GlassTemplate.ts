@@ -645,7 +645,7 @@ export const GlassTemplate: Template[] = [
           max: 12,
         },
         text: {
-          min: 20,
+          min: 30,
           max: 50,
         },
         sections: [
@@ -655,7 +655,7 @@ export const GlassTemplate: Template[] = [
               max: 12,
             },
             text: {
-              min: 20,
+              min: 30,
               max: 50,
             },
           },
@@ -761,7 +761,7 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 01-04 🟢
+  // 01-04 ✅
   [
     {
       component: "meta-tag",
@@ -770,21 +770,21 @@ export const GlassTemplate: Template[] = [
       elements: {
         media: ["image-h"],
         title: {
-          min: 2,
-          max: 2,
+          min: 1,
+          max: 10,
         },
         text: {
-          min: 1,
-          max: 20,
+          min: 20,
+          max: 40,
         },
         sections: [
           {
             title: {
               min: 1,
-              max: 8,
+              max: 10,
             },
             text: {
-              min: 1,
+              min: 20,
               max: 40,
             },
           },
@@ -804,7 +804,7 @@ export const GlassTemplate: Template[] = [
       id: "img1",
       image: "[image-h]",
       width: "90%",
-      height: "45%",
+      height: "50%",
       top: "5%",
       right: "5%",
       layer: 2,
@@ -815,12 +815,12 @@ export const GlassTemplate: Template[] = [
       id: "card1",
       extraClasses: "p-6 glass",
       width: "44%",
-      height: "40%",
+      height: "35%",
       right: "51%",
-      top: "55%",
+      top: "60%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[title]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -837,12 +837,12 @@ export const GlassTemplate: Template[] = [
       id: "card2",
       extraClasses: "p-6 glass",
       width: "44%",
-      height: "40%",
+      height: "35%",
       right: "5%",
-      top: "55%",
+      top: "60%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.0.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -1457,18 +1457,18 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 02-03 🟢
+  // 02-03 ✅
   [
     {
       component: "meta-tag",
       code: "02-03",
       description:
-        "Slide con asset horizontal en la esquina inferior izquierdo",
+        "Slide con asset horizontal en la esquina inferior izquierda",
       elements: {
         media: ["image-h"],
         title: {
           min: 1,
-          max: 15,
+          max: 12,
         },
         text: {
           min: 1,
@@ -1478,21 +1478,21 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 3,
+              max: 12,
             },
             text: {
               min: 1,
-              max: 25,
+              max: 40,
             },
           },
           {
             title: {
               min: 1,
-              max: 3,
+              max: 12,
             },
             text: {
               min: 1,
-              max: 25,
+              max: 50,
             },
           },
         ],
@@ -1527,7 +1527,7 @@ export const GlassTemplate: Template[] = [
       top: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[title]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -1549,7 +1549,7 @@ export const GlassTemplate: Template[] = [
       top: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.0.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
@@ -1571,7 +1571,7 @@ export const GlassTemplate: Template[] = [
       right: "5%",
       borderRadius: "1.5rem",
       bgColor: "[Primary]",
-      padding: "1cqw",
+      padding: "2cqw",
       title: "[sections.1.subtitle]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
