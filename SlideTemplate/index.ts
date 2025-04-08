@@ -1,11 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { fillTemplate } from "../CreateContent/fillTemplate";
+import { findBestTemplateMatch } from "../CreateContent/findBestTemplateMatch";
 import { createConnection } from "../shared/mongo";
 import { CourseData, LessonSlide, SlideTemplates } from "../shared/types";
-import { findBestTemplateMatch } from "../CreateContent/findBestTemplateMatch";
-import { fillTemplate } from "../CreateContent/fillTemplate";
 import {
-  fillMissingAssets,
-  getMediaTypesForCode,
+  fillMissingAssets
 } from "./layoutAssetsPlaceholder";
 
 const database = createConnection();
@@ -19,6 +18,8 @@ const httpTrigger: AzureFunction = async function (
   try {
     const db = await database;
     const Courses = db.collection<CourseData>("course");
+    const Themes = db.collection("courseTheme");
+
     const course = await Courses.findOne({ code: courseCode });
 
     if (!course) {
@@ -43,10 +44,10 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    let assignedTemplate: SlideTemplates
+    let assignedTemplate: SlideTemplates;
     if (slide.isFullscreenAsset === true) {
-      assignedTemplate = "00-04"
-      slide.assets = [slide.assets[slide.indexFullscreenAsset]]
+      assignedTemplate = "00-04";
+      slide.assets = [slide.assets[slide.indexFullscreenAsset]];
     } else {
       assignedTemplate = findBestTemplateMatch(
         slide.slideContent,
@@ -54,16 +55,35 @@ const httpTrigger: AzureFunction = async function (
       )[0].code;
     }
 
+    const courseTheme = await Themes.findOne({
+      code: course.slideshowColorThemeName,
+    });
 
+    if (!courseTheme) {
+      context.res = {
+        status: 404,
+        body: "Course theme not found",
+      };
+      return;
+    }
 
     // Get global presentation data
     const globalData = {
       defaultTemplate: "GlassTemplate",
-      defaultTheme: course.slideshowColorThemeName,
+      defaultTheme: courseTheme,
       musicTrack: course.slideshowBackgroundMusicUrl,
     };
 
     const presentationName = `${courseCode}-${sectionIndex}-${elementIndex}`;
+
+    console.log(
+      "fillTemplate payload:",
+      // course.sections[sectionIndex].elements[elementIndex].elementLesson.slides,
+      "globalData: ",
+      globalData
+      // "presentationName: ",
+      // presentationName
+    );
 
     await fillTemplate(
       course.sections[sectionIndex].elements[elementIndex].elementLesson.slides,
