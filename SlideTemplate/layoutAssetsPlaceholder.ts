@@ -12,19 +12,18 @@ export function getMediaTypesForCode(code: SlideTemplates): string[] {
 }
 
 export function fillMissingAssets(
-  slide: { assets: LessonSlideAsset[] },
+  currentSlideAssets: LessonSlideAsset[],
   code: SlideTemplates
 ): LessonSlideAsset[] {
   const mediaTypes = getMediaTypesForCode(code);
   const existingAssets = new Set(
-    slide.assets.map((asset) => mapAssetType(asset))
+    currentSlideAssets.map((asset) => mapAssetType(asset))
   );
 
   const missingAssets = mediaTypes
     .filter((media) => !existingAssets.has(media))
     .map((media) => createPlaceholder(media));
-
-  return [...slide.assets, ...missingAssets];
+  return [...currentSlideAssets, ...missingAssets];
 }
 
 function mapAssetType(asset: LessonSlideAsset): string {

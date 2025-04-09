@@ -19,7 +19,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     const db = await database;
     const Courses = db.collection<CourseData>("course");
-    const themes = db.collection("courseTheme")
+    const themes = db.collection("courseTheme");
     const course = await Courses.findOne({ code: courseCode });
 
     if (!course) {
@@ -31,19 +31,22 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const courseTheme = await themes.findOne({ code: course.slideshowColorThemeName });
+    const courseTheme = await themes.findOne({
+      code: course.slideshowColorThemeName,
+    });
 
-        if (!courseTheme) {
-            context.res = {
-                status: 404,
-                body: "Course theme not found"
-            };
-            return;
-        }
+    if (!courseTheme) {
+      context.res = {
+        status: 404,
+        body: "Course theme not found",
+      };
+      return;
+    }
 
-    const slide: LessonSlide =
+    const slide: LessonSlide = structuredClone(
       course.sections?.[sectionIndex]?.elements?.[elementIndex]?.elementLesson
-        .slides?.[slideIndex];
+        ?.slides?.[slideIndex]
+    );
 
     if (!slide) {
       context.res = {
@@ -54,11 +57,11 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const  assignedTemplate: SlideTemplates = findBestTemplateMatch(
-        slide.slideContent,
-        course.slideshowColorThemeName
-      )[0].code;
-    
+    const assignedTemplate: SlideTemplates = findBestTemplateMatch(
+      slide.slideContent,
+      course.slideshowColorThemeName
+    )[0].code;
+
     // Get global presentation data
     const globalData = {
       defaultTemplate: "GlassTemplate",
@@ -74,10 +77,7 @@ const httpTrigger: AzureFunction = async function (
       presentationName
     );
 
-    const completeAssets = fillMissingAssets(slide, assignedTemplate);
-
-    console.log(" assignedTemplate: ", assignedTemplate);
-    console.log(" completeAssets: ", completeAssets);
+    const completeAssets = fillMissingAssets(slide.assets, assignedTemplate);
 
     const slideTemplatePath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.slideTemplate`;
     const slideAssetsPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets`;
