@@ -1,3 +1,4 @@
+import { LessonSlideAsset } from "../shared/types";
 import { GlassTemplate } from "../themesTemplates/GlassTemplate";
 import { MetaTag, SlideContent, TemplateComponent } from "./interfaces";
 
@@ -10,20 +11,38 @@ function countWords(text: string): number {
 function countWordsNew(text: string): number {
   // Remove content inside <s></s> tags
   const cleanedText = text.replace(/<s>.*?<\/s>/g, "");
-  
+
   // Split by spaces and filter out empty strings
   return cleanedText.trim().split(/\s+/).filter(word => word !== "").length;
 }
 
-export function findBestTemplateMatch(slide: SlideContent, themeName: string): Template | null {
+export function findBestTemplateMatch(slide: SlideContent, themeName: string, extra?: { templateCode: string, slideAssets: LessonSlideAsset[] }): Template | null {
   let templates: Template[] = GlassTemplate;
 
   let bestMatch: Template | null = null;
   let bestScore = Number.NEGATIVE_INFINITY;
+  let redoLayout = extra != undefined
+
+  let totalMediaSlide: number = 0
+
+  if (redoLayout) {
+      totalMediaSlide = extra.slideAssets.filter(item =>
+      item.assetType == "video" || item.assetType == "photo"
+    ).length;
+  }
+
 
   for (const template of templates) {
     const meta = template[0] as MetaTag;
     let score = 0;
+
+    // check assets qty
+    const totalMediaTemplate = meta.elements.media.filter(item =>
+      item.startsWith("video") || item.startsWith("image")
+    ).length;
+    if (redoLayout && totalMediaSlide == totalMediaTemplate ) {
+      score += 8;
+    }
 
     // Check title length constraints
     const titleLen = countWords(slide.title) || 0;
@@ -42,7 +61,7 @@ export function findBestTemplateMatch(slide: SlideContent, themeName: string): T
     const templateSections = meta.elements.sections;
 
     if (slidesSections.length === templateSections.length) {
-      score += 3;
+      score += 10;
 
       // Check each section's constraints
       slidesSections.forEach((slideSection, index) => {

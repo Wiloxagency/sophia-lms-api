@@ -56,7 +56,11 @@ const httpTrigger: AzureFunction = async function (
 
     const  assignedTemplate: SlideTemplates = findBestTemplateMatch(
         slide.slideContent,
-        course.slideshowColorThemeName
+        course.slideshowColorThemeName,
+        {
+          templateCode: slide.slideTemplate,
+          slideAssets: slide.assets,
+        }
       )[0].code;
     
     // Get global presentation data
