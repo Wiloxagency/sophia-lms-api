@@ -35,7 +35,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             return;
         }
 
-        // 2. Get slides array from the specified path
+        // 2. Get slides array from the specified path.
         const slides = courseData.sections[sectionIndex]
             ?.elements[elementIndex]
             ?.elementLesson
