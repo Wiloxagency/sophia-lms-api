@@ -103,11 +103,11 @@ export const GlassTemplate: Template[] = [
         media: ["image-h"],
         title: {
           min: 1,
-          max: 12,
+          max: 14,
         },
         text: {
-          min: 20,
-          max: 40,
+          min: 22,
+          max: 60,
         },
         sections: [],
       },
@@ -261,7 +261,7 @@ export const GlassTemplate: Template[] = [
         media: ["image-q"],
         title: {
           min: 1,
-          max: 12,
+          max: 14,
         },
         text: {
           min: 40,
