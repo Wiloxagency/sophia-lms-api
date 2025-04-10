@@ -2795,7 +2795,7 @@ export const GlassTemplate: Template[] = [
       display: true,
     },
   ],
-  // 04-01 🟢
+  // 04-01 ✅
   [
     {
       component: "meta-tag",
@@ -2805,27 +2805,17 @@ export const GlassTemplate: Template[] = [
         media: ["image-q"],
         title: {
           min: 1,
-          max: 12,
+          max: 7,
         },
         text: {
           min: 1,
-          max: 20,
+          max: 44,
         },
         sections: [
           {
             title: {
               min: 1,
-              max: 12,
-            },
-            text: {
-              min: 1,
-              max: 40,
-            },
-          },
-          {
-            title: {
-              min: 1,
-              max: 12,
+              max: 7,
             },
             text: {
               min: 1,
@@ -2835,21 +2825,31 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 12,
+              max: 7,
             },
             text: {
               min: 1,
-              max: 50,
+              max: 35,
             },
           },
           {
             title: {
               min: 1,
-              max: 12,
+              max: 7,
             },
             text: {
               min: 1,
-              max: 50,
+              max: 35,
+            },
+          },
+          {
+            title: {
+              min: 1,
+              max: 7,
+            },
+            text: {
+              min: 1,
+              max: 35,
             },
           },
         ],
