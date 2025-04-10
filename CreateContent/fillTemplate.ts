@@ -216,7 +216,7 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
         });
 
         processedSlides = replaceTemplateColors(processedSlides, globalData.defaultTheme.colors);
-        console.log(processedSlides);
+        // console.log(processedSlides);
 
         // Add globaldata to presentation
         processedSlides.unshift(globalData);
