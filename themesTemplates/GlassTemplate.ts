@@ -42,6 +42,15 @@ export const GlassTemplate: Template[] = [
             "display": true
         },
         {
+            "component": "img",
+            "id": "img1",
+            "image": "[image-v]",
+            "height": "100%",
+            "right": "20%",
+            "layer": 1,
+            "display": true
+        },
+        {
             "component": "star",
             "id": "star1",
             "stopColor1": "[CenterObject]",
@@ -127,6 +136,15 @@ export const GlassTemplate: Template[] = [
             "component": "video",
             "id": "video1",
             "video": "[video-v]",
+            "height": "100%",
+            "right": "20%",
+            "layer": 1,
+            "display": true
+        },
+        {
+            "component": "img",
+            "id": "img1",
+            "image": "[image-v]",
             "height": "100%",
             "right": "20%",
             "layer": 1,

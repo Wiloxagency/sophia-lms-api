@@ -81,8 +81,9 @@ const httpTrigger: AzureFunction = async function (
       presentationName
     );
 
-    const completeAssets = fillMissingAssets(slide.assets, assignedTemplate);
+    // const completeAssets = fillMissingAssets(slide.assets, assignedTemplate);
 
+    const completeAssets = slide.assets
     const slideTemplatePath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.slideTemplate`;
     const slideAssetsPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets`;
 
