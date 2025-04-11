@@ -624,7 +624,7 @@ export const GlassTemplate: Template[] = [
             "textFontSize": 2,
             "textFontColor": "[PrimaryText]",
             "layer": 5,
-            "extraClasses": "glass-12 justify-center",
+            "extraClasses": "glass justify-center",
             "display": true
         },
         {
@@ -633,16 +633,19 @@ export const GlassTemplate: Template[] = [
             "top": "80%",
             "width": "50%",
             "height": "20%",
-            "extraClasses": "glass justify-center",
+            "bgColor": "[Secondary]",
+            "extraClasses": "glass-12-sb justify-center",
             "padding": "1cqw",
             "title": "[sections.0.subtitle]",
-            "titleFontSize": 1.2,
-            "titleFontColor": "[PrimaryText]",
+            "titleFontSize": 1.8,
+            "titleFontColor": "[SecondaryText]",
             "text": "[sections.0.text]",
-            "textFontSize": 1,
-            "textFontColor": "[PrimaryText]",
+            "textFontSize": 1.4,
+            "textMarginTop": "1cqw",
+            "textFontColor": "[SecondaryText]",
             "icon": "[icon-b]",
-            "iconWidth": "clamp(40px, 3%, 3%)",
+            "iconWidth": "clamp(30px, 3%, 3%)",
+            "iconMargingRight": "0.5cqw",
             "layer": 4,
             "display": true
         },
@@ -653,18 +656,19 @@ export const GlassTemplate: Template[] = [
             "top": "80%",
             "width": "50%",
             "height": "20%",
-            "bgColor": "#fff",
-            "extraClasses": "justify-center",
+            "bgColor": "[Primary]",
+            "extraClasses": "glass justify-center",
             "padding": "1cqw",
             "title": "[sections.1.subtitle]",
-            "titleFontSize": 1.2,
+            "titleFontSize": 1.8,
             "titleFontColor": "[PrimaryText]",
             "text": "[sections.1.text]",
-            "textFontSize": 1,
+            "textFontSize": 1.4,
+            "textMarginTop": "1cqw",
             "textFontColor": "[PrimaryText]",
             "icon": "[icon-b]",
-            "iconWidth": "clamp(40px, 3%, 3%)",
-            "iconMargingRight": "1cqw",
+            "iconWidth": "clamp(30px, 3%, 3%)",
+            "iconMargingRight": "0.5cqw",
             "layer": 4,
             "display": true
         },
@@ -736,21 +740,21 @@ export const GlassTemplate: Template[] = [
                     {
                         "title": {
                             "min": 1,
-                            "max": 2
+                            "max": 3
                         },
                         "text": {
                             "min": 1,
-                            "max": 8
+                            "max": 20
                         }
                     },
                     {
                         "title": {
                             "min": 1,
-                            "max": 2
+                            "max": 3
                         },
                         "text": {
                             "min": 1,
-                            "max": 8
+                            "max": 20
                         }
                     }
                 ]
@@ -813,11 +817,12 @@ export const GlassTemplate: Template[] = [
             "id": "card5",
             "extraClasses": "justify-center",
             "title": "[sections.0.subtitle]",
-            "titleFontSize": 3,
-            "titleFontColor": "[PrimaryText]",
+            "titleFontSize": 2.2,
+            "titleFontColor": "#ffffff",
             "text": "[sections.0.text]",
-            "textFontSize": 1.5,
-            "textFontColor": "[PrimaryText]",
+            "textFontSize": 1.6,
+            "textFontColor": "#ffffff",
+            "textMarginTop": "0.5cqw",
             "width": "25%",
             "height": "25%",
             "right": "42%",
@@ -830,11 +835,12 @@ export const GlassTemplate: Template[] = [
             "id": "card6",
             "title": "[sections.1.subtitle]",
             "extraClasses": "justify-center",
-            "titleFontSize": 3,
+            "titleFontSize": 2.2,
             "titleFontColor": "[PrimaryText]",
             "text": "[sections.1.text]",
-            "textFontSize": 1.5,
+            "textFontSize": 1.6,
             "textFontColor": "[PrimaryText]",
+            "textMarginTop": "0.5cqw",
             "width": "32%",
             "height": "25%",
             "right": "5%",
@@ -979,6 +985,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "card",
             "id": "card2",
+            "extraClasses": "justify-center",
             "title": "[title]",
             "titleFontSize": 3,
             "titleFontColor": "[PrimaryText]",
@@ -998,7 +1005,6 @@ export const GlassTemplate: Template[] = [
         {
             "component": "card",
             "id": "card3",
-            "extraClasses": "",
             "width": "30%",
             "height": "60%",
             "right": "16%",
@@ -1096,7 +1102,7 @@ export const GlassTemplate: Template[] = [
         {
             "component": "card",
             "id": "card2",
-            "bgColor": "[Primary]",
+            "bgColor": "[FinalObject]",
             "width": "50%",
             "height": "5%",
             "right": "0",
