@@ -74,7 +74,7 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
         let processedSlides = slides.map((slide: any) => {
 
             if (slide.isFullscreenAsset  && slide.isFullscreenAsset===true) {
-                slide.slideTemplate = "00-04"
+                slide.slideTemplate = "00-FULL"
                 slide.assets = [slide.assets[slide.indexFullscreenAsset]]
             } 
             
