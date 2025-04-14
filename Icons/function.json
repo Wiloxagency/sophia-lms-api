@@ -9,7 +9,7 @@
         "get",
         "post"
       ],
-      "route": "v2/icons/"
+      "route": "v2/icons"
     },
     {
       "type": "http",
