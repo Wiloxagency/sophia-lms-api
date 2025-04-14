@@ -33,8 +33,19 @@ function sliceText(text: string, maxLength: number, isTitle: boolean = false): s
     return bestSlice;
 }
 
+// Removes all content between <s> and </s> tags from a string.
+function removeSTags(input: string): string {
+    // In ES6, we can't use the 's' flag, so we need to handle newlines differently
+    // This regex will match <s> tags and their content, but might not handle newlines properly
+    const sTagRegex = /<s>[\s\S]*?<\/s>/g;
+    
+    // Replace all occurrences of the pattern with an empty string
+    return input.replace(sTagRegex, '');
+  }
+
+
 // Helper function to validate and slice content against constraints
-function processContentWithConstraints(
+function processContentWithConstraints_dropme(
     content: string,
     constraints: { min: number; max: number },
     isTitle: boolean = false
@@ -173,20 +184,22 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
                 // Process title with constraints
                 if (component.title && component.title.startsWith("[") && component.title.endsWith("]")) {
                     if (component.title === "[title]") {
-                        component.title = processContentWithConstraints(
-                            slide.slideContent.title,
-                            constraints.title,
-                            true
-                        );
+                        // component.title = processContentWithConstraints(
+                        //     slide.slideContent.title,
+                        //     constraints.title,
+                        //     true
+                        // );
+                        component.title = removeSTags(slide.slideContent.title)
                     } else if (component.title.startsWith("[sections.")) {
                         const sectionIndex = parseInt(component.title.match(/\d+/)[0]);
                         const sectionContent = slide.slideContent.sections[sectionIndex]?.subtitle || "";
                         if (constraints.sections && constraints.sections[sectionIndex]) {
-                            component.title = processContentWithConstraints(
-                                sectionContent,
-                                constraints.sections[sectionIndex].title,
-                                true
-                            );
+                            // component.title = processContentWithConstraints(
+                            //     sectionContent,
+                            //     constraints.sections[sectionIndex].title,
+                            //     true
+                            // );
+                            component.title = removeSTags(sectionContent)
                         }
                     }
                 }
@@ -194,20 +207,22 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
                 // Process text with constraints
                 if (component.text && component.text.startsWith("[") && component.text.endsWith("]")) {
                     if (component.text === "[text]") {
-                        component.text = processContentWithConstraints(
-                            slide.slideContent.text,
-                            constraints.text,
-                            false
-                        );
+                        // component.text = processContentWithConstraints(
+                        //     slide.slideContent.text,
+                        //     constraints.text,
+                        //     false
+                        // );
+                        component.text = removeSTags(slide.slideContent.text)
                     } else if (component.text.startsWith("[sections.")) {
                         const sectionIndex = parseInt(component.text.match(/\d+/)[0]);
                         const sectionContent = slide.slideContent.sections[sectionIndex]?.text || "";
                         if (constraints.sections && constraints.sections[sectionIndex]) {
-                            component.text = processContentWithConstraints(
-                                sectionContent,
-                                constraints.sections[sectionIndex].text,
-                                false
-                            );
+                            // component.text = processContentWithConstraints(
+                            //     sectionContent,
+                            //     constraints.sections[sectionIndex].text,
+                            //     false
+                            // );
+                            component.text = removeSTags(sectionContent)
                         }
                     }
                 }
