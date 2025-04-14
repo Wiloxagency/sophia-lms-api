@@ -35,9 +35,11 @@ function sliceText(text: string, maxLength: number, isTitle: boolean = false): s
 
 // Removes all content between <s> and </s> tags from a string.
 function removeSTags(input: string): string {
-    // In ES6, we can't use the 's' flag, so we need to handle newlines differently
-    // This regex will match <s> tags and their content, but might not handle newlines properly
-    const sTagRegex = /<s>[\s\S]*?<\/s>/g;
+    // This regex matches <s> tags with optional attributes, along with their content
+    // <s[^>]*> matches opening tags with any attributes
+    // [\s\S]*? matches any content (including newlines) non-greedily
+    // <\/s> matches the closing tag
+    const sTagRegex = /<s[^>]*>[\s\S]*?<\/s>/g;
     
     // Replace all occurrences of the pattern with an empty string
     return input.replace(sTagRegex, '');
