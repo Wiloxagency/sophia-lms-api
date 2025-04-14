@@ -31,6 +31,7 @@
     "mongodb": "^4.13.0",
     "node-ipinfo": "^3.5.3",
     "nodemailer": "^6.9.3",
+    "oauth": "^0.10.2",
     "openai": "^4.55.7",
     "pexels": "^1.4.0",
     "request-promise": "^4.2.6",
