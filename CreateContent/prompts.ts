@@ -61,7 +61,7 @@ export const slideGeneration = {
     "prompt": `Considering the context of the course \"v{courseName}\", 
 create an extensive content in v{languageName} explaining the subject \"v{text}\", 
 the paragraphs must be relevant and the information must be exclusively from that subject. 
-The generated content will be use in 10 slides of a lesson like a presentation.
+The generated content will be use in 15 slides of a lesson like a presentation.
 Each slide must have a title and a text. Some slides may contain between 0 and 4 sections; 
 It is very important that the number of sections varies across the slides. 
 Some slides with a large title and a lot of text should not have any sections, 
