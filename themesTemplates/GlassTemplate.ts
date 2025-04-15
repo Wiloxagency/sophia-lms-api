@@ -8,6 +8,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "00-00",
+      order: 2,
       description: "Slide con video vertical",
       elements: {
         media: [
@@ -109,16 +110,17 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "00-01",
+      order: 4,
       description: "Slide con un asset de fondo",
       elements: {
         media: ["image-h"],
         title: {
-          min: 1,
+          min: 3,
           max: 14,
         },
         text: {
           min: 22,
-          max: 60,
+          max: 50,
         },
         sections: [],
       },
@@ -181,17 +183,18 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "00-02",
+      order: 3,
       description: "Slide con video cuadrado/vertical, Texto a la derecha o izquierda.",
       elements: {
         media: [
           "video-v"
         ],
         title: {
-          "min": 1,
+          "min": 2,
           "max": 8
         },
         text: {
-          "min": 1,
+          "min": 5,
           "max": 50
         },
         sections: []
@@ -223,6 +226,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "00-03",
+      order: 1,
       description: "Portada del curso",
       elements: {
         media: [
@@ -231,10 +235,10 @@ export const GlassTemplate: Template[] = [
         ],
         title: {
           "min": 1,
-          "max": 10
+          "max": 4
         },
         text: {
-          "min": 0,
+          "min": 1,
           "max": 14
         },
         sections: []
@@ -290,6 +294,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "00-04",
+      order: 5,
       description: "Slide con un asset cuadrado a la izquierda",
       elements: {
         media: ["image-q"],
@@ -396,6 +401,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-00",
+      order: 6,
       description: "Slide con video horizontal",
       elements: {
         media: [
@@ -485,6 +491,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-01",
+      order: 8,
       description: "Slide con un asset vertical a la izquierda",
       elements: {
         media: ["video-v"],
@@ -603,6 +610,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-02",
+      order: 7,
       description: "Slide con dos assets",
       elements: {
         media: ["image-h", "image-h"],
@@ -612,7 +620,7 @@ export const GlassTemplate: Template[] = [
         },
         text: {
           min: 20,
-          max: 40,
+          max: 30,
         },
         sections: [
           {
@@ -622,7 +630,7 @@ export const GlassTemplate: Template[] = [
             },
             text: {
               min: 20,
-              max: 40,
+              max: 30,
             },
           },
         ],
@@ -720,6 +728,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-03",
+      order: 10,
       description: "Slide con dos assets",
       elements: {
         media: ["image-h", "image-h"],
@@ -739,7 +748,7 @@ export const GlassTemplate: Template[] = [
             },
             text: {
               min: 30,
-              max: 50,
+              max: 40,
             },
           },
         ],
@@ -849,6 +858,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-04",
+      order: 9,
       description: "Slide con un asset que ocupa todo el ancho",
       elements: {
         media: ["image-h"],
@@ -955,26 +965,27 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "01-05",
+      order: 11,
       description: "Slide sin fotos ni video",
       elements: {
         media: [],
         title: {
-          "min": 1,
+          "min": 2,
           "max": 15
         },
         text: {
-          "min": 1,
-          "max": 100
+          "min": 5,
+          "max": 60
         },
         sections: [
           {
             title: {
               "min": 1,
-              "max": 10
+              "max": 8
             },
             text: {
               "min": 1,
-              "max": 60
+              "max": 50
             }
           }
         ]
@@ -1079,6 +1090,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "02-00",
+      order: 14,
       description: "Slide con una imagen cuadrada",
       elements: {
         media: [
@@ -1087,7 +1099,7 @@ export const GlassTemplate: Template[] = [
           "image-q"
         ],
         title: {
-          "min": 1,
+          "min": 3,
           "max": 15
         },
         text: {
@@ -1098,21 +1110,21 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               "min": 1,
-              "max": 5
+              "max": 4
             },
             text: {
               "min": 1,
-              "max": 30
+              "max": 20
             }
           },
           {
             title: {
               "min": 1,
-              "max": 5
+              "max": 4
             },
             text: {
               "min": 1,
-              "max": 30
+              "max": 20
             }
           }
         ]
@@ -1239,6 +1251,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "02-01",
+      order: 12,
       description: "Slide con 2 fotos cuadradas y 1 video vertical",
       elements: {
         media: [
@@ -1413,6 +1426,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "02-02",
+      order: 13,
       description: "Slide sin fotos ni videos",
       elements: {
         media: [
@@ -1562,27 +1576,28 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "02-03",
+      order: 15,
       description:
         "Slide con asset horizontal en la esquina inferior izquierda",
       elements: {
         media: ["image-h"],
         title: {
           min: 1,
-          max: 12,
+          max: 10,
         },
         text: {
-          min: 1,
+          min: 30,
           max: 50,
         },
         sections: [
           {
             title: {
               min: 1,
-              max: 12,
+              max: 10,
             },
             text: {
-              min: 1,
-              max: 40,
+              min: 30,
+              max: 50,
             },
           },
           {
@@ -1591,7 +1606,7 @@ export const GlassTemplate: Template[] = [
               max: 12,
             },
             text: {
-              min: 1,
+              min: 30,
               max: 50,
             },
           },
@@ -1700,6 +1715,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "02-04",
+      order: 16,
       description: "Slide con un asset vertical a la derecha",
       elements: {
         media: ["video-v"],
@@ -1708,7 +1724,7 @@ export const GlassTemplate: Template[] = [
           max: 12,
         },
         text: {
-          min: 1,
+          min: 20,
           max: 30,
         },
         sections: [
@@ -1838,6 +1854,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "03-00",
+      order: 17,
       description: "Slide sin Fotos ni Videos",
       elements: {
         media: [
@@ -2014,6 +2031,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "03-01",
+      order: 20,
       description: "Slide con tres imágenes horizontales",
       elements: {
         media: [
@@ -2222,6 +2240,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "03-02",
+      order: 19,
       description: "Slide sin assets",
       elements: {
         media: [],
@@ -2381,6 +2400,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "03-03",
+      order: 21,
       description: "Slide con asset cuadrado en la esquina superior izquierda",
       elements: {
         media: ["image-q"],
@@ -2389,7 +2409,7 @@ export const GlassTemplate: Template[] = [
           max: 7,
         },
         text: {
-          min: 1,
+          min: 5,
           max: 25,
         },
         sections: [
@@ -2399,7 +2419,7 @@ export const GlassTemplate: Template[] = [
               max: 7,
             },
             text: {
-              min: 1,
+              min: 5,
               max: 25,
             },
           },
@@ -2409,7 +2429,7 @@ export const GlassTemplate: Template[] = [
               max: 12,
             },
             text: {
-              min: 1,
+              min: 5,
               max: 40,
             },
           },
@@ -2419,7 +2439,7 @@ export const GlassTemplate: Template[] = [
               max: 12,
             },
             text: {
-              min: 1,
+              min: 5,
               max: 40,
             },
           },
@@ -2551,6 +2571,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "03-04",
+      order: 18,
       description: "Slide con asset vertical en la esquina izquierda",
       elements: {
         media: ["video-v"],
@@ -2721,6 +2742,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "04-00",
+      order: 22,
       description: "Slide sin fotos ni videos",
       elements: {
         media: [
@@ -2913,6 +2935,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "04-01",
+      order: 23,
       description: "Slide con asset cuadrado en la esquina superior izquierda",
       elements: {
         media: ["image-q"],
@@ -2921,7 +2944,7 @@ export const GlassTemplate: Template[] = [
           max: 7,
         },
         text: {
-          min: 1,
+          min: 15,
           max: 44,
         },
         sections: [
@@ -2931,7 +2954,7 @@ export const GlassTemplate: Template[] = [
               max: 7,
             },
             text: {
-              min: 1,
+              min: 15,
               max: 44,
             },
           },
@@ -2941,7 +2964,7 @@ export const GlassTemplate: Template[] = [
               max: 7,
             },
             text: {
-              min: 1,
+              min: 15,
               max: 35,
             },
           },
@@ -2951,7 +2974,7 @@ export const GlassTemplate: Template[] = [
               max: 7,
             },
             text: {
-              min: 1,
+              min: 15,
               max: 35,
             },
           },
@@ -2961,7 +2984,7 @@ export const GlassTemplate: Template[] = [
               max: 7,
             },
             text: {
-              min: 1,
+              min: 15,
               max: 35,
             },
           },
@@ -3127,6 +3150,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "04-02",
+      order: 24,
       description:
         "Slide con asset horizontal en la esquina superior izquierda",
       elements: {
@@ -3330,6 +3354,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "04-03",
+      order: 25,
       description: "Slide con dos asset verticales",
       elements: {
         media: ["image-v", "image-v"],
@@ -3555,6 +3580,7 @@ export const GlassTemplate: Template[] = [
     {
       component: "meta-tag",
       code: "04-04",
+      order: 26,
       description: "Slide con dos asset",
       elements: {
         media: ["image-h", "image-h"],
