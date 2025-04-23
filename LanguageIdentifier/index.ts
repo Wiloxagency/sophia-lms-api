@@ -19,12 +19,12 @@ const httpTrigger: AzureFunction = async function (
   try {
     const body = await axios
       .post(
-        "https://sophia-services-language.cognitiveservices.azure.com/language/:analyze-text?api-version=2022-05-01",
+        "https://sophia-language-services.cognitiveservices.azure.com/language/:analyze-text?api-version=2022-05-01",
         req.body,
         requestConfiguration
       )
       .then(async (result) => {
-        console.log(result.data.documents);
+        console.log("Language detected:", result.data.results.documents);
         return result;
       });
     if (body) {

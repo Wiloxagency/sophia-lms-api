@@ -7,3 +7,6 @@ Local
 npm i sharp
 
 Testing
+
+netstat -ano | findstr :7071
+taskkill /PID PID_NUMBER /F
