@@ -2,53 +2,55 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { saveLog } from "../shared/saveLog";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
   try {
-    // console.info(req.body.prompt);
+    const { messages } = req.body || {};
+
+    if (!messages || !Array.isArray(messages)) {
+      context.res = {
+        status: 400,
+        body: { message: "Missing or invalid 'messages' array" },
+      };
+      return;
+    }
+
+    const systemPrompt = {
+      role: "system",
+      content: "Eres un asistente útil que responde en español.",
+    };
+
     const response = await openai.chat.completions.create({
       model: "gpt-4-0125-preview",
-      messages: [
-        {
-          role: "system",
-          content: req.body.role,
-        },
-        {
-          role: "user",
-          content: req.body.prompt,
-        },
-      ],
+      messages: [systemPrompt, ...messages],
     });
 
-    // console.log(response.data.choices[0].message.content)
+    const messageContent = response.choices?.[0]?.message?.content;
+
+    if (!messageContent) {
+      throw new Error("OpenAI response did not contain message content");
+    }
+
     context.res = {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: response.choices[0].message.content,
+      headers: { "Content-Type": "application/json" },
+      body: { message: messageContent },
     };
-  } catch (error) {
+  } catch (error: any) {
     await saveLog(
-      `Error creating Chat Completion, error: ${error.message} `,
+      `Error creating Chat Completion: ${error.message}`,
       "Error",
       "AzureFunction()",
       "GPT"
     );
     context.res = {
       status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        message: "Error",
-      },
+      headers: { "Content-Type": "application/json" },
+      body: { message: "Error generating response" },
     };
   }
 };
