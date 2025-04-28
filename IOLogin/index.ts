@@ -14,8 +14,6 @@ const httpTrigger: AzureFunction = async function (
     const db = await database;
     const { email, password } = req.body;
     
-    console.log(" req.body: ", req.body)
-
     if (!email || !password) {
       context.res = {
         status: 400,
@@ -28,7 +26,6 @@ const httpTrigger: AzureFunction = async function (
     const user = await Users.findOne({
       email: { $regex: new RegExp(`^${email}$`, "i") }, // match exactly ignoring case
     });
-    console.log(" user: ", user)
 
     if (!user) {
       context.res = {
