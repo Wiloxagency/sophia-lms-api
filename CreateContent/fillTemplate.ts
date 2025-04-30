@@ -36,6 +36,9 @@ function sliceText(text: string, maxLength: number, isTitle: boolean = false): s
 // Removes all content between <s> and </s> tags from a string.
 function removeSTags(input: string): string {
 
+    input = input == null || input == undefined ? "" : input;
+
+
     const sTagRegex = /<s\b[^>]*>[\s\S]*?<\/s>/g;
     
     // Replace all occurrences of the pattern with an empty string
