@@ -1024,6 +1024,7 @@ export const GlassTemplate: Template[] = [
       component: "card",
       id: "card1",
       width: "50%",
+      height: "100%",
       padding: "5cqw",
       bgColor: "[Secondary]",
       title: "[title]",
@@ -1044,7 +1045,7 @@ export const GlassTemplate: Template[] = [
       width: "50%",
       right: "0",
       padding: "2cqw",
-      bgColor: "[Primary]",
+      bgColor: "[FinalObject]",
       layer: 5,
       extraClasses: "glass-12-sb",
       display: true
