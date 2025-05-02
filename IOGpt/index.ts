@@ -10,9 +10,15 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   try {
-    const { messages, formData, taskInProgress, isSpeechEnabled } =
-      req.body || {};
-    console.log("isSpeechEnabled:", isSpeechEnabled);
+    let body;
+    try {
+      body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    } catch {
+      context.res = { status: 400, body: { message: "Invalid JSON body" } };
+      return;
+    }
+
+    const { messages, formData, taskInProgress, isSpeechEnabled } = body || {};
 
     if (!messages || !Array.isArray(messages)) {
       context.res = {
@@ -25,33 +31,36 @@ const httpTrigger: AzureFunction = async function (
     const systemPrompt = {
       role: "system",
       content: `
-      Eres un asistente conversacional diseñado para llevar a cabo entrevistas de productividad con empleados.
-      
-      Objetivo: conocer a fondo las tareas diarias del entrevistado para identificar posibles mejoras en productividad — por ejemplo, con herramientas de automatización o inteligencia artificial.
-      
-      Tu tono debe ser profesional y empático, transmitiendo que la información será usada exclusivamente para análisis interno.
-      
-      Comienza la conversación saludando y explicando brevemente el propósito de la entrevista. Luego, guía al usuario para que describa una tarea que realiza frecuentemente. Aún no hagas preguntas sobre frecuencia, dificultad u otros detalles hasta que la tarea haya sido definida.
-      
-      Cuando tengas toda la información sobre la tarea (frecuencia y tiempo, dificultad, valor agregado, y priorización implícita), concluye con un resumen claro y pregunta si hay otra tarea que el usuario quiera analizar.`,
+Eres un asistente diseñado para realizar entrevistas de productividad.
+
+Primero, saluda al usuario y explícale brevemente el propósito de la entrevista: conocer mejor su rol y tareas para identificar oportunidades de mejora en su productividad, por ejemplo usando inteligencia artificial.
+
+Asegúrate de recolectar primero su nombre y su cargo actual en la empresa. Luego puedes pasar a explorar tareas específicas.
+
+Cuando la información de una tarea esté completa (frecuencia y tiempo, dificultad, valor agregado, priorización implícita), haz un resumen y pregunta si desea analizar otra tarea.
+
+Mantén siempre un tono amable y profesional.`,
     };
 
-    const contextInjection = taskInProgress
-      ? {
-          role: "user",
-          content: `Datos actuales para la tarea "${taskInProgress}": ${JSON.stringify(
+    const guidanceMessage = {
+      role: "user",
+      content:
+        "Por favor, si detectas información relevante del usuario o de sus tareas, llama a la herramienta 'extract_form_data' con los valores detectados.",
+    };
+
+    const contextInjection = {
+      role: "user",
+      content: taskInProgress
+        ? `Datos actuales para la tarea "${taskInProgress}": ${JSON.stringify(
             formData || {}
-          )}`,
-        }
-      : {
-          role: "user",
-          content:
-            "Aún no se ha definido una tarea. Por favor, ayuda al usuario a definir una tarea antes de hacer preguntas sobre frecuencia, dificultad, etc.",
-        };
+          )}`
+        : "Aún no se ha definido una tarea. Por favor, ayuda al usuario a definir una tarea antes de hacer preguntas sobre frecuencia, dificultad, etc.",
+    };
 
     const messageChain = [
       systemPrompt,
-      ...(contextInjection ? [contextInjection] : []),
+      guidanceMessage,
+      contextInjection,
       ...messages,
     ];
 
@@ -59,35 +68,97 @@ const httpTrigger: AzureFunction = async function (
       model: "gpt-4-0125-preview",
       messages: messageChain,
       temperature: 0.7,
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "extract_form_data",
+            description: "Extrae información estructurada de la entrevista",
+            parameters: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Nombre del usuario" },
+                position: { type: "string", description: "Cargo del usuario" },
+                frequencyAndTime: { type: "string" },
+                difficulty: { type: "string" },
+                addedValue: { type: "string" },
+                implicitPriority: { type: "string" },
+              },
+              required: [],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
     });
 
-    const messageContent = response.choices?.[0]?.message?.content;
+    const choice = response.choices[0];
+    const assistantMessage = choice.message;
+    const toolCall = assistantMessage?.tool_calls?.[0];
 
-    if (!messageContent) {
-      throw new Error("OpenAI response did not contain message content");
+    console.log("message: ", assistantMessage);
+
+    let formDataUpdate = null;
+    let followUpContent = assistantMessage?.content || "";
+    const updatedMessages = [...messageChain, assistantMessage];
+
+    if (
+      choice.finish_reason === "tool_calls" &&
+      toolCall?.function?.name === "extract_form_data"
+    ) {
+      console.log("TOOL CALL");
+
+      const argsRaw = toolCall.function.arguments;
+      try {
+        formDataUpdate =
+          typeof argsRaw === "string" ? JSON.parse(argsRaw) : argsRaw;
+      } catch {
+        try {
+          const decoded = Buffer.from(argsRaw, "latin1").toString("utf8");
+          formDataUpdate = JSON.parse(decoded);
+        } catch (err) {
+          console.error("Failed to parse tool call arguments:", err);
+        }
+      }
+
+      updatedMessages.push({
+        tool_call_id: toolCall.id,
+        role: "tool",
+        name: "extract_form_data",
+        content: JSON.stringify({ status: "ok" }),
+      });
+
+      const followUp = await openai.chat.completions.create({
+        model: "gpt-4-0125-preview",
+        messages: updatedMessages,
+        temperature: 0.7,
+      });
+
+      const followUpMessage = followUp.choices[0]?.message;
+      followUpContent = followUpMessage?.content || "";
+      updatedMessages.push(followUpMessage);
     }
 
-    // Optionally generate audio
     let audioUrl = null;
-    if (isSpeechEnabled) {
+    if (isSpeechEnabled && followUpContent) {
       const voice = "DaliaNeural";
       const language = "es-MX";
       const audioResponse = await createAudioWithoutCourse(
-        messageContent,
+        followUpContent,
         voice,
         language
       );
       audioUrl = audioResponse.url;
     }
 
-    // Response (optional: parse formDataUpdate later)
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
       body: {
-        message: messageContent,
+        message: followUpContent,
         audioUrl,
-        formDataUpdate: null, // To be implemented
+        formDataUpdate,
+        updatedMessages,
       },
     };
   } catch (error: any) {
