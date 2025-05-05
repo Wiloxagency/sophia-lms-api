@@ -100,7 +100,7 @@ Mantén siempre un tono amable y profesional.`,
 
     let formDataUpdate = null;
     let followUpContent = assistantMessage?.content || "";
-    const updatedMessages = [...messageChain];
+    const messageHistory = [...messageChain];
 
     if (
       choice.finish_reason === "tool_calls" &&
@@ -121,12 +121,12 @@ Mantén siempre un tono amable y profesional.`,
         }
       }
 
-      updatedMessages.push({
+      messageHistory.push({
         role: "assistant",
         tool_calls: [toolCall],
       });
 
-      updatedMessages.push({
+      messageHistory.push({
         tool_call_id: toolCall.id,
         role: "tool",
         name: "extract_form_data",
@@ -135,7 +135,7 @@ Mantén siempre un tono amable y profesional.`,
 
       const followUp = await openai.chat.completions.create({
         model: "gpt-4-0125-preview",
-        messages: [...updatedMessages],
+        messages: [...messageHistory],
         temperature: 0.7,
       });
 
@@ -143,7 +143,7 @@ Mantén siempre un tono amable y profesional.`,
       followUpContent = followUpMessage?.content || "";
 
       if (followUpMessage) {
-        updatedMessages.push(followUpMessage); 
+        messageHistory.push(followUpMessage);
       }
     }
 
@@ -166,7 +166,7 @@ Mantén siempre un tono amable y profesional.`,
         message: followUpContent,
         audioUrl,
         formDataUpdate,
-        updatedMessages,
+        messageHistory,
       },
     };
   } catch (error: any) {
