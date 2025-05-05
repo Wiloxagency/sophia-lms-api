@@ -6,7 +6,7 @@ name: Build and deploy Node.js project to Azure Function App - sophia-lms-produc
 on:
   push:
     branches:
-      - prodv2
+      - production
   workflow_dispatch:
 
 env:
