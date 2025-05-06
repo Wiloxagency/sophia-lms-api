@@ -68,6 +68,7 @@ const httpTrigger: AzureFunction = async function (
           toolCall,
           messageHistory,
           openai,
+          taskInProgress,
         }));
     }
 

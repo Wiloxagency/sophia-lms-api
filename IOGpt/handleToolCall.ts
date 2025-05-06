@@ -6,11 +6,13 @@ export async function handleToolCall({
   toolCall,
   messageHistory,
   openai,
+  taskInProgress,
 }: {
   choice: any;
   toolCall: any;
   messageHistory: any[];
   openai: OpenAI;
+  taskInProgress: string;
 }) {
   let formDataUpdate = null;
   let identityUpdate = null;
@@ -61,5 +63,11 @@ export async function handleToolCall({
     }
   }
 
-  return { formDataUpdate, identityUpdate, followUpContent };
+  return {
+    formDataUpdate: {
+      tasks: formDataUpdate,
+    },
+    identityUpdate,
+    followUpContent,
+  };
 }
