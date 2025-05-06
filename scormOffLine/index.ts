@@ -13,6 +13,7 @@ import {
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 import { downloadQuiz } from "../Quiz/download";
+import { createScormV2 } from "../scormOffLineV2";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
@@ -181,8 +182,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
 
-    createScorm(context, course, selectedElements, userEmail, userName);
-
+    if ( course.isNewSlideStructure===true) {
+        createScormV2  (context, course, selectedElements, userEmail, userName)
+    } else {
+        createScorm(context, course, selectedElements, userEmail, userName);
+    }
+    
     context.res = {
         status: 200,
         headers: {
