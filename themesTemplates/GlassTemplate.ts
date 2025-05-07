@@ -163,15 +163,14 @@ export const GlassTemplate: Template[] = [
       right: "45%",
       bottom: "5%",
       borderRadius: "1.5rem",
-      bgColor: "[Primary]",
       padding: "3cqw",
       title: "[title]",
       titleFontSize: 2,
       titleLineHeight: "2cqw",
-      titleFontColor: "[PrimaryText]",
+      titleFontColor: "#ffffff",
       text: "[text]",
       textFontSize: 1.8,
-      textFontColor: "[PrimaryText]",
+      textFontColor: "#ffffff",
       textMarginTop: "1cqw",
       layer: 3,
       display: true,
@@ -1122,31 +1121,31 @@ export const GlassTemplate: Template[] = [
         ],
         title: {
           "min": 3,
-          "max": 15
+          "max": 10
         },
         text: {
           "min": 1,
-          "max": 40
+          "max": 30
         },
         sections: [
           {
             title: {
               "min": 1,
-              "max": 4
+              "max": 3
             },
             text: {
               "min": 1,
-              "max": 20
+              "max": 15
             }
           },
           {
             title: {
               "min": 1,
-              "max": 4
+              "max": 3
             },
             text: {
               "min": 1,
-              "max": 20
+              "max": 15
             }
           }
         ]
