@@ -65,9 +65,10 @@ export async function handleToolCall({
 
   return {
     formDataUpdate: {
+      name: identityUpdate?.name ?? undefined,
+      position: identityUpdate?.position ?? undefined,
       tasks: formDataUpdate,
     },
-    identityUpdate,
     followUpContent,
   };
 }

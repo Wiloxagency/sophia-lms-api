@@ -5,8 +5,27 @@ import { createAudioWithoutCourse } from "../CreateContent/createAudios";
 import { guidanceMessage, systemPrompt } from "./prompts";
 import { handleToolCall } from "./handleToolCall";
 import { extractFormDataTool } from "./tools";
+import { saveInterview } from "./saveInterview";
+import { mergeFormData } from "./mergeFormData";
+import { createConnection } from "../shared/mongo";
+import { WithId, Document } from "mongodb";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const database = createConnection();
+
+export interface GptFormData {
+  name: string | null;
+  position: string | null;
+  tasks: Record<string, TaskFormData>;
+}
+
+export type TaskFormData = {
+  frequencyAndTime?: string;
+  difficulty?: string;
+  addedValue?: string;
+  implicitPriority?: string;
+};
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -14,13 +33,27 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-
-    const { messages, formData, taskInProgress, isSpeechEnabled } = body || {};
+    const {
+      messages,
+      formData,
+      taskInProgress,
+      isSpeechEnabled,
+      userEmail,
+      sessionId,
+    } = body || {};
 
     if (!messages || !Array.isArray(messages)) {
       context.res = {
         status: 400,
         body: { message: "Missing or invalid 'messages' array" },
+      };
+      return;
+    }
+
+    if (!userEmail || !sessionId) {
+      context.res = {
+        status: 400,
+        body: { message: "Missing userEmail or sessionId" },
       };
       return;
     }
@@ -55,22 +88,51 @@ const httpTrigger: AzureFunction = async function (
     const messageHistory = [...messageChain];
 
     let formDataUpdate = null;
-    let identityUpdate = null;
     let followUpContent = assistantMessage?.content || "";
 
     if (
       choice.finish_reason === "tool_calls" &&
       toolCall?.function?.name === "extract_form_data"
     ) {
-      ({ formDataUpdate, identityUpdate, followUpContent } =
-        await handleToolCall({
-          choice,
-          toolCall,
-          messageHistory,
-          openai,
-          taskInProgress,
-        }));
+      const result = await handleToolCall({
+        choice,
+        toolCall,
+        messageHistory,
+        openai,
+        taskInProgress,
+      });
+
+      formDataUpdate = result.formDataUpdate;
+      followUpContent = result.followUpContent;
     }
+    const db = await database;
+    const Interview = db.collection("Interview");
+
+    let existingData = (await Interview.findOne({ userEmail, sessionId })) as
+      | (WithId<Document> & { formData: GptFormData })
+      | null;
+
+    if (!existingData) {
+      existingData = {
+        userEmail,
+        sessionId,
+        formData: {
+          name: null,
+          position: null,
+          tasks: {},
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any; // Temporary: safe because we control the structure
+    }
+
+    // Defensive default if bot hasn't extracted anything yet
+    const mergedFormData = mergeFormData(
+      existingData.formData,
+      formDataUpdate || {}
+    );
+
+    await saveInterview(userEmail, mergedFormData, sessionId);
 
     let audioUrl = null;
     if (isSpeechEnabled && followUpContent) {
@@ -91,7 +153,6 @@ const httpTrigger: AzureFunction = async function (
         message: followUpContent,
         audioUrl,
         formDataUpdate,
-        identityUpdate,
         messageHistory,
       },
     };
@@ -100,7 +161,7 @@ const httpTrigger: AzureFunction = async function (
       `Error creating Chat Completion: ${error.message}`,
       "Error",
       "AzureFunction()",
-      "GPT"
+      "IOGpt"
     );
     context.res = {
       status: 500,

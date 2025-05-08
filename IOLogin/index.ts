@@ -1,7 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createConnection } from "../shared/mongo";
-import { userAggregation } from "../User/aggregation";
-import bcrypt from "bcryptjs"; // use ES import
+import bcrypt from "bcryptjs";
 import { saveLog } from "../shared/saveLog";
 
 const database = createConnection();
@@ -13,7 +12,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     const db = await database;
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       context.res = {
         status: 400,
@@ -23,8 +22,9 @@ const httpTrigger: AzureFunction = async function (
     }
 
     const Users = db.collection("ioUser");
+
     const user = await Users.findOne({
-      email: { $regex: new RegExp(`^${email}$`, "i") }, // match exactly ignoring case
+      email: { $regex: new RegExp(`^${email}$`, "i") },
     });
 
     if (!user) {
@@ -36,7 +36,6 @@ const httpTrigger: AzureFunction = async function (
     }
 
     const passwordMatches = await bcrypt.compare(password, user.password);
-
     if (!passwordMatches) {
       context.res = {
         status: 203,
@@ -45,20 +44,18 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    const userAggregationResponse = await Users.aggregate(
-      userAggregation({ code: user.code }, {})
-    ).toArray();
-
-    const userWithoutPassword = { ...userAggregationResponse[0] };
-    delete userWithoutPassword.password;
+    const { _id, email: userEmail } = user;
 
     context.res = {
       status: 200,
-      body: userWithoutPassword,
+      body: {
+        userId: _id,
+        email: userEmail,
+      },
     };
   } catch (error) {
     await saveLog(
-      `Authentication error for user: ${req.body.email}, error: ${error.message}`,
+      `Authentication error for user: ${req.body?.email}, error: ${error.message}`,
       "Error",
       "AzureFunction()",
       "Login"
