@@ -203,7 +203,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 
             // Crear un vector store incluyendo nuestros archivos
-            let vectorStore = await openai.beta.vectorStores.create({
+            let vectorStore = await openai.vectorStores.create({
+            // let vectorStore = await openai.beta.vectorStores.create({
                 name: vectorStoreName,
             });
 
@@ -213,7 +214,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
             console.info(vectorStore)
 
-            await openai.beta.vectorStores.fileBatches.uploadAndPoll(vectorStore.id, { files: fileStreams })
+            await openai.vectorStores.fileBatches.uploadAndPoll(vectorStore.id, { files: fileStreams })
+            // await openai.beta.vectorStores.fileBatches.uploadAndPoll(vectorStore.id, { files: fileStreams })
 
             return vectorStore.id
 

@@ -6,7 +6,8 @@ const openai = new OpenAI({
 
 export async function main(vectorStoreId: string, conciseness: number, language: string): Promise<string> {
 
-    const vectorStore = await openai.beta.vectorStores.retrieve(vectorStoreId);
+    const vectorStore = await openai.vectorStores.retrieve(vectorStoreId);
+    // const vectorStore = await openai.beta.vectorStores.retrieve(vectorStoreId);
     console.log(vectorStore)
 
     if (!vectorStore || !vectorStore.id) {
