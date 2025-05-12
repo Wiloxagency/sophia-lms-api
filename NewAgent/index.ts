@@ -3,10 +3,16 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
+import { addDocumentsSections, addSections } from "../CreateContent";
+import { asyncCreateContent } from "../CreateContent/asyncCycle";
+import { CourseData } from "../shared/types";
+import { createConnection } from "../shared/mongo";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
+
+const database = createConnection();
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -18,10 +24,31 @@ const httpTrigger: AzureFunction = async function (
   const getField = (key: string) =>
     fields.find((f) => f.name === key)?.value || "";
 
+  const courseCode = getField("courseCode");
   const courseName = getField("courseName");
   const courseDescription = getField("courseDescription");
+  const language = getField("language");
   const languageName = getField("languageName");
   const maxSections = getField("maxSections");
+  const voice = getField("voice");
+  const generationType = "newAgent";
+  const lessonTheme = getField("lessonTheme");
+
+  let currentCourse: Partial<CourseData> & {
+    maxSections: number;
+    generationType: string;
+    lessonTheme: string;
+    openAIFileId: string;
+  } = {
+    details: { title: courseName, summary: courseDescription, cover: "" },
+    language,
+    languageName,
+    maxSections,
+    voice,
+    generationType,
+    lessonTheme,
+    openAIFileId: undefined,
+  };
 
   // Save uploaded file to the same folder where the function code is located
   const file = files[0];
@@ -35,7 +62,7 @@ const httpTrigger: AzureFunction = async function (
     purpose: "assistants", // still required, even for responses.create
   });
 
-  console.log("Uploaded file details:", uploadedFile); // Debugging the uploaded file
+  // console.log("Uploaded file details:", uploadedFile); // Debugging the uploaded file
 
   // Build the prompt, clearly asking for the table of contents based on the file content
   const prompt = `Analyze the attached document and create a table of contents based on its content. Write it in ${languageName}, with exactly ${maxSections} items. This table of contents belongs to a course called: "${courseName}". If helpful, consider the course description:\n"${courseDescription}".\nThe first item should be the introduction of the course and the last item should be the conclusion.\nwrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) only write the content table without any additional description.`;
@@ -54,12 +81,46 @@ const httpTrigger: AzureFunction = async function (
     ],
   });
 
-  console.log("Response:", response); // Debugging the full response
+  // console.log("Response:", response); // Debugging the full response
 
   // Directly use the `output_text` field from the response
   const outputText = response.output_text;
+  const contentTable = outputText.split("\n");
 
-  console.log("Output Text:", outputText); // Check the parsed output
+  // console.log("Output Text:", outputText); // Check the parsed output
+  let addedSections = addDocumentsSections(
+    contentTable,
+    outputText,
+    lessonTheme
+  )["sections"];
+
+  // console.log(" addedSections: ", addedSections);
+
+  currentCourse.code = courseCode;
+  currentCourse.language = language;
+  currentCourse.languageName = languageName;
+  currentCourse.voice = voice;
+  currentCourse.generationType = "newAgent";
+  currentCourse.sections = addedSections;
+  currentCourse.openAIFileId = uploadedFile.id;
+
+  const db = await database;
+  const Courses = db.collection("course");
+
+  await Courses.findOneAndUpdate(
+    { code: courseCode },
+    {
+      $set: {
+        slideshowBackgroundMusicUrl:
+          "/assets/background-music/Eco Technology by Aleksey Chistilin.mp3",
+        slideshowColorThemeName: "default",
+        slideshowGlobalAssetsSource: "pexels",
+        slideshowShouldUseOrganizationLogo: false,
+      },
+    }
+  );
+
+  await asyncCreateContent(currentCourse);
 
   context.res = {
     status: 200,

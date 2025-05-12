@@ -10,13 +10,13 @@ import OpenAI from "openai";
 import { updateCourseTokens } from "../Course/courseTokenCounter";
 import { createConnection } from "../shared/mongo";
 import { GlassTemplate } from "../themesTemplates/GlassTemplate";
-import { 
+import {
   InputData,
-  MetaTag, 
-  OutputData, 
-  OutputSlide, 
-  Payload, 
-  SlideContent
+  MetaTag,
+  OutputData,
+  OutputSlide,
+  Payload,
+  SlideContent,
 } from "./interfaces";
 import { findBestTemplateMatch } from "./findBestTemplateMatch";
 
@@ -24,14 +24,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const database = createConnection()
+const database = createConnection();
 
 // Helper function to clean text from HTML, markup and special characters
 function cleanText(text: string): string {
   // Remove HTML tags
-  let cleanedText = text.replace(/<[^>]*>/g, '');
+  let cleanedText = text.replace(/<[^>]*>/g, "");
   // Remove markdown bold/italic markers
-  cleanedText = cleanedText.replace(/\*\*|\*/g, '');
+  cleanedText = cleanedText.replace(/\*\*|\*/g, "");
   // Remove any other special characters if needed
   return cleanedText;
 }
@@ -41,42 +41,44 @@ function generateAudioScript(slideContent: SlideContent): string {
   const titleText = cleanText(slideContent.title);
   const mainText = cleanText(slideContent.text);
 
-  const sectionsText = slideContent.sections.map(section => {
-    const subtitle = cleanText(section.subtitle);
-    const text = cleanText(section.text);
-    return `${subtitle}: ${text}`;
-  }).join(' ');
+  console.log(" slideContent.sections: ", slideContent.sections);
+  const sectionsText = slideContent.sections
+    .map((section) => {
+      const subtitle = cleanText(section.subtitle);
+      const text = cleanText(section.text);
+      return `${subtitle}: ${text}`;
+    })
+    .join(" ");
 
   return `${titleText}: ${mainText} ${sectionsText}`;
 }
 
 // Main transformation function
 export function transformSlides(input: InputData): OutputData {
-  const transformedSlides: OutputSlide[] = input.slides.map(inputSlide => {
+  console.log(" input.slides: ", input.slides);
+  const transformedSlides: OutputSlide[] = input.slides.map((inputSlide) => {
     const slideContent: SlideContent = {
       title: inputSlide.title,
       text: inputSlide.text,
-      sections: inputSlide.sections
+      sections: inputSlide.sections,
     };
 
     // Using type assertion to ensure empty array matches never[]
     const emptyArray: Array<never> = [] as Array<never>;
 
     return {
-      slideTemplate: '',
+      slideTemplate: "",
       slideContent,
       audioScript: generateAudioScript(slideContent),
-      audioUrl: '',
-      assets: emptyArray
+      audioUrl: "",
+      assets: emptyArray,
     };
   });
 
   return {
-    slides: transformedSlides
+    slides: transformedSlides,
   };
 }
-
-
 
 export async function asyncCreateSlides(
   courseCode: string,
@@ -89,14 +91,13 @@ export async function asyncCreateSlides(
   sectionTitle: string,
   sectionIndex: number,
   elementIndex: number,
-  elementTitle?: string
-
+  elementTitle?: string,
+  openAIFileId?: string
 ) {
-
-  const db = await database
+  const db = await database;
 
   // If its a lesson will use elementTitle instead sectionTitle
-  sectionTitle = elementTitle ? elementTitle : sectionTitle
+  sectionTitle = elementTitle ? elementTitle : sectionTitle;
   const languageShortIso = languageIso.split("-")[0];
   let formattedCourseName = courseName
     .replace(/curso de/gi, "")
@@ -109,7 +110,7 @@ export async function asyncCreateSlides(
     .replace(/\.+$/, "")
     .trim();
 
-
+  console.log(" courseStructure: ", courseStructure);
   const promptCourseStructure = courseStructure
     .map((tableItem: string, idx: number) => {
       return `Item ${idx + 1}: ${tableItem.trim()}\n`;
@@ -121,7 +122,6 @@ export async function asyncCreateSlides(
   const typeDetected = extraWords.filter((extraWord) => {
     return extraWord.lang == languageShortIso;
   })[0];
-
 
   const introductionFound =
     typeDetected.Introduction.filter((introductionWord) => {
@@ -138,8 +138,8 @@ export async function asyncCreateSlides(
   const contentType = introductionFound
     ? "Introduction"
     : conclusionFound
-      ? "Conclusion"
-      : "Normal";
+    ? "Conclusion"
+    : "Normal";
   let prompt = "";
 
   switch (contentType) {
@@ -165,91 +165,122 @@ export async function asyncCreateSlides(
     .replace(/v{text}/g, formattedText)
     .replace(/v{promptCourseStructure}/g, promptCourseStructure);
 
-
-
   try {
+    let response;
+    if (openAIFileId !== undefined) {
+      console.log("NEW AGENT RUNNING");
 
-    const response = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
-      messages: [
+      const newAgentPrompt = `
+Extract all information in the attached document directly related to the subject of "${formattedText}". 
+Write it in ${languageName}. 
+Organize the extracted content into a JSON object using this format:
+
+{
+  "slides": [
+    {
+      "title": "string",
+      "text": "string",
+      "sections": [
         {
-          "role": "system",
-          "content": [
-            {
-              "type": "text",
-              "text": slideGeneration.role
-            }
-          ]
-        },
-        {
-          "role": "user",
-          "content": [
-            {
-              "type": "text",
-              "text": prompt
-            }
-          ]
-        },
-        {
-          "role": "assistant",
-          "refusal": "I'm sorry, I can't assist with that request."
+          "subtitle": "string",
+          "text": "string"
         }
-      ],
-      response_format: {
-        "type": "json_schema",
-        "json_schema": {
-          "name": "presentation",
-          "strict": true,
-          "schema": {
+      ]
+    }
+  ]
+}
 
+Return ONLY the raw JSON object. Do NOT wrap it in backticks or markdown. Do NOT explain. 
+The response must start with { and end with }. The output must be valid JSON.
+`;
 
-            "type": "object",
-            "properties": {
-              "slides": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "title": {
-                      "type": "string"
-                    },
-                    "text": {
-                      "type": "string"
-                    },
-                    "sections": {
-
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "subtitle": {
-                            "type": "string"
+      response = await openai.responses.create({
+        model: "gpt-4o",
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_file", file_id: openAIFileId },
+              { type: "input_text", text: newAgentPrompt },
+            ],
+          },
+        ],
+      });
+    } else {
+      response = await openai.beta.chat.completions.parse({
+        model: "gpt-4o-2024-08-06",
+        messages: [
+          {
+            role: "system",
+            content: [
+              {
+                type: "text",
+                text: slideGeneration.role,
+              },
+            ],
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+            ],
+          },
+          {
+            role: "assistant",
+            refusal: "I'm sorry, I can't assist with that request.",
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "presentation",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                slides: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: {
+                        type: "string",
+                      },
+                      text: {
+                        type: "string",
+                      },
+                      sections: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            subtitle: {
+                              type: "string",
+                            },
+                            text: {
+                              type: "string",
+                            },
                           },
-                          "text": {
-                            "type": "string"
-                          }
+                          additionalProperties: false,
+                          required: ["subtitle", "text"],
                         },
-                        "additionalProperties": false,
-                        "required": ["subtitle", "text"]
-                      }
-
-
-                    }
+                      },
+                    },
+                    additionalProperties: false,
+                    required: ["title", "text", "sections"],
                   },
-                  "additionalProperties": false,
-                  "required": ["title", "text", "sections"]
-                }
-              }
+                },
+              },
+              additionalProperties: false,
+              required: ["slides"],
             },
-            "additionalProperties": false,
-            "required": ["slides"]
-          }
-        }
-      }
-    });
-
-
-
+          },
+        },
+      });
+    }
 
     updateCourseTokens(
       courseCode,
@@ -257,19 +288,34 @@ export async function asyncCreateSlides(
       response.usage.completion_tokens
     );
 
-    const slidesData: any = response.choices[0].message.parsed || []
+    // const slidesData: any = response.choices[0].message.parsed || [];
 
-    let date = new Date()
+    let slidesData: any;
 
-    let slidesArrayPath =
-      `sections.${sectionIndex}.elements.${elementIndex}.elementLesson`;
+    if (openAIFileId) {
+      try {
+        slidesData = JSON.parse(response.output_text);
+      } catch (err) {
+        console.error("Failed to parse output_text as JSON", err);
+        slidesData = []; // fallback
+      }
+    } else {
+      slidesData = response.choices?.[0]?.message?.parsed || [];
+    }
 
-    const formattedSlidesData = transformSlides(slidesData)
-    let payloads = []
+    let date = new Date();
+
+    let slidesArrayPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson`;
+
+    const formattedSlidesData = transformSlides(slidesData);
+    let payloads = [];
     formattedSlidesData.slides.forEach((element, slideIndex) => {
-      const templateElement = findBestTemplateMatch(element.slideContent, "glass")
-      element.slideTemplate = templateElement[0].code
-      
+      const templateElement = findBestTemplateMatch(
+        element.slideContent,
+        "glass"
+      );
+      element.slideTemplate = templateElement[0].code;
+
       let payload: Payload = {
         timestamp: date,
         courseName: courseName,
@@ -283,56 +329,48 @@ export async function asyncCreateSlides(
         assets: templateElement[0].elements.media,
         ttsStatus: "waiting",
         titleStatus: "waiting",
-      }
+      };
 
       switch (assetsSource) {
-
-        case 'openai':
-
+        case "openai":
           payload = {
             ...payload,
             promptStatus: "waiting",
             dalleStatus: "waiting-prompt",
-            prompts: []
+            prompts: [],
           };
 
           break;
 
-        case 'vecteezy':
-
+        case "vecteezy":
           payload = {
             ...payload,
             assetStatus: "waiting",
-
           };
 
-        case 'pexels':
-
+        case "pexels":
           payload = {
             ...payload,
             pexelsStatus: "waiting",
-
           };
 
         default:
           break;
       }
-      payloads.push(payload)
-
+      payloads.push(payload);
     });
 
-    const slide = db.collection("slide")
-    await slide.insertMany(payloads)
+    const slide = db.collection("slide");
+    await slide.insertMany(payloads);
 
     await db.collection("course").findOneAndUpdate(
       { code: courseCode },
       {
         $set: {
-          [slidesArrayPath]: formattedSlidesData
+          [slidesArrayPath]: formattedSlidesData,
         },
       }
     );
-
   } catch (error) {
     await saveLog(
       `Error: ${error.message} creating Slides for course: ${courseCode}.`,
@@ -341,6 +379,5 @@ export async function asyncCreateSlides(
       "Courses/{courseCode}/CreateContent"
     );
     console.error(error);
-
   }
 }
