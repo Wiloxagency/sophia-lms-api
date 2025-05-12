@@ -20,35 +20,20 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   const { fields, files } = await parseMultipartFormData(req);
 
-  // Safely extract form fields
   const getField = (key: string) =>
     fields.find((f) => f.name === key)?.value || "";
 
   const courseCode = getField("courseCode");
-  const courseName = getField("courseName");
-  const courseDescription = getField("courseDescription");
+  const voice = getField("voice");
   const language = getField("language");
   const languageName = getField("languageName");
   const maxSections = getField("maxSections");
-  const voice = getField("voice");
-  const generationType = "newAgent";
-  const lessonTheme = getField("lessonTheme");
 
-  let currentCourse: Partial<CourseData> & {
-    maxSections: number;
-    generationType: string;
-    lessonTheme: string;
-    openAIFileId: string;
-  } = {
-    details: { title: courseName, summary: courseDescription, cover: "" },
-    language,
-    languageName,
-    maxSections,
-    voice,
-    generationType,
-    lessonTheme,
-    openAIFileId: undefined,
-  };
+  const db = await database;
+
+  const Courses = db.collection<CourseData>("course");
+
+  let course: CourseData = await Courses.findOne({ code: courseCode });
 
   // Save uploaded file to the same folder where the function code is located
   const file = files[0];
@@ -65,7 +50,7 @@ const httpTrigger: AzureFunction = async function (
   // console.log("Uploaded file details:", uploadedFile); // Debugging the uploaded file
 
   // Build the prompt, clearly asking for the table of contents based on the file content
-  const prompt = `Analyze the attached document and create a table of contents based on its content. Write it in ${languageName}, with exactly ${maxSections} items. This table of contents belongs to a course called: "${courseName}". If helpful, consider the course description:\n"${courseDescription}".\nThe first item should be the introduction of the course and the last item should be the conclusion.\nwrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) only write the content table without any additional description.`;
+  const prompt = `Analyze the attached document and create a table of contents based on its content. Write it in ${course.languageName}, with exactly ${maxSections} items. This table of contents belongs to a course called: "${course.details.title}". If helpful, consider the course description:\n"${course.details.summary}".\nThe first item should be the introduction of the course and the last item should be the conclusion.\nwrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) only write the content table without any additional description.`;
 
   // Use `responses.create` to ask about the file
   const response = await client.responses.create({
@@ -91,42 +76,26 @@ const httpTrigger: AzureFunction = async function (
   let addedSections = addDocumentsSections(
     contentTable,
     outputText,
-    lessonTheme
+    course.slideshowColorThemeName
   )["sections"];
 
   // console.log(" addedSections: ", addedSections);
 
-  currentCourse.code = courseCode;
-  currentCourse.language = language;
-  currentCourse.languageName = languageName;
-  currentCourse.voice = voice;
-  currentCourse.generationType = "newAgent";
-  currentCourse.sections = addedSections;
-  currentCourse.openAIFileId = uploadedFile.id;
+  let expandedCourse: Partial<CourseData> & { generationType: string } = {
+    ...course,
+    sections: addedSections,
+    voice: voice,
+    language: language,
+    languageName: languageName,
+    generationType: "newAgent",
+  };
 
-  const db = await database;
-  const Courses = db.collection("course");
-
-  await Courses.findOneAndUpdate(
-    { code: courseCode },
-    {
-      $set: {
-        slideshowBackgroundMusicUrl:
-          "/assets/background-music/Eco Technology by Aleksey Chistilin.mp3",
-        slideshowColorThemeName: "default",
-        slideshowGlobalAssetsSource: "pexels",
-        slideshowShouldUseOrganizationLogo: false,
-      },
-    }
-  );
-
-  await asyncCreateContent(currentCourse);
+  await asyncCreateContent(expandedCourse);
 
   context.res = {
     status: 200,
     body: {
-      fileId: uploadedFile.id,
-      tableOfContents: outputText,
+      message: "Course creation initiated",
     },
   };
 };

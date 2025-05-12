@@ -41,7 +41,7 @@ function generateAudioScript(slideContent: SlideContent): string {
   const titleText = cleanText(slideContent.title);
   const mainText = cleanText(slideContent.text);
 
-  console.log(" slideContent.sections: ", slideContent.sections);
+  // console.log(" slideContent.sections: ", slideContent.sections);
   const sectionsText = slideContent.sections
     .map((section) => {
       const subtitle = cleanText(section.subtitle);
@@ -55,7 +55,7 @@ function generateAudioScript(slideContent: SlideContent): string {
 
 // Main transformation function
 export function transformSlides(input: InputData): OutputData {
-  console.log(" input.slides: ", input.slides);
+  // console.log(" input.slides: ", input.slides);
   const transformedSlides: OutputSlide[] = input.slides.map((inputSlide) => {
     const slideContent: SlideContent = {
       title: inputSlide.title,
@@ -110,7 +110,7 @@ export async function asyncCreateSlides(
     .replace(/\.+$/, "")
     .trim();
 
-  console.log(" courseStructure: ", courseStructure);
+  // console.log(" courseStructure: ", courseStructure);
   const promptCourseStructure = courseStructure
     .map((tableItem: string, idx: number) => {
       return `Item ${idx + 1}: ${tableItem.trim()}\n`;
@@ -127,13 +127,13 @@ export async function asyncCreateSlides(
     typeDetected.Introduction.filter((introductionWord) => {
       return formattedText.indexOf(introductionWord) === 0;
     }).length > 0;
-  console.info("introductionFound-->", introductionFound);
+  // console.info("introductionFound-->", introductionFound);
 
   const conclusionFound =
     typeDetected.Conclusion.filter((conclusionWord) => {
       return formattedText.indexOf(conclusionWord) === 0;
     }).length > 0;
-  console.info("conclusionFound-->", conclusionFound);
+  // console.info("conclusionFound-->", conclusionFound);
 
   const contentType = introductionFound
     ? "Introduction"
@@ -168,7 +168,7 @@ export async function asyncCreateSlides(
   try {
     let response;
     if (openAIFileId !== undefined) {
-      console.log("NEW AGENT RUNNING");
+      // console.log("NEW AGENT RUNNING");
 
       const newAgentPrompt = `
 Extract all information in the attached document directly related to the subject of "${formattedText}". 

@@ -113,6 +113,7 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
             
             // Process each component in the template
             return processedTemplate.map((component: any) => {
+
                 if (component.component === "meta-tag") {
                     return component;
                 }
@@ -233,18 +234,22 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
         });
 
         processedSlides = replaceTemplateColors(processedSlides, globalData.defaultTheme.colors);
-        // console.log(processedSlides);
-
+        // console.log("processedSlides :", processedSlides);
+        
         // Add globaldata to presentation
         processedSlides.unshift(globalData);
-
+        
         // Save presentation object to Azure Blob Storage
         const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
         const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
         const containerClient = blobServiceClient.getContainerClient("presentations");
         const blobClient = containerClient.getBlockBlobClient(`${presentationName}.json`);
-
+        
+        console.log("THIS RUNS 1")
+        
         await blobClient.upload(JSON.stringify(processedSlides), JSON.stringify(processedSlides).length);
+        
+        console.log("THIS RUNS 2")
 
         return { status: "success", message: `Presentation ${presentationName}.json created successfully` };
 
