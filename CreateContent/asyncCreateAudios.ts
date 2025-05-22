@@ -1,26 +1,18 @@
-
-import azure = require("azure-storage")
-import { BlobServiceClient } from "@azure/storage-blob";
 import { createConnection } from "../shared/mongo";
 import { Db } from "mongodb";
 import OpenAI from "openai";
 import rp = require('request-promise')
 import { saveLog } from "../shared/saveLog";
-import { v4 as uuidv4 } from "uuid"; // Import the UUID generator
+import { v4 as uuidv4 } from "uuid";
 import xmlbuilder = require("xmlbuilder")
+import { saveFile } from "../shared/SaveAssetsHD";
+import { Readable } from 'stream';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING
 const TTS_SUBSCRIPTION_KEY = process.env.TTS_SUBSCRIPTION_KEY
-
-// Set up Azure Blob Storage client
-const blobServiceClient = BlobServiceClient.fromConnectionString(
-    AZURE_STORAGE_CONNECTION_STRING 
-);
-const containerName = "speeches";
 
 const azureTTSLimit = 600
 
@@ -32,9 +24,7 @@ async function reverseStatus (slideItem: any) {
             updateOne({ _id: slideItem._id }, { $set: { ttsStatus: "waiting" } });
 }
 
-function textToSpeech(accessToken: string,  writableStream: any, slideItem: any) {
-
-    // const languageCode = isoLanguage[language]
+function textToSpeech(accessToken: string, slideItem: any): Promise<Buffer> {
     const languageCode = slideItem.language
 
     return new Promise((resolve, reject) => {
@@ -50,7 +40,6 @@ function textToSpeech(accessToken: string,  writableStream: any, slideItem: any)
                 .end()
 
             let body = xml_body.toString()
-            //console.info("xml_body.toString-->", body)
 
             let options = {
                 method: "POST",
@@ -64,21 +53,23 @@ function textToSpeech(accessToken: string,  writableStream: any, slideItem: any)
                     "Content-Type": "application/ssml+xml",
                 },
                 body: body,
+                encoding: null // Important: this tells request-promise to return a Buffer
             }
 
             rp(options)
-                .pipe(writableStream)
-                .on("finish", () => {
-                    resolve("done")
+                .then((audioBuffer: Buffer) => {
+                    resolve(audioBuffer);
+                })
+                .catch((error) => {
+                    reject(error);
                 });
         } catch (error) {
-            reverseStatus (slideItem)
+            reverseStatus(slideItem)
             saveLog(`Error creating text to speech for course: ${slideItem.courseCode}, ` + error.message, "Error", "textToSpeech()", "Courses/{courseCode}/CreateContent")
             reject(error)
         }
     });
 }
-
 
 export async function getAccessToken(subscriptionKey: string, slideItem: any, db: Db) {
     try {
@@ -91,34 +82,26 @@ export async function getAccessToken(subscriptionKey: string, slideItem: any, db
         }
         return rp(options);
     } catch (error) {
-        reverseStatus (slideItem)
+        reverseStatus(slideItem)
         await saveLog(`Error getting a token for course: ${slideItem.courseCode}` + error.message, "Error", "getAccessToken()", "Courses/{courseCode}/CreateContent")
     }
-
 }
 
 const generateTTS = async (slideItem: any, db: Db) => {
-
-    const blobName = `${uuidv4()}.mp3`;
+    const fileName = `${uuidv4()}.mp3`;
 
     try {
         const accessToken = await getAccessToken(TTS_SUBSCRIPTION_KEY, slideItem, db)
-        const blobService = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING)
-        const writableStream = blobService.createWriteStreamToBlockBlob(
-            "speeches",
-            blobName,
-            {
-                blockIdPrefix: "block",
-                contentSettings: {
-                    contentType: "audio/mpeg",
-                },
-            },
-        )
-        // await textToSpeech(accessToken, slideItem.paragraph, writableStream, slideItem.voice, slideItem.language, slideItem.courseCode)
-
-        await textToSpeech(accessToken, writableStream, slideItem)
-        const audioUrl = blobService.getUrl("speeches") + "/" + blobName
-
+        
+        // Generar el audio y obtener el buffer
+        const audioBuffer = await textToSpeech(accessToken, slideItem);
+        
+        // Guardar el archivo usando la función saveFile
+        const uploadResult = await saveFile(slideItem.courseCode, fileName, audioBuffer, "speeches");
+        
+        // Construir la URL del archivo basada en la respuesta del servidor
+        // const audioUrl = uploadResult.url || `https://assets.iasophia.com/files/${slideItem.courseCode}/speeches/${fileName}`;
+        const audioUrl = uploadResult.url || `https://assets.iasophia.com/courses/${slideItem.courseCode}/speeches/${fileName}`;
         console.info("Audio saved:", audioUrl)
 
         let currentAudioPath =
@@ -136,10 +119,9 @@ const generateTTS = async (slideItem: any, db: Db) => {
             updateOne({ _id: slideItem._id }, { $set: { ttsStatus: "created" } });
 
     } catch (err) {
-        reverseStatus (slideItem)
-        await saveLog(`Error creating audio for course: ${slideItem.courseCode}, sectionIndex ${slideItem.sectionIndex}, elementIndex ${slideItem.elementIndex}, slideIndex ${slideItem.slideIndex}.`, "Error", "asyncCreateAudios()", "Courses/{courseCode}/CreateContent")
+        reverseStatus(slideItem)
+        await saveLog(`Error creating audio for course: ${slideItem.courseCode}, sectionIndex ${slideItem.sectionIndex}, elementIndex ${slideItem.elementIndex}, slideIndex ${slideItem.slideIndex}. Error: ${err.message}`, "Error", "asyncCreateAudios()", "Courses/{courseCode}/CreateContent")
     }
-
 }
 
 export async function AsyncTextToSpeechCycle() {
@@ -183,7 +165,4 @@ export async function AsyncTextToSpeechCycle() {
     }
 
     processNextSlide();
-
 }
-
-
