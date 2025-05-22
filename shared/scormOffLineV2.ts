@@ -1,7 +1,6 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
-import { createConnection } from "../shared/mongo";
+import { createConnection } from "./mongo";
 import archiver from "archiver";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -16,11 +15,12 @@ import { downloadQuiz } from "../Quiz/download";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormv2";
-const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
+const scormBaseFilesPath = "scorm_base_files";
 
-export async function createScormV2(context: Context, course: any, selectedElements: any[], userEmail: string, userName: string) {
+// Función principal que ahora se exporta para reutilización
+export async function createScormV2(course: any, selectedElements: any[], userEmail: string, userName: string) {
+    
     const courseCode = course.code;
-
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
@@ -141,7 +141,7 @@ export async function createScormV2(context: Context, course: any, selectedEleme
             await uploadXmlFile(containerClient, imsmanifestPath, imsmanifestContent);
             assetFiles.push(`./imsmanifest.xml`);
 
-            await zipLessonFolder(context, containerClient, lessonFolder);
+            await zipLessonFolder( containerClient, lessonFolder);
         } else if (element && element.type === "file") {
             const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
             const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-${element.elementFile.name}`;
@@ -188,44 +188,13 @@ export async function createScormV2(context: Context, course: any, selectedEleme
     await deleteSectionFolders(containerClient, courseCode);
 
     // Compress the entire course directory into a single .zip file
-    await zipCourseDirectory(context, containerClient, courseCode);
+    await zipCourseDirectory( containerClient, courseCode);
 
     // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
     sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip");
 }
-
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-
-    const { courseCode, selectedElements, userName, userEmail } = req.body;
-    if (!courseCode || !selectedElements || !userName || !userEmail) {
-        context.res = { status: 400, body: "Some parameters missed." };
-        return;
-    }
-    const database = createConnection();
-    const db = await database;
-    const course = await db.collection("course").findOne({ code: courseCode });
-    if (!course) {
-        context.res = { status: 404, body: "Course not found." };
-        return;
-    }
-
-    sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
-
-    createScormV2(context, course, selectedElements, userEmail, userName);
-
-    context.res = {
-        status: 200,
-        headers: {
-            "Content-Type": "application/xml",
-        },
-        body: {
-            message: "Start scorm creation"
-        },
-    };
-};
-
 
 // Function to delete Section folders after zipping
 async function deleteSectionFolders(containerClient: ContainerClient, courseCode: string) {
@@ -238,11 +207,8 @@ async function deleteSectionFolders(containerClient: ContainerClient, courseCode
     }
 }
 
-
-
-
 // Function to zip the entire course directory
-async function zipCourseDirectory(context: Context, containerClient: ContainerClient, courseCode: string) {
+async function zipCourseDirectory(containerClient: ContainerClient, courseCode: string) {
     const zipFileName = `${courseCode}.zip`;
     const zipFilePath = join(tmpdir(), `${uuidv4()}.zip`);
     const output = createWriteStream(zipFilePath);
@@ -283,7 +249,7 @@ async function deleteLessonZips(containerClient: ContainerClient, courseCode: st
 }
 
 // Function to zip a lesson folder
-async function zipLessonFolder(context: Context, containerClient: ContainerClient, lessonFolder: string) {
+async function zipLessonFolder(containerClient: ContainerClient, lessonFolder: string) {
     const zipFileName = `${lessonFolder}.zip`;
     const zipFilePath = join(tmpdir(), `${uuidv4()}.zip`);
     const output = createWriteStream(zipFilePath);
@@ -380,5 +346,3 @@ function generateImsManifestXml(courseTitle: string, courseId: string, assetFile
     </resources>
 </manifest>`;
 }
-
-export default httpTrigger;
