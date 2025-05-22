@@ -94,6 +94,7 @@ export async function asyncCreateSlides(
   elementTitle?: string,
   openAIFileId?: string
 ) {
+  console.log(" languageIso: ", languageIso)
   const db = await database;
 
   // If its a lesson will use elementTitle instead sectionTitle

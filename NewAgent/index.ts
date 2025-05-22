@@ -3,10 +3,11 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
-import { addDocumentsSections, addSections } from "../CreateContent";
+import { addDocumentsSections } from "../CreateContent";
 import { asyncCreateContent } from "../CreateContent/asyncCycle";
 import { CourseData } from "../shared/types";
 import { createConnection } from "../shared/mongo";
+import { LanguageCode, LanguageName } from "../shared/languages";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -18,86 +19,158 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const { fields, files } = await parseMultipartFormData(req);
+  try {
+    const task = req.query.task;
 
-  const getField = (key: string) =>
-    fields.find((f) => f.name === key)?.value || "";
+    if (!task) {
+      context.res = {
+        status: 400,
+        body: { error: "Missing query parameter: task" },
+      };
+      return;
+    }
 
-  const courseCode = getField("courseCode");
-  const voice = getField("voice");
-  const language = getField("language");
-  const languageName = getField("languageName");
-  const maxSections = getField("maxSections");
+    switch (task) {
+      case "createContentTable": {
+        const { fields, files } = await parseMultipartFormData(req);
 
-  const db = await database;
+        const getField = (key: string) =>
+          fields.find((f) => f.name === key)?.value || "";
 
-  const Courses = db.collection<CourseData>("course");
+        const courseCode = getField("courseCode");
+        const voice = getField("voice");
+        const language: LanguageCode = getField("language");
+        const languageName: LanguageName = getField("languageName");
+        const maxSections = getField("maxSections");
 
-  let course: CourseData = await Courses.findOne({ code: courseCode });
+        const db = await database;
+        const Courses = db.collection<CourseData>("course");
 
-  // Save uploaded file to the same folder where the function code is located
-  const file = files[0];
-  const tempPath = path.join(__dirname, file.filename); // Save in the current function directory
+        const course = await Courses.findOne({ code: courseCode });
+        if (!course) {
+          context.res = {
+            status: 404,
+            body: { error: "Course not found" },
+          };
+          return;
+        }
 
-  fs.writeFileSync(tempPath, Buffer.from(file.bufferFile));
+        const file = files[0];
+        const tempPath = path.join(__dirname, file.filename);
+        fs.writeFileSync(tempPath, Buffer.from(file.bufferFile));
 
-  // Upload file to OpenAI for use in file-based chat
-  const uploadedFile = await client.files.create({
-    file: fs.createReadStream(tempPath),
-    purpose: "assistants", // still required, even for responses.create
-  });
+        const uploadedFile = await client.files.create({
+          file: fs.createReadStream(tempPath),
+          purpose: "assistants",
+        });
 
-  // console.log("Uploaded file details:", uploadedFile); // Debugging the uploaded file
+        const prompt = `Analyze the attached document and create a table of contents based on its content. Write it in ${languageName}, with exactly ${maxSections} items. This table of contents belongs to a course called: "${course.details.title}". If helpful, consider the course description:\n"${course.details.summary}".\nThe first item should be the introduction of the course and the last item should be the conclusion.\nwrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) only write the content table without any additional description.`;
 
-  // Build the prompt, clearly asking for the table of contents based on the file content
-  const prompt = `Analyze the attached document and create a table of contents based on its content. Write it in ${course.languageName}, with exactly ${maxSections} items. This table of contents belongs to a course called: "${course.details.title}". If helpful, consider the course description:\n"${course.details.summary}".\nThe first item should be the introduction of the course and the last item should be the conclusion.\nwrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) only write the content table without any additional description.`;
+        const response = await client.responses.create({
+          model: "gpt-4o",
+          input: [
+            {
+              role: "user",
+              content: [
+                { type: "input_file", file_id: uploadedFile.id },
+                { type: "input_text", text: prompt },
+              ],
+            },
+          ],
+        });
 
-  // Use `responses.create` to ask about the file
-  const response = await client.responses.create({
-    model: "gpt-4o",
-    input: [
-      {
-        role: "user",
-        content: [
-          { type: "input_file", file_id: uploadedFile.id },
-          { type: "input_text", text: prompt },
-        ],
-      },
-    ],
-  });
+        const outputText = response.output_text;
+        const contentTable = outputText.split("\n");
 
-  // console.log("Response:", response); // Debugging the full response
+        await db.collection("course").findOneAndUpdate(
+          { code: courseCode },
+          {
+            $set: {
+              openAIFileId: uploadedFile.id,
+              voice: voice,
+              language: language,
+              languageName: languageName,
+            },
+          }
+        );
 
-  // Directly use the `output_text` field from the response
-  const outputText = response.output_text;
-  const contentTable = outputText.split("\n");
+        context.res = {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: {
+            contentTable,
+          },
+        };
+        return;
+      }
 
-  // console.log("Output Text:", outputText); // Check the parsed output
-  let addedSections = addDocumentsSections(
-    contentTable,
-    outputText,
-    course.slideshowColorThemeName
-  )["sections"];
+      case "createCourse": {
+        // Expect content from body instead of parsing again
+        const { courseCode, structure } =
+          req.body || {};
 
-  // console.log(" addedSections: ", addedSections);
+        if (!courseCode || !structure) {
+          context.res = {
+            status: 400,
+            body: { error: "Missing required fields in request body." },
+          };
+          return;
+        }
 
-  let expandedCourse: Partial<CourseData> & { generationType: string } = {
-    ...course,
-    sections: addedSections,
-    voice: voice,
-    language: language,
-    languageName: languageName,
-    generationType: "newAgent",
-  };
+        const db = await database;
+        const Courses = db.collection<CourseData>("course");
+        const course = await Courses.findOne({ code: courseCode });
 
-  await asyncCreateContent(expandedCourse);
+        if (!course) {
+          context.res = {
+            status: 404,
+            body: { error: "Course not found" },
+          };
+          return;
+        }
 
-  context.res = {
-    status: 200,
-    body: {
-      message: "Course creation initiated",
-    },
-  };
+        const addedSections = addDocumentsSections(
+          course,
+          structure,
+          course.slideshowColorThemeName
+        )["sections"];
+
+        // console.log(" addedSections: ", addedSections)
+
+        const expandedCourse: Partial<CourseData> & {
+          generationType: string;
+        } = {
+          ...course,
+          sections: addedSections,
+          generationType: "newAgent",
+        };
+
+        await asyncCreateContent(expandedCourse);
+
+        context.res = {
+          status: 200,
+          body: {
+            message: "Course creation initiated",
+          },
+        };
+        return;
+      }
+
+      default: {
+        context.res = {
+          status: 400,
+          body: { error: `Unknown task: ${task}` },
+        };
+        return;
+      }
+    }
+  } catch (err) {
+    context.log.error("Error in function:", err);
+    context.res = {
+      status: 500,
+      body: { error: "Internal Server Error", details: err.message },
+    };
+  }
 };
 
 export default httpTrigger;

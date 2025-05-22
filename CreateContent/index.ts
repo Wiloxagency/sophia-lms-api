@@ -42,6 +42,7 @@ export const addDocumentsSections = (
   syllabus: string,
   lessonTheme: string
 ): {} => {
+  // console.log(" syllabus: ", syllabus)
   const structure = syllabus.split("\n");
   let sections = [];
   structure.forEach((section: string) => {

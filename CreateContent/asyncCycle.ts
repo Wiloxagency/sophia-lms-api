@@ -5,11 +5,18 @@ import { asyncCreateSlides } from "./asyncCreateSlides";
 import { asyncCreateParagraphsWithAgent } from "./asyncCreateParagraphsWithAgent";
 import { findPexelsAssets } from "./pexels";
 import { findVecteezyAssets } from "./vecteezy";
+import { CourseData } from "../shared/types";
 
 const database = createConnection();
 
-export async function asyncCreateContent(course: any) {
-//   console.log(" course: ", course);
+export async function asyncCreateContent(
+  course: Partial<CourseData> & {
+    generationType: string;
+    type?: string;
+    vectorStoreId?: string;
+  }
+) {
+  console.log(" course: ", course);
   if (!(course.sections && course.sections.length > 0)) {
     await saveLog(
       `Course: ${course.code} has not sections`,
