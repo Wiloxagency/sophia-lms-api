@@ -22,9 +22,6 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
   AZURE_STORAGE_CONNECTION_STRING
 );
 
-//const imagesBlobContainerUrl =
-//"https://sophieassets.blob.core.windows.net/assets/images/";
-
 const database = createConnection();
 
 export interface DeleteResult {
