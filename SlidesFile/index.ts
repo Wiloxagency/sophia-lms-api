@@ -66,7 +66,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
 
         // 3. Send slides through fillTemplate function
+
+        console.log("1111 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         await fillTemplate(slides, globalData, presentationName);
+        console.log("2222 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
         // 4. Return "Ok" response
 

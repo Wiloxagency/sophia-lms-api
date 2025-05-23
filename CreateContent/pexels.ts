@@ -16,8 +16,8 @@ export async function findPexelsAssets(courseName: string, courseCode: string, c
 
     const collection = db.collection("pexels");
 
-    console.info(courseStructure);
-    console.info(courseStructure.length)
+    // console.info(courseStructure);
+    // console.info(courseStructure.length)
 
     // Primer request: videos verticales por nombre de curso
         
@@ -42,12 +42,12 @@ export async function findPexelsAssets(courseName: string, courseCode: string, c
     for (let sectionIndex = 0; sectionIndex < courseStructure.length; sectionIndex++) {
         const originalQuery = `${courseName} ${courseStructure[sectionIndex]}`;
 
-        console.info(`sectionIndex: ${sectionIndex}`);
-        console.info(`originalQuery: ${originalQuery}`)
+        // console.info(`sectionIndex: ${sectionIndex}`);
+        // console.info(`originalQuery: ${originalQuery}`)
 
         let query: string = await translateQuery(originalQuery);
 
-        console.info(query)
+        // console.info(query)
 
         // Tercer request: videos en cualquier orientación por sección
         
@@ -94,7 +94,7 @@ async function saveVideosToDB(
             assetType,
         }));
 
-    console.info(`${documents.length} ${assetType}s saved.`)
+    // console.info(`${documents.length} ${assetType}s saved.`)
     await collection.insertMany(documents);
 }
 
@@ -118,6 +118,6 @@ async function saveImagesToDB(
             assetType,
         })).filter(Boolean);;
 
-    console.info(`${documents.length} ${assetType}s saved.`)
+    // console.info(`${documents.length} ${assetType}s saved.`)
     await collection.insertMany(documents);
 }
