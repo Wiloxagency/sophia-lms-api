@@ -94,8 +94,12 @@ async function saveVideosToDB(
             assetType,
         }));
 
-    // console.info(`${documents.length} ${assetType}s saved.`)
-    await collection.insertMany(documents);
+        if (documents && documents.length > 0) {
+        console.info(`Saving ${documents.length} ${assetType}s to DB...`);
+        await collection.insertMany(documents);
+        
+    }
+
 }
 
 async function saveImagesToDB(
@@ -119,5 +123,10 @@ async function saveImagesToDB(
         })).filter(Boolean);;
 
     // console.info(`${documents.length} ${assetType}s saved.`)
-    await collection.insertMany(documents);
+    if (documents && documents.length > 0) {
+        console.info(`Saving ${documents.length} ${assetType}s to DB...`);
+        await collection.insertMany(documents);
+        
+    }
+    
 }
