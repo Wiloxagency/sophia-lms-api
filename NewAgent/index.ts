@@ -3,7 +3,7 @@ import parseMultipartFormData from "@anzp/azure-function-multipart";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
-import { addDocumentsSections } from "../CreateContent";
+import { addDocumentsSections } from "../CreateContent/addSections";
 import { asyncCreateContent } from "../CreateContent/asyncCycle";
 import { CourseData } from "../shared/types";
 import { createConnection } from "../shared/mongo";
