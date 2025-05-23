@@ -855,7 +855,7 @@ const httpTrigger: AzureFunction = async function (
         .toFormat("webp")
         .toBuffer();
 
-      const urlFile = await saveFile(courseCode,"test.jpeg", compressedImageBuffer, "image")
+      const urlFile = await saveFile(courseCode,imageFile.filename, compressedImageBuffer, "images")
 
       // const blobServiceClient = BlobServiceClient.fromConnectionString(
       //   AZURE_STORAGE_CONNECTION_STRING
