@@ -213,7 +213,7 @@ const httpTrigger: AzureFunction = async function (
 
         // Guardar imagen en HD usando saveFile
         const uploadResponse = await saveFile(courseCode, fileName, outputBuffer, "Images");
-        uploadedAssetUrl = uploadResponse.url || uploadResponse.fileUrl;
+        uploadedAssetUrl = uploadResponse;
       } else if (assetType === "video") {
         uploadedAssetUrl = assetUrl;
       }
