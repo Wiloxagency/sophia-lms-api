@@ -12,15 +12,18 @@ import {
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 import { downloadQuiz } from "../Quiz/download";
+import { GlassTemplate } from "../themesTemplates/GlassTemplate";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormv2";
 const scormBaseFilesPath = "scorm_base_files";
 
-// Función principal que ahora se exporta para reutilización
 export async function createScormV2(course: any, selectedElements: any[], userEmail: string, userName: string) {
-    
     const courseCode = course.code;
+
+    const database = createConnection();
+    const db = await database;
+    const colorTheme = await db.collection("courseTheme").findOne({ code: course.slideshowColorThemeName });
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
@@ -35,9 +38,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
         const element = section?.elements?.[elementIndex];
 
         // Solo procesar si el elemento existe y es de tipo "Lección Engine"
-
         if (element && element.type === "Lección Engine") {
-
             const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
             const lessonFolder = `${sectionFolder}/Section-${sectionIndex + 1}-Item-${elementIndex + 1}-Scorm`;
             const assetsFolder = `${lessonFolder}/assets`;
@@ -48,81 +49,257 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
             const slides = [];
 
             for (const slide of element.elementLesson?.slides || []) {
-                const slideData = { ...slide };
+                const templateArray = GlassTemplate.find(t => t[0].code === slide.slideTemplate);
 
-                for (let index = 0; index < slide.assets.length; index++) {
-                    let asset = slide.assets[index];
+                if (templateArray) {
+                    let slideTemplateCopy = JSON.parse(JSON.stringify(templateArray));
+
+                    const titleFont = course.titleFont || "OpenSans";
+                    const textFont = course.textFont || "OpenSans";
+
+                    slideTemplateCopy.slice(2).forEach((component: any) => {
+                        if ('title' in component) {
+                            component.titleFontFamily = titleFont;
+                        }
+                        if ('text' in component) {
+                            component.textFontFamily = textFont;
+                        }
+                    });
+
+                    const slideContent = slide.slideContent || {};
+                    const sections = slideContent.sections || [];
+
+                    const applyText = (value: string | undefined) => value ?? " ";
+
+                    slideTemplateCopy.forEach(component => {
+                        if (typeof component === "object") {
+                            if (component.title === "[title]") {
+                                component.title = applyText(slideContent.title);
+                                component.titleFont = course.titleFont;
+                            }
+                            if (component.text === "[text]") {
+                                component.text = applyText(slideContent.text);
+                                component.textFont = course.textFont;
+                            }
+                            if (component.title === "[sections.0.subtitle]") {
+                                component.title = applyText(sections[0]?.subtitle);
+                                component.titleFont = course.titleFont;
+                            }
+                            if (component.text === "[sections.0.text]") {
+                                component.text = applyText(sections[0]?.text);
+                                component.textFont = course.textFont;
+                            }
+
+                            if (component.title === "[sections.1.subtitle]") {
+                                component.title = applyText(sections[1]?.subtitle);
+                                component.titleFont = course.titleFont;
+                            }
+                            if (component.text === "[sections.1.text]") {
+                                component.text = applyText(sections[1]?.text);
+                                component.textFont = course.textFont;
+                            }
+
+                            if (component.title === "[sections.2.subtitle]") {
+                                component.title = applyText(sections[2]?.subtitle);
+                                component.titleFont = course.titleFont;
+                            }
+                            if (component.text === "[sections.2.text]") {
+                                component.text = applyText(sections[2]?.text);
+                                component.textFont = course.textFont;
+                            }
+
+                            if (component.title === "[sections.3.subtitle]") {
+                                component.title = applyText(sections[3]?.subtitle);
+                                component.titleFont = course.titleFont;
+                            }
+                            if (component.text === "[sections.3.text]") {
+                                component.text = applyText(sections[3]?.text);
+                                component.textFont = course.textFont;
+                            }
+
+                            Object.keys(component).forEach(key => {
+                                const value = component[key];
+                                if (typeof value === "string" && value.startsWith("[")) {
+                                    const colorKey = value.replace(/\[|\]/g, "");
+                                    if (colorTheme?.colors && colorTheme.colors[colorKey]) {
+                                        component[key] = colorTheme.colors[colorKey];
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    const imageAssets = (slide.assets || []).filter(a => a.assetType === "photo");
+                    const videoAssets = (slide.assets || []).filter(a => a.assetType === "video");
+                    const iconAssets = (slide.assets || []).filter(a => a.assetType === "icon");
+
+                    let imageAssetIndex = 0;
+                    let videoAssetIndex = 0;
+                    let iconAssetIndex = 0;
 
                     const imageExtensionRegex = /\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff)(\?|$)/i;
                     const videoExtensionRegex = /\.(mp4|webm|ogg|mov|avi|wmv|mkv)(\?|$)/i;
 
-                    if (asset.assetType == "photo") {
-                        if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && imageExtensionRegex.test(asset.url)) {
 
-                            try {
-                                const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
-                                slideData.assets[index].url = `./assets/${uploadedImagePath}`;
-                                assetFiles.push(`./assets/${uploadedImagePath}`);
-                            } catch (error) {
-                                console.error(`Error al procesar la URL ${asset.url}:`, error);
+                    for (const component of slideTemplateCopy.slice(2)) {
+                        //templates con componentes mediaWithMirror o mediaWithVmirror
+                        if (
+                            (component?.component === "mediaWithMirror" || component?.component === "mediaWithVMirror")
+                        ) {
+                            if (videoAssetIndex < videoAssets.length) {
+                                const asset = videoAssets[videoAssetIndex++];
+                                if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && videoExtensionRegex.test(asset.url)) {
+                                    try {
+                                        const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
+                                        component.video = `./assets/${uploadedVideoPath}`;
+                                        delete component.image;
+                                        assetFiles.push(`./assets/${uploadedVideoPath}`);
+                                    } catch (error) {
+                                        console.error(`Error al procesar URL de video para mediaWithMirror: ${asset.url}:`, error);
+                                        videoAssetIndex--;
+                                    }
+                                } else if (videoExtensionRegex.test(asset.url)) {
+                                    component.video = asset.url;
+                                    delete component.image;
+                                }
+                            } else if (imageAssetIndex < imageAssets.length) {
+                                const asset = imageAssets[imageAssetIndex++];
+                                if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && imageExtensionRegex.test(asset.url)) {
+                                    try {
+                                        const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
+                                        component.image = `./assets/${uploadedImagePath}`;
+                                        delete component.video;
+                                        assetFiles.push(`./assets/${uploadedImagePath}`);
+                                    } catch (error) {
+                                        console.error(`Error al procesar URL de imagen para mediaWithMirror: ${asset.url}:`, error);
+                                        imageAssetIndex--;
+                                    }
+                                } else if (imageExtensionRegex.test(asset.url)) {
+                                    component.image = asset.url;
+                                    delete component.video;
+                                }
                             }
-                        } else {
-                            console.log(`URL ignorada (no es HTTP/HTTPS o no tiene extensión de imagen válida): ${asset.url}`);
+                            continue;
+                        }
+
+                        if (component?.component === "img" && imageAssetIndex < imageAssets.length) {
+                            const asset = imageAssets[imageAssetIndex++];
+                            if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && imageExtensionRegex.test(asset.url)) {
+                                try {
+                                    const uploadedImagePath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
+                                    component.image = `./assets/${uploadedImagePath}`;
+                                    assetFiles.push(`./assets/${uploadedImagePath}`);
+                                } catch (error) {
+                                    console.error(`Error al procesar URL de imagen ${asset.url}:`, error);
+                                }
+                            } else if (imageExtensionRegex.test(asset.url)) {
+                                component.image = asset.url;
+                            } else {
+                                console.log(`URL de imagen ignorada (formato o extensión no válida): ${asset.url}`);
+                                imageAssetIndex--;
+                            }
+                        } else if (component?.component === "video" && videoAssetIndex < videoAssets.length) {
+                            const asset = videoAssets[videoAssetIndex++];
+                            if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && videoExtensionRegex.test(asset.url)) {
+                                try {
+                                    const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
+                                    component.video = `./assets/${uploadedVideoPath}`;
+                                    assetFiles.push(`./assets/${uploadedVideoPath}`);
+                                } catch (error) {
+                                    console.error(`Error al procesar URL de video ${asset.url}:`, error);
+                                }
+                            } else if (videoExtensionRegex.test(asset.url)) {
+                                component.video = asset.url;
+                            } else {
+                                console.log(`URL de video ignorada (formato o extensión no válida): ${asset.url}`);
+                                videoAssetIndex--;
+                            }
+                        } else if (iconAssetIndex < iconAssets.length &&
+                            (component?.component === "iconRL" || component?.component === "iconRT" || (component?.component === "card" && 'icon' in component))
+                        ) {
+                            const asset = iconAssets[iconAssetIndex++];
+
+                            if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && imageExtensionRegex.test(asset.url)) {
+                                try {
+                                    const uploadedIconPath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
+                                    component.icon = `./assets/${uploadedIconPath}`;
+                                    assetFiles.push(`./assets/${uploadedIconPath}`);
+                                } catch (error) {
+                                    console.error(`Error al procesar URL de icono ${asset.url}:`, error);
+                                }
+                            } else if (imageExtensionRegex.test(asset.url)) {
+                                component.icon = asset.url;
+                            } else {
+                                console.log(`URL de icono ignorada (formato o extensión no válida): ${asset.url}`);
+                                iconAssetIndex--;
+                            }
                         }
                     }
 
+                    if (slide.audioUrl) {
+                        try {
+                            const uploadedAudioPath = await uploadFileFromUrl(containerClient, assetsFolder, slide.audioUrl, false);
 
-                    if (asset.assetType == "video") {
-                        if ((asset.url.startsWith('http://') || asset.url.startsWith('https://')) && videoExtensionRegex.test(asset.url)) {
-
-                            try {
-                                const uploadedVideoPath = await uploadFileFromUrl(containerClient, assetsFolder, asset.url);
-                                slideData.assets[index].url = `./assets/${uploadedVideoPath}`;
-                                assetFiles.push(`./assets/${uploadedVideoPath}`);
-                            } catch (error) {
-                                console.error(`Error al procesar la URL ${asset.url}:`, error);
+                            let audioComponentFound = false;
+                            for (const component of slideTemplateCopy) {
+                                if (component && typeof component === 'object' && 'audioUrl' in component) {
+                                    component.audioUrl = `./assets/${uploadedAudioPath}`;
+                                    audioComponentFound = true;
+                                    break;
+                                }
                             }
-                        } else {
-                            console.log(`URL ignorada (no es HTTP/HTTPS o no tiene extensión de video válida): ${asset.url}`);
+
+                            if (!audioComponentFound) {
+                                console.warn(`No se encontró un componente con la propiedad 'audioUrl' en la plantilla para la slide. El audio ${slide.audioUrl} no se asignará directamente a un componente.`);
+                            }
+
+                            assetFiles.push(`./assets/${uploadedAudioPath}`);
+                        } catch (error) {
+                            console.error(`Error al procesar URL de audio ${slide.audioUrl}:`, error);
                         }
                     }
+
+                    //templates con asset en fullscreen
+                    if (slide.isFullscreenAsset && slide.assets && slide.assets.length > 0) {
+                        const meta = slideTemplateCopy.find(c => c.component === 'meta-tag');
+                        const audio = slideTemplateCopy.find(c => c.component === 'audio');
+
+                        const firstAsset = slide.assets[0];
+
+                        const mediaComponent = slideTemplateCopy.find(c =>
+                            (firstAsset?.assetType === 'photo' && c.component === 'img') ||
+                            (firstAsset?.assetType === 'video' && c.component === 'video')
+                        );
+
+                        if (mediaComponent) {
+                            mediaComponent.width = '100%';
+                            mediaComponent.height = '100%';
+                        }
+
+                        slideTemplateCopy = [meta, audio, mediaComponent].filter(Boolean);
+                    } else if (slide.isFullscreenAsset) {
+                        console.warn("slide.isFullscreenAsset es true pero slide.assets está vacío o es undefined.");
+                    }
+
+                    slides.push(slideTemplateCopy);
+                } else {
+                    console.warn(`Plantilla no encontrada para slide.slideTemplate: ${slide.slideTemplate}`);
                 }
-
-                if (slide.audioUrl) {
-                    const uploadedAudioPath = await uploadFileFromUrl(containerClient, assetsFolder, slide.audioUrl, false);
-                    slideData.audioUrl = `./assets/${uploadedAudioPath}`;
-                    assetFiles.push(`./assets/${uploadedAudioPath}`);
-                }
-
-                slides.push(slideData);
-
             }
 
             const urlCover = await uploadFileFromUrl(containerClient, assetsFolder, course.details.cover, true);
+            assetFiles.push("./assets/" + urlCover);
 
             const urlMusicBg = course.slideshowBackgroundMusicUrl
                 ? await uploadFileFromUrl(containerClient, assetsFolder, "https://app.iasophia.com" + course.slideshowBackgroundMusicUrl, true)
-                : undefined
-            assetFiles.push("./assets/" + urlCover);
+                : undefined;
 
-            let slideshowContent: any = {
-                courseCover: "./assets/" + urlCover,
-                sectionTitle: section.title,
-                type: "Lección Engine",
-                title: "Presentation",
-                elementCode: element.elementCode,
-                elementLesson: {
-                    lessonTheme: element.elementLesson?.lessonTheme || "1",
-                    slides: slides
-                },
-                colorThemeName: course.slideshowColorThemeName
-            };
+            let slideshowContent: any[] = [
+                { musicTrack: urlMusicBg ? `./assets/${urlMusicBg}` : "" },
+                ...slides
+            ];
 
             if (urlMusicBg) {
-                slideshowContent = {
-                    ...slideshowContent,
-                    backgroundMusicUrl: "assets/" + urlMusicBg
-                };
                 assetFiles.push("./assets/" + urlMusicBg);
             }
 
@@ -141,27 +318,27 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
             await uploadXmlFile(containerClient, imsmanifestPath, imsmanifestContent);
             assetFiles.push(`./imsmanifest.xml`);
 
-            await zipLessonFolder( containerClient, lessonFolder);
+            await zipLessonFolder(containerClient, lessonFolder);
+
         } else if (element && element.type === "file") {
             const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
             const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-${element.elementFile.name}`;
             const fileUrl = element.elementFile.url;
 
-            // Subir archivo al directorio Section<n>
             const uploadedFileName = await uploadFileFromUrl(containerClient, sectionFolder, fileUrl, false, fileName);
             console.info(`Archivo subido correctamente: ${sectionFolder}/${uploadedFileName}`);
+
         } else if (
-            element.type === "shortAnswer" ||
-            element.type === "trueOrFalse" ||
-            element.type === "completion" ||
-            element.type === "quizz"
+            element?.type === "shortAnswer" ||
+            element?.type === "trueOrFalse" ||
+            element?.type === "completion" ||
+            element?.type === "quizz"
         ) {
             const docUrlQuiz = await downloadQuiz(
                 courseCode,
                 sectionIndex.toString(),
                 elementIndex.toString()
             );
-
             docUrlQuiz.substring(docUrlQuiz.lastIndexOf("/") + 1);
 
             const response = await fetch(docUrlQuiz);
@@ -171,8 +348,6 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
 
             const fileQuiz = await response.buffer();
 
-            const containerClient = blobServiceClient.getContainerClient(containerName);
-
             const sectionFolder = `${courseCode}/Section${sectionIndex + 1}`;
             const fileName = `Section-${sectionIndex + 1}-Item-${elementIndex + 1}-Quiz-${element.type}.docx`;
 
@@ -180,6 +355,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
             const blockBlobClient =
                 containerClient.getBlockBlobClient(QuizzFileName);
             await blockBlobClient.upload(fileQuiz, fileQuiz.length);
+            console.info(`Archivo de Quiz subido correctamente: ${QuizzFileName}`); // Añadido log
 
         }
     }
@@ -188,12 +364,12 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
     await deleteSectionFolders(containerClient, courseCode);
 
     // Compress the entire course directory into a single .zip file
-    await zipCourseDirectory( containerClient, courseCode);
+    await zipCourseDirectory(containerClient, courseCode);
 
     // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
-    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip");
+    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
 }
 
 // Function to delete Section folders after zipping
