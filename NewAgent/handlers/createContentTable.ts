@@ -34,13 +34,17 @@ export async function handleCreateContentTable(
     return;
   }
 
+  // Save uploaded file temporarily
   const file = files[0];
   const tempPath = path.join(__dirname, file.filename);
   fs.writeFileSync(tempPath, Buffer.from(file.bufferFile));
 
-  const uploadedFile = await uploadFileToOpenAI(tempPath);
+  const uploadedFiles = await uploadFileToOpenAI(tempPath);
+  console.log(" uploadedFiles: ", uploadedFiles)
+  const fileIds = uploadedFiles.map((f) => f.id);
+
   const contentTable = await generateContentTable(
-    uploadedFile.id,
+    fileIds,
     course,
     languageName,
     maxSections
@@ -50,7 +54,7 @@ export async function handleCreateContentTable(
     { code: courseCode },
     {
       $set: {
-        openAIFileId: uploadedFile.id,
+        openAIFileIds: fileIds,
         voice,
         language,
         languageName,

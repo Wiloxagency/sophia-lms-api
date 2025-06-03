@@ -45,7 +45,7 @@ export type CourseData = {
   isNewSlideStructure?: boolean;
   titleFont?: string;
   textFont?: string;
-  openAIFileId?: string
+  openAIFileIds?: string[]
 };
 
 export type CourseSection = {

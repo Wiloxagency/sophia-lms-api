@@ -94,7 +94,7 @@ export async function asyncCreateContent(
           sectionIndex,
           lessonIndex,
           undefined,
-          course.openAIFileId
+          course.openAIFileIds
         );
       }
     });

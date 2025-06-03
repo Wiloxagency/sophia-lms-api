@@ -4,7 +4,7 @@ import { CourseData } from "../../shared/types";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export async function generateContentTable(
-  fileId: string,
+  fileIds: string[],
   course: CourseData,
   languageName: string,
   maxSections: string
@@ -17,8 +17,14 @@ export async function generateContentTable(
       {
         role: "user",
         content: [
-          { type: "input_file", file_id: fileId },
-          { type: "input_text", text: prompt },
+          ...fileIds.map((fileId) => ({
+            type: "input_file" as const,
+            file_id: fileId,
+          })),
+          {
+            type: "input_text",
+            text: prompt,
+          },
         ],
       },
     ],

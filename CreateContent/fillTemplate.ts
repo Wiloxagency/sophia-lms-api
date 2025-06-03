@@ -244,13 +244,9 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
         const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
         const containerClient = blobServiceClient.getContainerClient("presentations");
         const blobClient = containerClient.getBlockBlobClient(`${presentationName}.json`);
-        
-        console.log("THIS RUNS 1")
-        
+                
         await blobClient.upload(JSON.stringify(processedSlides), JSON.stringify(processedSlides).length);
         
-        console.log("THIS RUNS 2")
-
         return { status: "success", message: `Presentation ${presentationName}.json created successfully` };
 
     } catch (error) {

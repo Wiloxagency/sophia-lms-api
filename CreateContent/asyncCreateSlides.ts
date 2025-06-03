@@ -92,9 +92,9 @@ export async function asyncCreateSlides(
   sectionIndex: number,
   elementIndex: number,
   elementTitle?: string,
-  openAIFileId?: string
+  openAIFileIds?: string[]
 ) {
-  console.log(" languageIso: ", languageIso)
+  console.log(" languageIso: ", languageIso);
   const db = await database;
 
   // If its a lesson will use elementTitle instead sectionTitle
@@ -168,11 +168,11 @@ export async function asyncCreateSlides(
 
   try {
     let response;
-    if (openAIFileId !== undefined) {
+    if (openAIFileIds !== undefined) {
       // console.log("NEW AGENT RUNNING");
 
       const newAgentPrompt = `
-Extract all information in the attached document directly related to the subject of "${formattedText}". 
+Extract all information in the attached documents directly related to the subject of "${formattedText}". 
 Write it in ${languageName}. 
 Organize the extracted content into a JSON object using this format:
 
@@ -201,7 +201,10 @@ The response must start with { and end with }. The output must be valid JSON.
           {
             role: "user",
             content: [
-              { type: "input_file", file_id: openAIFileId },
+              ...openAIFileIds.map((fileId) => ({
+                type: "input_file" as const,
+                file_id: fileId,
+              })),
               { type: "input_text", text: newAgentPrompt },
             ],
           },
@@ -293,7 +296,7 @@ The response must start with { and end with }. The output must be valid JSON.
 
     let slidesData: any;
 
-    if (openAIFileId) {
+    if (openAIFileIds !== undefined) {
       try {
         slidesData = JSON.parse(response.output_text);
       } catch (err) {
