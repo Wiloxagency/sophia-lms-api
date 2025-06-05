@@ -40,15 +40,21 @@ export async function handleCreateContentTable(
   fs.writeFileSync(tempPath, Buffer.from(file.bufferFile));
 
   const uploadedFiles = await uploadFileToOpenAI(tempPath);
-  console.log(" uploadedFiles: ", uploadedFiles)
+  console.log(" uploadedFiles: ", uploadedFiles);
   const fileIds = uploadedFiles.map((f) => f.id);
 
-  const contentTable = await generateContentTable(
-    fileIds,
-    course,
-    languageName,
-    maxSections
-  );
+  let contentTable: string[] | null;
+
+  if (uploadedFiles.length === 0) {
+    
+  } else {
+    contentTable = await generateContentTable(
+      fileIds,
+      course,
+      languageName,
+      maxSections
+    );
+  }
 
   await Courses.findOneAndUpdate(
     { code: courseCode },
@@ -58,6 +64,7 @@ export async function handleCreateContentTable(
         voice,
         language,
         languageName,
+        isFinishedUploadingOpenAiFiles: uploadedFiles.length === 0 ? false : true,
       },
     }
   );

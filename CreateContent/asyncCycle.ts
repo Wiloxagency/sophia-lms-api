@@ -16,7 +16,6 @@ export async function asyncCreateContent(
     vectorStoreId?: string;
   }
 ) {
-  console.log(" course: ", course);
   if (!(course.sections && course.sections.length > 0)) {
     await saveLog(
       `Course: ${course.code} has not sections`,

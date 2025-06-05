@@ -94,7 +94,7 @@ export async function asyncCreateSlides(
   elementTitle?: string,
   openAIFileIds?: string[]
 ) {
-  console.log(" languageIso: ", languageIso);
+  // console.log(" languageIso: ", languageIso);
   const db = await database;
 
   // If its a lesson will use elementTitle instead sectionTitle
@@ -111,7 +111,6 @@ export async function asyncCreateSlides(
     .replace(/\.+$/, "")
     .trim();
 
-  // console.log(" courseStructure: ", courseStructure);
   const promptCourseStructure = courseStructure
     .map((tableItem: string, idx: number) => {
       return `Item ${idx + 1}: ${tableItem.trim()}\n`;
@@ -171,6 +170,17 @@ export async function asyncCreateSlides(
     if (openAIFileIds !== undefined) {
       // console.log("NEW AGENT RUNNING");
 
+      // const assistant = await openai.beta.assistants.create({
+      //   name: "Content Extractor",
+      //   instructions: `You're an expert in analyzing course material and extracting information based on tables of contents.`,
+      //   model: "gpt-4o",
+      //   tools: [{ type: "file_search" }],
+      // });
+      // console.log("Assistant created:", assistant.id);
+      const assistantId = "asst_sGLc3ETSkz55UWGp8I9q5Vnv";
+
+      const thread = await openai.beta.threads.create();
+
       const newAgentPrompt = `
 Extract all information in the attached documents directly related to the subject of "${formattedText}". 
 Write it in ${languageName}. 
@@ -193,23 +203,61 @@ Organize the extracted content into a JSON object using this format:
 
 Return ONLY the raw JSON object. Do NOT wrap it in backticks or markdown. Do NOT explain. 
 The response must start with { and end with }. The output must be valid JSON.
+IMPORTANT: Only generate content that is directly supported by the information in the attached documents. If the content is not found in the provided files, do not include it.
 `;
 
-      response = await openai.responses.create({
-        model: "gpt-4o",
-        input: [
-          {
-            role: "user",
-            content: [
-              ...openAIFileIds.map((fileId) => ({
-                type: "input_file" as const,
-                file_id: fileId,
-              })),
-              { type: "input_text", text: newAgentPrompt },
-            ],
-          },
-        ],
+      await openai.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: newAgentPrompt,
+        attachments: openAIFileIds.map((fileId) => ({
+          file_id: fileId,
+          tools: [{ type: "file_search" }],
+        })),
       });
+
+      const run = await openai.beta.threads.runs.create(thread.id, {
+        assistant_id: assistantId,
+      });
+
+      // Polling for completion
+      let completedRun;
+      let runStatus = run.status;
+      let retries = 0;
+      while (
+        runStatus !== "completed" &&
+        runStatus !== "failed" &&
+        retries < 50
+      ) {
+        await new Promise((r) => setTimeout(r, 1500));
+        completedRun = await openai.beta.threads.runs.retrieve(
+          thread.id,
+          run.id
+        );
+        runStatus = completedRun.status;
+        retries++;
+      }
+
+      if (runStatus !== "completed") {
+        throw new Error(`Run failed or timed out: ${runStatus}`);
+      }
+
+      // Extract response content
+      const messages = await openai.beta.threads.messages.list(thread.id);
+      const responseMessage = messages.data.find((m) => m.role === "assistant");
+
+      console.dir(responseMessage?.content, { depth: 10 }); // <-- inspect fully
+
+      const textContent = responseMessage?.content
+        .map((c) => (c.type === "text" ? c.text?.value ?? "" : ""))
+        .join("\n")
+        .trim();
+
+      response = {
+        output_text: textContent,
+        usage: completedRun?.usage ?? {},
+      };
+
+      console.log("response.output_text:", response.output_text);
     } else {
       response = await openai.beta.chat.completions.parse({
         model: "gpt-4o-2024-08-06",

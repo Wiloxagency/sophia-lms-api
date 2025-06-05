@@ -1,7 +1,8 @@
-import OpenAI from "openai";
 import fs from "fs";
-import { splitPdfBinary } from "./splitPdf";
+import OpenAI from "openai";
 import type { FileObject } from "openai/resources/files";
+import { callPdfSplitter } from "./callPdfSplitter";
+import { requiresSplit } from "./requiresSplit";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
@@ -9,26 +10,30 @@ export async function uploadFileToOpenAI(
   filePath: string
 ): Promise<FileObject[]> {
   const buffer = fs.readFileSync(filePath);
-  const chunks = await splitPdfBinary(buffer);
-
-  if (chunks.length > 1) {
-    console.warn(
-      `❌ PDF needs splitting (produces ${chunks.length} chunks). Skipping upload.`
-    );
-    return [];
-  }
-
   const uploads: FileObject[] = [];
 
-  const tempChunkPath = `${filePath}-chunk-0.pdf`;
-  fs.writeFileSync(tempChunkPath, chunks[0]);
-  const stream = fs.createReadStream(tempChunkPath);
-  const uploaded = await client.files.create({
-    file: stream,
-    purpose: "assistants",
-  });
-  uploads.push(uploaded);
-  fs.unlinkSync(tempChunkPath);
+  let chunks: Buffer[];
+
+  if (await requiresSplit(buffer)) {
+    console.warn(`PDF needs splitting. Sending to splitter service...`);
+    chunks = await callPdfSplitter(buffer);
+  } else {
+    chunks = [buffer];
+  }
+
+  for (let i = 0; i < chunks.length; i++) {
+    const tempPath = `${filePath}-chunk-${i}.pdf`;
+    fs.writeFileSync(tempPath, chunks[i]);
+
+    const stream = fs.createReadStream(tempPath);
+    const uploaded = await client.files.create({
+      file: stream,
+      purpose: "assistants",
+    });
+
+    uploads.push(uploaded);
+    fs.unlinkSync(tempPath);
+  }
 
   return uploads;
 }

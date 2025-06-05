@@ -46,6 +46,7 @@ export type CourseData = {
   titleFont?: string;
   textFont?: string;
   openAIFileIds?: string[]
+  isFinishedUploadingOpenAiFiles?: boolean
 };
 
 export type CourseSection = {
