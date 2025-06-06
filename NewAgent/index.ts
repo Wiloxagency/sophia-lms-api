@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { handleCreateContentTable } from "./handlers/createContentTable";
 import { handleCreateCourse } from "./handlers/createCourse";
+import { validateContentTable } from "./utils/validateContentTable";
 
 const httpTrigger: AzureFunction = async function (context, req) {
   try {
@@ -20,6 +21,9 @@ const httpTrigger: AzureFunction = async function (context, req) {
         break;
       case "createCourse":
         await handleCreateCourse(context, req);
+        break;
+      case "validateContentTable":
+        await validateContentTable(context, req);
         break;
       default:
         context.res = {
