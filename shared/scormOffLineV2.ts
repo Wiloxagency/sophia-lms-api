@@ -159,7 +159,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
                                         videoAssetIndex--;
                                     }
                                 } else if (videoExtensionRegex.test(asset.url)) {
-                                    component.video = asset.url;
+                                    component.video = normalizeAssetPath(asset.url);
                                     delete component.image;
                                 }
                             } else if (imageAssetIndex < imageAssets.length) {
@@ -175,7 +175,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
                                         imageAssetIndex--;
                                     }
                                 } else if (imageExtensionRegex.test(asset.url)) {
-                                    component.image = asset.url;
+                                    component.image = normalizeAssetPath(asset.url);
                                     delete component.video;
                                 }
                             }
@@ -193,7 +193,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
                                     console.error(`Error al procesar URL de imagen ${asset.url}:`, error);
                                 }
                             } else if (imageExtensionRegex.test(asset.url)) {
-                                component.image = asset.url;
+                                component.image = normalizeAssetPath(asset.url)
                             } else {
                                 console.log(`URL de imagen ignorada (formato o extensión no válida): ${asset.url}`);
                                 imageAssetIndex--;
@@ -209,7 +209,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
                                     console.error(`Error al procesar URL de video ${asset.url}:`, error);
                                 }
                             } else if (videoExtensionRegex.test(asset.url)) {
-                                component.video = asset.url;
+                                component.video = normalizeAssetPath(asset.url)
                             } else {
                                 console.log(`URL de video ignorada (formato o extensión no válida): ${asset.url}`);
                                 videoAssetIndex--;
@@ -228,7 +228,7 @@ export async function createScormV2(course: any, selectedElements: any[], userEm
                                     console.error(`Error al procesar URL de icono ${asset.url}:`, error);
                                 }
                             } else if (imageExtensionRegex.test(asset.url)) {
-                                component.icon = asset.url;
+                                component.icon = normalizeAssetPath(asset.url)
                             } else {
                                 console.log(`URL de icono ignorada (formato o extensión no válida): ${asset.url}`);
                                 iconAssetIndex--;
@@ -521,4 +521,13 @@ function generateImsManifestXml(courseTitle: string, courseId: string, assetFile
         </resource>
     </resources>
 </manifest>`;
+}
+
+function normalizeAssetPath(url: string): string {
+    if (url.startsWith("./assets")) {
+        return url;
+    }
+    if (url.startsWith("/assets")) {
+        return "." + url;
+    }
 }
