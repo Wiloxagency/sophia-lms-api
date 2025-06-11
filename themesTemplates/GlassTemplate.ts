@@ -3682,7 +3682,7 @@ export const GlassTemplate: Template[] = [
         media: ["image-h", "image-h"],
         title: {
           min: 1,
-          max: 8,
+          max: 7,
         },
         text: {
           min: 12,
@@ -3692,7 +3692,7 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 8,
+              max: 7,
             },
             text: {
               min: 12,
@@ -3702,7 +3702,7 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 7,
+              max: 6,
             },
             text: {
               min: 6,
@@ -3712,7 +3712,7 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 7,
+              max: 6,
             },
             text: {
               min: 6,
@@ -3722,7 +3722,7 @@ export const GlassTemplate: Template[] = [
           {
             title: {
               min: 1,
-              max: 7,
+              max: 6,
             },
             text: {
               min: 6,
@@ -3774,11 +3774,11 @@ export const GlassTemplate: Template[] = [
       bgColor: "[Primary]",
       padding: "2cqw",
       title: "[title]",
-      titleFontSize: 2,
+      titleFontSize: 1.8,
       titleLineHeight: 1,
       titleFontColor: "[PrimaryText]",
       text: "[text]",
-      textFontSize: 1.8,
+      textFontSize: 1.5,
       textFontColor: "[PrimaryText]",
       textMarginTop: "1cqw",
       layer: 3,
@@ -3796,11 +3796,11 @@ export const GlassTemplate: Template[] = [
       bgColor: "[Primary]",
       padding: "2cqw",
       title: "[sections.0.subtitle]",
-      titleFontSize: 2,
+      titleFontSize: 1.8,
       titleLineHeight: 1,
       titleFontColor: "[PrimaryText]",
       text: "[sections.0.text]",
-      textFontSize: 1.8,
+      textFontSize: 1.5,
       textFontColor: "[PrimaryText]",
       textMarginTop: "1cqw",
       layer: 3,
@@ -3818,11 +3818,11 @@ export const GlassTemplate: Template[] = [
       bgColor: "[Primary]",
       padding: "2cqw",
       title: "[sections.1.subtitle]",
-      titleFontSize: 2,
+      titleFontSize: 1.8,
       titleLineHeight: 1,
       titleFontColor: "[PrimaryText]",
       text: "[sections.1.text]",
-      textFontSize: 1.8,
+      textFontSize: 1.5,
       textFontColor: "[PrimaryText]",
       textMarginTop: "1cqw",
       layer: 3,
@@ -3840,11 +3840,11 @@ export const GlassTemplate: Template[] = [
       bgColor: "[Primary]",
       padding: "2cqw",
       title: "[sections.2.subtitle]",
-      titleFontSize: 2,
+      titleFontSize: 1.8,
       titleLineHeight: 1,
       titleFontColor: "[PrimaryText]",
       text: "[sections.2.text]",
-      textFontSize: 1.8,
+      textFontSize: 1.5,
       textFontColor: "[PrimaryText]",
       textMarginTop: "1cqw",
       layer: 3,
@@ -3862,11 +3862,11 @@ export const GlassTemplate: Template[] = [
       bgColor: "[Primary]",
       padding: "2cqw",
       title: "[sections.3.subtitle]",
-      titleFontSize: 2,
+      titleFontSize: 1.8,
       titleLineHeight: 1,
       titleFontColor: "[PrimaryText]",
       text: "[sections.3.text]",
-      textFontSize: 1.8,
+      textFontSize: 1.5,
       textFontColor: "[PrimaryText]",
       textMarginTop: "1cqw",
       layer: 3,
