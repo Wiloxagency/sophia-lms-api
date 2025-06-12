@@ -19,7 +19,24 @@ export async function generateContentTable(
 
   const thread = await client.beta.threads.create();
 
-  const prompt = `Analyze the attached documents and create a table of contents based on their content. Write it in ${languageName}, with exactly ${maxSections} items.\nThe first item should be the introduction of the course and the last item should be the conclusion.\nWrite that table of contents in the following format:\n\n1. Introduction.\n2. Item 2.\n3. Item 3.\n...\n${maxSections}. Conclusion.\n\nDon't write any text before the introduction (item 1) and after the Conclusion (item ${maxSections}) — only write the content table without any additional description. IMPORTANT: Only generate content that is directly supported by the information in the attached documents. If the content is not found in the provided files, do not include it.`;
+  const prompt = `
+Analyze the attached documents and create a table of contents based on their content. Write it in ${languageName}, with up to ${maxSections} items.
+
+The first item should be the introduction of the course, and the last item should be the conclusion, if the material supports it.
+
+Only include sections that are clearly supported by the information in the documents. If a topic is not supported by the content, do not include it.
+
+IMPORTANT: Do NOT include citations, timestamps, references, or any inline source markers such as   in the output.
+
+Write the table of contents in the following format:
+
+1. Introduction.
+2. Title of section 2.
+3. Title of section 3.
+...
+n. Conclusion.
+
+Only return the list. Do not include any explanation before or after the list.`;
 
   await client.beta.threads.messages.create(thread.id, {
     role: "user",

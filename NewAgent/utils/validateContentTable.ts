@@ -5,6 +5,10 @@ import OpenAI from "openai";
 
 const openAiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function validateContentTable(context: Context, req: HttpRequest) {
   context.log("validateContentTable called");
 
@@ -50,9 +54,13 @@ Analyze the following table of contents using the attached course documents.
 
 For each item, determine whether the course materials contain **at least one paragraph** that **specifically discusses the topic**.
 
-Only if **every item** in the table of contents is adequately substantiated by such content, return isValid = true.
+Evaluate **all items at once**, not iteratively. Your goal is to produce a comprehensive validation result.
 
-Otherwise, return isValid = false and list which items are missing or insufficiently covered in the "reason".
+Only if **every item** is adequately supported, return: isValid = true.
+
+If **any items** are not clearly covered by the materials, return: isValid = false, and include **a full list of all such items** in the "reason". Do not withhold any items for future runs.
+
+Also include a field called \`log\` in your response that says how many total items were evaluated, for debugging purposes.
 
 Table of Contents:
 ${parsedContentTable.join("\n")}
@@ -76,6 +84,10 @@ ${parsedContentTable.join("\n")}
 
   context.log("User message created");
 
+  // 🕒 Wait for file indexing before starting the run
+  await delay(4000);
+  context.log("Waited for file indexing");
+
   const run = await openAiClient.beta.threads.runs.create(thread.id, {
     assistant_id: assistantId,
     tool_choice: {
@@ -89,13 +101,14 @@ ${parsedContentTable.join("\n")}
   let runStatus = run.status;
   let finalValidationResult = null;
 
+  // 🔁 Polling loop for run status
   while (
     runStatus === "queued" ||
     runStatus === "in_progress" ||
     runStatus === "requires_action"
   ) {
     context.log("Run status:", runStatus);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await delay(1000);
 
     const updatedRun = await openAiClient.beta.threads.runs.retrieve(
       thread.id,
@@ -117,10 +130,35 @@ ${parsedContentTable.join("\n")}
         output: "Acknowledged",
       }));
 
-      // ✅ Save tool call output
-      const parsedValidation = JSON.parse(toolCalls[0].function.arguments);
-      context.log("Parsed validation result from tool call:", parsedValidation);
-      finalValidationResult = parsedValidation;
+      try {
+        const parsedValidation = JSON.parse(toolCalls[0].function.arguments);
+
+        if (!parsedValidation || typeof parsedValidation !== "object") {
+          throw new Error("Parsed validation is not an object.");
+        }
+
+        const { isValid, unsupported, reason, log } = parsedValidation;
+
+        if (typeof isValid !== "boolean" || typeof reason !== "string") {
+          throw new Error("Validation object missing required fields.");
+        }
+
+        context.log(
+          "Parsed validation result from tool call:",
+          parsedValidation
+        );
+        finalValidationResult = parsedValidation;
+      } catch (err) {
+        context.log("Failed to parse tool call arguments:", err);
+        context.res = {
+          status: 500,
+          body: {
+            isValid: false,
+            reason: `Failed to parse assistant tool call output: ${err}`,
+          },
+        };
+        return;
+      }
 
       await openAiClient.beta.threads.runs.submitToolOutputs(
         thread.id,
@@ -149,7 +187,6 @@ ${parsedContentTable.join("\n")}
     }
   }
 
-  // ✅ Use parsed result from tool call (not assistant message)
   if (finalValidationResult) {
     context.res = {
       status: 200,
