@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 import { createWriteStream, promises as fs } from "fs";
 import {
     sendFailedSCORMCreationEmail,
-    sendSCORM2DownloadLinkEmail,
+    sendSCORMDownloadLinkEmail,
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 import { downloadQuiz } from "../Quiz/download";
@@ -163,7 +163,7 @@ async function createScorm(context: Context, course: any, selectedElements: any[
     // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
-    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
+    sendSCORMDownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
