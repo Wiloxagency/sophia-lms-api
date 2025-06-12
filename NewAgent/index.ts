@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { handleCreateContentTable } from "./handlers/createContentTable";
 import { handleCreateCourse } from "./handlers/createCourse";
-import { validateContentTable } from "./utils/validateContentTable";
+import { validateContentTable } from "./utils/validateContentTable/validateContentTable";
 
 const httpTrigger: AzureFunction = async function (context, req) {
   try {

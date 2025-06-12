@@ -1,7 +1,7 @@
 import { Context, HttpRequest } from "@azure/functions";
-import { createConnection } from "../../shared/mongo";
-import { CourseData } from "../../shared/types";
 import OpenAI from "openai";
+import { createConnection } from "../../../shared/mongo";
+import { CourseData } from "../../../shared/types";
 
 const openAiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
@@ -42,12 +42,22 @@ export async function validateContentTable(context: Context, req: HttpRequest) {
     return;
   }
 
-  context.log("Course found, creating thread");
-
   const assistantId = "asst_ZqgmvxYMQ3fjrG1quGvhEWgd";
-  const thread = await openAiClient.beta.threads.create();
 
-  context.log("Thread created:", thread.id);
+  let threadId = course.openAiStructureValidatorRunId;
+  if (threadId) {
+    context.log("Reusing existing thread:", threadId);
+  } else {
+    const thread = await openAiClient.beta.threads.create();
+    threadId = thread.id;
+    context.log("Created new thread:", threadId);
+
+    // Save the threadId into the course
+    await Courses.updateOne(
+      { _id: course._id },
+      { $set: { openAiStructureValidatorRunId: threadId } }
+    );
+  }
 
   const prompt = `
 Analyze the following table of contents using the attached course documents.
@@ -66,14 +76,9 @@ Table of Contents:
 ${parsedContentTable.join("\n")}
 `;
 
-  const attachments = course.openAIFileIds.map((file_id) => ({
-    file_id,
-    tools: [{ type: "file_search" }],
-  }));
+  context.log("Sending user message to thread");
 
-  context.log("Attaching files:", attachments);
-
-  await openAiClient.beta.threads.messages.create(thread.id, {
+  await openAiClient.beta.threads.messages.create(threadId, {
     role: "user",
     content: prompt,
     attachments: course.openAIFileIds.map((file_id) => ({
@@ -82,13 +87,10 @@ ${parsedContentTable.join("\n")}
     })),
   });
 
-  context.log("User message created");
-
-  // 🕒 Wait for file indexing before starting the run
-  await delay(4000);
+  await delay(4000); // Wait for file indexing
   context.log("Waited for file indexing");
 
-  const run = await openAiClient.beta.threads.runs.create(thread.id, {
+  const run = await openAiClient.beta.threads.runs.create(threadId, {
     assistant_id: assistantId,
     tool_choice: {
       type: "function",
@@ -101,7 +103,6 @@ ${parsedContentTable.join("\n")}
   let runStatus = run.status;
   let finalValidationResult = null;
 
-  // 🔁 Polling loop for run status
   while (
     runStatus === "queued" ||
     runStatus === "in_progress" ||
@@ -111,7 +112,7 @@ ${parsedContentTable.join("\n")}
     await delay(1000);
 
     const updatedRun = await openAiClient.beta.threads.runs.retrieve(
-      thread.id,
+      threadId,
       run.id
     );
     runStatus = updatedRun.status;
@@ -160,13 +161,9 @@ ${parsedContentTable.join("\n")}
         return;
       }
 
-      await openAiClient.beta.threads.runs.submitToolOutputs(
-        thread.id,
-        run.id,
-        {
-          tool_outputs: toolOutputs,
-        }
-      );
+      await openAiClient.beta.threads.runs.submitToolOutputs(threadId, run.id, {
+        tool_outputs: toolOutputs,
+      });
 
       context.log("Tool outputs submitted, resuming run");
 
@@ -176,7 +173,7 @@ ${parsedContentTable.join("\n")}
 
   context.log("Assistant run completed. Fetching messages...");
 
-  const messages = await openAiClient.beta.threads.messages.list(thread.id);
+  const messages = await openAiClient.beta.threads.messages.list(threadId);
   context.log("Messages received:", messages.data.length);
 
   for (const msg of messages.data) {

@@ -45,8 +45,9 @@ export type CourseData = {
   isNewSlideStructure?: boolean;
   titleFont?: string;
   textFont?: string;
-  openAIFileIds?: string[]
-  isFinishedUploadingOpenAiFiles?: boolean
+  openAIFileIds?: string[];
+  isFinishedUploadingOpenAiFiles?: boolean;
+  openAiStructureValidatorRunId?: string;
 };
 
 export type CourseSection = {
