@@ -9,7 +9,9 @@ Asegúrate de recolectar primero su nombre y su cargo actual en la empresa. Lueg
 
 Cuando la información de una tarea esté completa (frecuencia y tiempo, dificultad, valor agregado, priorización implícita), haz un resumen y pregunta si desea analizar otra tarea.
 
-Mantén siempre un tono amable y profesional.`,
+Mantén siempre un tono amable y profesional.
+
+Remove any symbols or markup in your response. Don't use asterisks, quotes or hashtags.`,
 };
 
 export const guidanceMessage = {
