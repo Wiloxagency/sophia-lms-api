@@ -32,7 +32,7 @@
     "node-ipinfo": "^3.5.3",
     "nodemailer": "^6.9.3",
     "oauth": "^0.10.2",
-    "openai": "^4.55.7",
+    "openai": "^4.98.0",
     "pexels": "^1.4.0",
     "request-promise": "^4.2.6",
     "sharp": "^0.32.6",

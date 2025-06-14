@@ -5,7 +5,7 @@ const axios = require("axios").default;
 const { v4: uuidv4 } = require("uuid");
 
 //TODO: put this key outside this file
-let key = "41589751e1a24680ab0e464d492e4559";
+let key = "8BpDNH6Ghpjm2CrCdBzfmUt4hBcL26xk2LBzRKwTQ51P5XIUCAn8JQQJ99BEACHYHv6XJ3w3AAAbACOGTC8h";
 let endpoint = "https://api.cognitive.microsofttranslator.com";
 
 // location, also known as region.

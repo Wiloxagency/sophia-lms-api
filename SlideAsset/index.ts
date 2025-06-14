@@ -1,17 +1,15 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import axios from "axios";
 import sharp from "sharp";
-import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
 import { createConnection } from "../shared/mongo";
 import { updateUserCreditConsumption } from "../shared/creditConsumption";
 import { saveLog } from "../shared/saveLog";
 import { CourseData, LessonSlideAsset } from "../shared/types";
 import parseMultipartFormData from "@anzp/azure-function-multipart";
-const database = createConnection();
+import { saveFile } from "./../shared/SaveAssetsHD";
 
-const AZURE_STORAGE_CONNECTION_STRING =
-  process.env.AZURE_STORAGE_CONNECTION_STRING;
+const database = createConnection();
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -87,13 +85,11 @@ const httpTrigger: AzureFunction = async function (
       const db = await database;
       const Courses = db.collection("course");
 
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
-        AZURE_STORAGE_CONNECTION_STRING
-      );
-      let blobName = uuidv4();
-      let containerClient: ContainerClient;
+      let fileName = uuidv4();
       let assetPath: string;
       let bufferToUpload: Buffer;
+      let fileExtension: string;
+      let uploadResponse: any;
 
       if (assetType !== "video" && assetType !== "photo") {
         context.res = {
@@ -109,25 +105,33 @@ const httpTrigger: AzureFunction = async function (
       }
 
       if (assetType === "video") {
-        containerClient = blobServiceClient.getContainerClient("videos");
-        blobName += ".mp4";
+        fileExtension = ".mp4";
+        fileName += fileExtension;
         bufferToUpload = imageOrVideoFile.bufferFile;
         assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
+
+        // Guardar video en HD usando saveFile
+        uploadResponse = await saveFile(courseCode, fileName, bufferToUpload, "Videos");
       } else {
         bufferToUpload = await sharp(imageOrVideoFile.bufferFile)
-          .resize(1200, 675)
+          .resize({
+            width: 1920,
+            height: 1080,
+            fit: 'inside', 
+            withoutEnlargement: true, 
+          })
           .toFormat("webp")
           .toBuffer();
-        containerClient = blobServiceClient.getContainerClient("images");
-        blobName += ".webp";
+        fileExtension = ".webp";
+        fileName += fileExtension;
         assetPath = `sections.${sectionIndex}.elements.${elementIndex}.elementLesson.slides.${slideIndex}.assets.${assetIndex}`;
+
+        // Guardar imagen en HD usando saveFile
+        uploadResponse = await saveFile(courseCode, fileName, bufferToUpload, "Images");
       }
 
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      await blockBlobClient.upload(bufferToUpload, bufferToUpload.length);
-
       const assetPayload: LessonSlideAsset = {
-        url: blockBlobClient.url,
+        url: uploadResponse, // Usar la URL retornada por saveFile
         assetType: assetType,
         width: -1,
         height: -1,
@@ -154,7 +158,10 @@ const httpTrigger: AzureFunction = async function (
         headers: {
           "Content-Type": "application/json",
         },
-        body: { url: blockBlobClient.url, remainingCredits: remainingCredits },
+        body: {
+          url: uploadResponse,
+          remainingCredits: remainingCredits
+        },
       };
     } catch (error) {
       await saveLog(
@@ -193,18 +200,20 @@ const httpTrigger: AzureFunction = async function (
           await axios({ url: assetUrl, responseType: "arraybuffer" })
         ).data as Buffer;
         const outputBuffer = await sharp(inputBuffer)
-          .resize(1200, 675)
+          .resize({
+            width: 1920,
+            height: 1080,
+            fit: 'inside', // Mantiene el aspect ratio dentro del bounding box
+            withoutEnlargement: true, // No agranda imágenes más pequeñas que el target
+          })
           .jpeg()
           .toBuffer();
 
-        const blobServiceClient = BlobServiceClient.fromConnectionString(
-          AZURE_STORAGE_CONNECTION_STRING
-        );
-        const containerClient = blobServiceClient.getContainerClient("images");
-        const blobName = uuidv4() + ".jpeg";
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        await blockBlobClient.upload(outputBuffer, outputBuffer.length);
-        uploadedAssetUrl = blockBlobClient.url;
+        const fileName = uuidv4() + ".jpeg";
+
+        // Guardar imagen en HD usando saveFile
+        const uploadResponse = await saveFile(courseCode, fileName, outputBuffer, "Images");
+        uploadedAssetUrl = uploadResponse;
       } else if (assetType === "video") {
         uploadedAssetUrl = assetUrl;
       }
@@ -330,7 +339,6 @@ const httpTrigger: AzureFunction = async function (
 
     case "DELETE":
       await deleteSlideAsset();
-
       break;
 
     case "PUT":

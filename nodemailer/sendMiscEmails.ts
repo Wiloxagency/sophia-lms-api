@@ -107,11 +107,10 @@ export async function sendSCORMDownloadLinkEmail(
       "El enlace de descarga de tu SCORM para el curso " +
       courseName +
       " es: " +
-      "https://sophieassets.blob.core.windows.net/scorms/" +
+      "https://sophiaassetsv2.blob.core.windows.net/scormol/" +
       SCORMFileName,
   };
   htmlToSend = template(replacements);
-
   try {
     const info = await transporter.sendMail({
       from: '"Sophia" <hola@iasophia.com>',
@@ -143,7 +142,7 @@ export async function sendSCORM2DownloadLinkEmail(
       "El enlace de descarga de tu SCORM para el curso " +
       courseName +
       " es: " +
-      "https://sophieassets.blob.core.windows.net/scormol/" +
+      "https://sophiaassetsv2.blob.core.windows.net/scormv2/" +
       SCORMFileName,
   };
   htmlToSend = template(replacements);

@@ -9,16 +9,18 @@ import fetch from "node-fetch";
 import { createWriteStream, promises as fs } from "fs";
 import {
     sendFailedSCORMCreationEmail,
-    sendSCORM2DownloadLinkEmail,
+    sendSCORMDownloadLinkEmail,
     sendScormUnderConstructionEmail,
 } from "../nodemailer/sendMiscEmails";
 import { downloadQuiz } from "../Quiz/download";
+import { createScormV2 } from "../shared/scormOffLineV2";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
 async function createScorm(context: Context, course: any, selectedElements: any[], userEmail: string, userName: string) {
+    
     const courseCode = course.code;
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -161,7 +163,7 @@ async function createScorm(context: Context, course: any, selectedElements: any[
     // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
-    sendSCORM2DownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
+    sendSCORMDownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -181,8 +183,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
 
-    createScorm(context, course, selectedElements, userEmail, userName);
-
+    if ( course.isNewSlideStructure===true) {
+        createScormV2  (course, selectedElements, userEmail, userName)
+    } else {
+        createScorm(context, course, selectedElements, userEmail, userName);
+    }
+    
     context.res = {
         status: 200,
         headers: {

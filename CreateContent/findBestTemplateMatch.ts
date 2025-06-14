@@ -5,6 +5,7 @@ import { MetaTag, SlideContent, TemplateComponent } from "./interfaces";
 type Template = TemplateComponent[];
 
 function countWords(text: string): number {
+  text = text == null || text == undefined ? "" : text
   return text.split(" ").length
 }
 

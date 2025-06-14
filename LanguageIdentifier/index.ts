@@ -24,7 +24,7 @@ const httpTrigger: AzureFunction = async function (
         requestConfiguration
       )
       .then(async (result) => {
-        console.log("Language detected:", result.data.results.documents);
+        // console.log("Language detected:", result.data.results.documents);
         return result;
       });
     if (body) {
