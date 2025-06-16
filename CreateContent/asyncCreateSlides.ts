@@ -191,6 +191,8 @@ Organize the extracted content into a JSON object using this format:
   ]
 }
 
+If the length of the texts (slide[x].text or the slide[x].sections[y].text) is more than 50 words, split it into multiple sections.
+If the number of sections is more than 4, split it into multiple slides because the maximum number of sections must be 4.
 Return ONLY the raw JSON object. Do NOT wrap it in backticks or markdown. Do NOT explain. 
 The response must start with { and end with }. The output must be valid JSON.
 `;

@@ -1,11 +1,13 @@
 import { createConnection } from "../shared/mongo";
 import { saveLog } from "../shared/saveLog";
 
+const ASSETS_URL = process.env.ASSETS_URL
+
 // Asset type configurations
 const ASSET_CONFIGS = {
     'icon-b': {
         defaultAsset: {
-            preview_url: "/assets/icon-black.png",
+            preview_url: ASSETS_URL + "placeholders/star-solid.svg",
             preview_dimensions: { width: 512, height: 512 }
         },
         assetType: "icon",
@@ -13,7 +15,7 @@ const ASSET_CONFIGS = {
     },
     'icon-w': {
         defaultAsset: {
-            preview_url: "/assets/icon-white.png",
+            preview_url: ASSETS_URL + "placeholders/star-solid-white.svg",
             preview_dimensions: { width: 512, height: 512 }
         },
         assetType: "icon",
@@ -21,7 +23,7 @@ const ASSET_CONFIGS = {
     },
     'video-h': {
         defaultAsset: {
-            preview_url: "/assets/slide-placeholder-h.png",
+            preview_url: ASSETS_URL + "placeholders/placeholder_wide.png",
             preview_dimensions: { width: 1024, height: 576 },
         },
         assetType: "video",
@@ -30,7 +32,7 @@ const ASSET_CONFIGS = {
     },
     'video-v': {
         defaultAsset: {
-            preview_url: "/assets/slide-placeholder-v.png",
+            preview_url: ASSETS_URL + "placeholders/placeholder_vertical_comp.png",
             preview_dimensions: { width: 576, height: 1024 },
         },
         assetType: "video",
@@ -39,7 +41,7 @@ const ASSET_CONFIGS = {
     },
     'image-h': {
         defaultAsset: {
-            preview_url: "/assets/slide-placeholder-h.png",
+            preview_url: ASSETS_URL + "placeholders/placeholder_wide.png",
             preview_dimensions: { width: 1024, height: 576 },
         },
         assetType: "photo",
@@ -47,7 +49,7 @@ const ASSET_CONFIGS = {
     },
     'image-v': {
         defaultAsset: {
-            preview_url: "/assets/slide-placeholder-v.png",
+            preview_url: ASSETS_URL + "placeholders/placeholder_vertical_comp.png",
             preview_dimensions: { width: 576, height: 1024 },
         },
         assetType: "photo",
@@ -55,7 +57,7 @@ const ASSET_CONFIGS = {
     },
     'image-q': {
         defaultAsset: {
-            preview_url: "/assets/slide-placeholder-q.png",
+            preview_url: ASSETS_URL + "placeholders/placeholder_square_comp.png",
             preview_dimensions: { width: 1024, height: 1024 },
         },
         assetType: "photo",
@@ -82,6 +84,15 @@ async function findPexelsAsset(pexelsCollection: any, usedAssetsCollection: any,
             courseCode,
             assetType,
             orientation,
+            asset_id: { $nin: usedAssetIds }
+        });
+    }
+
+    // Try without orientation
+    if (!doc) {
+        doc = await pexelsCollection.findOne({
+            courseCode,
+            assetType,
             asset_id: { $nin: usedAssetIds }
         });
     }

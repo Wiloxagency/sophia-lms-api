@@ -1,6 +1,8 @@
 import { LessonSlideAsset, SlideTemplates } from "../shared/types";
 import { GlassTemplate } from "../themesTemplates/GlassTemplate";
 
+const ASSETS_URL = process.env.ASSETS_URL
+
 export function getMediaTypesForCode(code: SlideTemplates): string[] {
   const template = GlassTemplate.find((t) =>
     t.some((comp) => comp.component === "meta-tag" && comp.code === code)
@@ -43,49 +45,49 @@ function mapAssetType(asset: LessonSlideAsset): string {
 function createPlaceholder(media: string): LessonSlideAsset {
   const placeholders: Record<string, LessonSlideAsset> = {
     "image-v": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/placeholder_vertical_comp.png", // Vertical image
+      url: ASSETS_URL + "placeholders/placeholder_vertical_comp.png", // Vertical image
       assetType: "photo",
       width: 720,
       height: 1280,
       orientation: "portrait",
     },
     "image-h": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/placeholder_wide.png", // Horizontal image
+      url: ASSETS_URL + "placeholders/placeholder_wide.png", // Horizontal image
       assetType: "photo",
       width: 1280,
       height: 720,
       orientation: "landscape",
     },
     "image-q": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/placeholder_square_comp.png", // Square image
+      url: ASSETS_URL + "placeholders/placeholder_square_comp.png", // Square image
       assetType: "photo",
       width: 1000,
       height: 1000,
       orientation: "square",
     },
     "video-v": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/flower_v.mp4", // Vertical video placeholder
+      url: ASSETS_URL + "placeholders/flower_v.mp4", // Vertical video placeholder
       assetType: "video",
       width: 720,
       height: 1280,
       orientation: "portrait",
     },
     "video-h": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/flower.mp4", // Horizontal video placeholder
+      url: ASSETS_URL + "placeholders/flower.mp4", // Horizontal video placeholder
       assetType: "video",
       width: 1280,
       height: 720,
       orientation: "landscape",
     },
     "icon-b": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/star-solid.svg", // Black icon
+      url: ASSETS_URL + "placeholders/star-solid.svg", // Black icon
       assetType: "icon",
       width: 100,
       height: 100,
       orientation: "square",
     },
     "icon-w": {
-      url: "https://sophia-assets.wiloxagency.com/placeholders/star-solid-white.svg", // White icon
+      url: ASSETS_URL + "placeholders/star-solid-white.svg", // White icon
       assetType: "icon",
       width: 150,
       height: 100,
