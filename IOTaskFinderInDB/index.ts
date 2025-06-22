@@ -75,8 +75,8 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    // Optionally translate for display (use user's input language)
     const translatedMatches = await translateStrings(matches, jobTitle);
+    console.log(" translatedMatches: ", translatedMatches)
 
     if (matches.length > 1) {
       context.res = {

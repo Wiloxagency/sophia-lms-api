@@ -69,27 +69,34 @@ export async function resolveOccupationMatch(
   const last = messages.data.find((m) => m.role === "assistant");
   const content = last?.content?.[0];
 
+  console.log(" content: ", content);
+
   if (content?.type === "text") {
     try {
-      const parsed = JSON.parse(content.text.value) as AssistantTextJson;
+      let raw = content.text.value.trim();
 
+      // 🔧 Strip triple backticks if needed
+      if (raw.startsWith("```")) {
+        raw = raw
+          .replace(/^```(?:json)?\s*/i, "")
+          .replace(/```$/, "")
+          .trim();
+      }
+
+      const parsed = JSON.parse(raw) as AssistantTextJson;
       console.log("🧠 Assistant parsed response:", parsed);
 
-      if (
-        !parsed.found ||
-        typeof parsed.matchedOccupation !== "string" ||
-        !Array.isArray(parsed.considered)
-      ) {
+      if (!parsed.found || !parsed.matchedOccupation) {
         return {
           found: false,
-          reason: "La respuesta no contenía ocupaciones válidas.",
+          reason: "La respuesta no contenía una ocupación válida.",
         };
       }
 
       return {
         found: true,
         matchedOccupation: parsed.matchedOccupation,
-        considered: parsed.considered,
+        considered: parsed.considered ?? [parsed.matchedOccupation],
       };
     } catch (err) {
       console.error("❌ Error parsing assistant response:", err);
