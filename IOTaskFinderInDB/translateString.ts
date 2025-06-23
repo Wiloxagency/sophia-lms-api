@@ -11,7 +11,8 @@ export async function translateStrings(
   strings: string[],
   userTypedJobTitle: string
 ): Promise<string[]> {
-  const systemPrompt = `Identifica el idioma de esta palabra "${userTypedJobTitle}", y devuelve un objeto JSON con las propiedades "language" y "translations" (un array de textos traducidos a ese idioma).`;
+  // const systemPrompt = `Identifica el idioma de esta palabra "${userTypedJobTitle}", y devuelve un objeto JSON con las propiedades "language" y "translations" (un array de textos traducidos a ese idioma).`;
+  const systemPrompt = `Devuelve un objeto JSON con las propiedades "language" (Spanish) y "translations" (un array de textos traducidos a español).`;
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",

@@ -23,8 +23,13 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  const jobTitle = req.query.job || req.body?.job;
+  const jobTitle: string = req.query.job || req.body?.job;
+  const inputSource: "typed" | "selected" =
+    req.query.isOccupationTypedOrSelected ||
+    req.body?.isOccupationTypedOrSelected;
+
   context.log("🧾 jobTitle:", jobTitle);
+  context.log("📌 inputSource:", inputSource);
 
   if (!jobTitle) {
     context.res = {
@@ -35,34 +40,57 @@ const httpTrigger: AzureFunction = async function (
   }
 
   try {
-    // Load known occupations
     const Labels = db.collection("occupationLabels");
     const occupationLabels = await Labels.find().toArray();
     const knownOccupations = occupationLabels.map((l: any) => l.name);
 
-    // Resolve match via assistant
-    const matchResult = await resolveOccupationMatch(
-      jobTitle,
-      knownOccupations
-    );
+    let matchResult:
+      | {
+          found: true;
+          matchedOccupation: string;
+          considered: string[];
+        }
+      | {
+          found: false;
+          reason: string;
+        };
+
+    if (inputSource === "selected") {
+      const exists = knownOccupations.includes(jobTitle);
+      if (!exists) {
+        context.res = {
+          status: 400,
+          body: {
+            found: false,
+            reason: "La ocupación seleccionada no existe en la base de datos.",
+          },
+        };
+        return;
+      }
+
+      matchResult = {
+        found: true,
+        matchedOccupation: jobTitle,
+        considered: [jobTitle],
+      };
+    } else {
+      matchResult = await resolveOccupationMatch(jobTitle, knownOccupations);
+    }
 
     if (!matchResult.found) {
-      const reason =
-        "reason" in matchResult ? matchResult.reason : "Unknown reason";
       context.res = {
         status: 200,
         body: {
           found: false,
-          reason,
+          reason:
+            "reason" in matchResult ? matchResult.reason : "Unknown reason",
         },
       };
       return;
     }
 
-    const matches = matchResult.considered                                                                                                                      ;
-
-    // Log all possible matches and selected one
-    context.log("✅ Matches considered by assistant:", matches);
+    const matches = matchResult.considered;
+    // context.log("✅ Matches considered by assistant:", matches);
 
     if (matches.length === 0) {
       context.res = {
@@ -76,7 +104,7 @@ const httpTrigger: AzureFunction = async function (
     }
 
     const translatedMatches = await translateStrings(matches, jobTitle);
-    console.log(" translatedMatches: ", translatedMatches)
+    // context.log("🗣️ translatedMatches:", translatedMatches);
 
     if (matches.length > 1) {
       context.res = {
@@ -93,14 +121,22 @@ const httpTrigger: AzureFunction = async function (
       return;
     }
 
-    // One match: get tasks
     const occupationName = matches[0];
+    // context.log("🎯 occupationName:", occupationName);
+
     const taskResult = await getTasksForOccupation(db, occupationName);
+    // context.log("🧩 taskResult:", taskResult);
+
+    const translatedTasks = await translateStrings(taskResult.tasks, jobTitle);
+    // console.log(" translatedTasks: ", translatedTasks)
+
+    const { tasks: _, ...otherTaskResultFields } = taskResult;
 
     context.res = {
       status: 200,
       body: {
-        ...taskResult,
+        tasks: translatedTasks,
+        ...otherTaskResultFields,
         occupationName,
       },
     };

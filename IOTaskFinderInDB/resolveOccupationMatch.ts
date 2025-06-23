@@ -69,7 +69,7 @@ export async function resolveOccupationMatch(
   const last = messages.data.find((m) => m.role === "assistant");
   const content = last?.content?.[0];
 
-  console.log(" content: ", content);
+  // console.log(" content: ", content);
 
   if (content?.type === "text") {
     try {
@@ -84,7 +84,7 @@ export async function resolveOccupationMatch(
       }
 
       const parsed = JSON.parse(raw) as AssistantTextJson;
-      console.log("🧠 Assistant parsed response:", parsed);
+      // console.log("🧠 Assistant parsed response:", parsed);
 
       if (!parsed.found || !parsed.matchedOccupation) {
         return {
