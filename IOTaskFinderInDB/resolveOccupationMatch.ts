@@ -28,7 +28,7 @@ export async function resolveOccupationMatch(
 
   const run = await openai.beta.threads.runs.create(thread.id, {
     assistant_id: ASSISTANT_ID,
-    tool_choice: "auto",
+    tool_choice: { type: "function", function: { name: "matchOccupation" } },
   });
 
   while (true) {
@@ -42,12 +42,10 @@ export async function resolveOccupationMatch(
       const toolCall =
         runStatus.required_action?.submit_tool_outputs?.tool_calls?.[0];
 
-      if (toolCall?.function?.name === "getTasksForJob") {
+      if (toolCall?.function?.name === "matchOccupation") {
         const args = JSON.parse(toolCall.function.arguments);
-        const { jobTitle: inputTitle } = args;
-
         const outputToAssistant = {
-          jobTitle: inputTitle,
+          jobTitle: args.jobTitle,
           knownOccupations,
         };
 
@@ -59,6 +57,8 @@ export async function resolveOccupationMatch(
             },
           ],
         });
+      } else {
+        console.warn("⚠️ Unknown tool requested:", toolCall?.function?.name);
       }
     }
 
@@ -69,13 +69,10 @@ export async function resolveOccupationMatch(
   const last = messages.data.find((m) => m.role === "assistant");
   const content = last?.content?.[0];
 
-  // console.log(" content: ", content);
-
   if (content?.type === "text") {
     try {
       let raw = content.text.value.trim();
 
-      // 🔧 Strip triple backticks if needed
       if (raw.startsWith("```")) {
         raw = raw
           .replace(/^```(?:json)?\s*/i, "")
@@ -84,12 +81,12 @@ export async function resolveOccupationMatch(
       }
 
       const parsed = JSON.parse(raw) as AssistantTextJson;
-      // console.log("🧠 Assistant parsed response:", parsed);
 
       if (!parsed.found || !parsed.matchedOccupation) {
         return {
           found: false,
-          reason: "La respuesta no contenía una ocupación válida.",
+          reason:
+            parsed.reason || "La respuesta no contenía una ocupación válida.",
         };
       }
 
@@ -99,14 +96,15 @@ export async function resolveOccupationMatch(
         considered: parsed.considered ?? [parsed.matchedOccupation],
       };
     } catch (err) {
-      console.error("❌ Error parsing assistant response:", err);
+      console.error("❌ Error parsing assistant message:", err);
       return {
         found: false,
-        reason: "No se pudo interpretar la respuesta del asistente.",
+        reason: "No se pudo interpretar la salida del asistente.",
       };
     }
   }
 
+  // ✅ Fallback if no assistant message was found
   return {
     found: false,
     reason: "La respuesta del asistente no tenía el formato esperado.",

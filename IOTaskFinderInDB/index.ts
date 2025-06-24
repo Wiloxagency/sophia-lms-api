@@ -57,6 +57,11 @@ const httpTrigger: AzureFunction = async function (
 
     if (inputSource === "selected") {
       const exists = knownOccupations.includes(jobTitle);
+      // console.log(" knownOccupations: ", knownOccupations);
+      // console.log(
+      //   "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+      // );
+      console.log(" exists: ", exists);
       if (!exists) {
         context.res = {
           status: 400,
@@ -128,7 +133,7 @@ const httpTrigger: AzureFunction = async function (
     // context.log("🧩 taskResult:", taskResult);
 
     const translatedTasks = await translateStrings(taskResult.tasks, jobTitle);
-    // console.log(" translatedTasks: ", translatedTasks)
+    console.log(" translatedTasks: ", translatedTasks);
 
     const { tasks: _, ...otherTaskResultFields } = taskResult;
 
