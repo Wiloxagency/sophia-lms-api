@@ -15,7 +15,7 @@ const httpTrigger: AzureFunction = async function (
   const db = await database;
   const Courses = db.collection("course");
 
-  console.info(req.body)
+  console.info(req.body);
 
   const payload: paragraphCreation = {
     context: req.body.courseTitle,
@@ -64,26 +64,24 @@ const httpTrigger: AzureFunction = async function (
   const elementIndex =
     updatedCourse.sections[req.body.indexSection].elements.length - 1;
 
-  const syllabus = updatedCourse.sections.map( (section: any) => {
-    return section.title
-  })
+  const syllabus = updatedCourse.sections.map((section: any) => {
+    return section.title;
+  });
   // TODO -> Refactor to Async mode
- const currentParagraphs = await asyncCreateParagraphs(
-  req.body.courseCode,
-  req.body.courseTitle,
-  syllabus,
-  req.body.languageName,
-  updatedCourse.language,
-  req.body.voice,
-  req.body.slideshowGlobalAssetsSource,
-  syllabus[req.body.indexSection],
-  req.body.indexSection,
-  req.body.indexLesson,
-  req.body.lessonTitle
- );
+  const currentParagraphs = await asyncCreateParagraphs(
+    req.body.courseCode,
+    req.body.courseTitle,
+    syllabus,
+    req.body.languageName,
+    updatedCourse.language,
+    req.body.voice,
+    req.body.slideshowGlobalAssetsSource,
+    syllabus[req.body.indexSection],
+    req.body.indexSection,
+    req.body.indexLesson,
+    req.body.lessonTitle
+  );
   // const currentParagraphs = {content: []};
-
-
 
   let remainingCredits = null;
 

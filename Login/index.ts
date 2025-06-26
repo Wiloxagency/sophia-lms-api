@@ -22,20 +22,26 @@ const httpTrigger: AzureFunction = async function (
       email: { $regex: new RegExp(regex, "i") },
     });
     if (user) {
-      // console.log("user: ", user);
+      // Ensure user.credits exists, if not, set to 999
+      if (typeof user.credits === "undefined") {
+      await Users.updateOne(
+        { _id: user._id },
+        { $set: { credits: 999 } }
+      );
+      user.credit = 999;
+      }
+
       const savedPassword = user.password;
       const found = bcrypt.compareSync(password, savedPassword);
-      //console.info ("hashDB -->", savedPassword)
-      //console.info ("found -->", found)
 
       if (found === false) {
-        context.res = {
-          status: 203,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: { message: "Invalid password" },
-        };
+      context.res = {
+        status: 203,
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: { message: "Invalid password" },
+      };
       } else {
         const userAggregationResponse = await Users.aggregate(
           userAggregation({ code: user.code }, {})
