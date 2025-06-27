@@ -9,24 +9,18 @@ export async function generateContentTable(
   languageName: string,
   maxSections: string
 ): Promise<string[]> {
-  // const assistant = await client.beta.assistants.create({
-  //   name: "Content Table Generator",
-  //   instructions: `You're an expert in analyzing course material and creating well-structured tables of contents.`,
-  //   model: "gpt-4o",
-  //   tools: [{ type: "file_search" }],
-  // });
   const assistantId = "asst_ioyW0EqK0BeCORRCmJRDC8dA";
 
   const thread = await client.beta.threads.create();
 
   const prompt = `
-Analyze the attached documents and create a table of contents based on their content. Write it in ${languageName}, with up to ${maxSections} items.
+Use the file search tool to analyze the attached PDF and generate a table of contents based on its content.
 
-The first item should be the introduction of the course, and the last item should be the conclusion, if the material supports it.
-
-Only include sections that are clearly supported by the information in the documents. If a topic is not supported by the content, do not include it.
-
-IMPORTANT: Do NOT include citations, timestamps, references, or any inline source markers such as   in the output.
+- Write in ${languageName}, with a maximum of ${maxSections} sections.
+- Only include sections that are clearly supported by the file search results.
+- Start with an introduction and end with a conclusion, only if supported.
+- Do not hallucinate or guess any content.
+- Respond with a numbered list only — no extra commentary.
 
 Write the table of contents in the following format:
 
@@ -66,7 +60,16 @@ Only return the list. Do not include any explanation before or after the list.`;
     throw new Error(`Run failed with status: ${runStatus}`);
   }
 
+  // const steps = await client.beta.threads.runs.steps.list(thread.id, run.id);
+  // console.log(JSON.stringify(steps.data, null, 2));
+
   const messages = await client.beta.threads.messages.list(thread.id);
+  messages.data.forEach((m) => console.log(JSON.stringify(m, null, 2)));
+  const assistantMsg = messages.data.find((m) => m.role === "assistant");
+
+  if (assistantMsg?.attachments?.length === 0) {
+    console.warn("⚠️ Assistant did not reference any file passages.");
+  }
   const assistantMessage = messages.data.find(
     (msg) => msg.role === "assistant"
   );
@@ -78,6 +81,8 @@ Only return the list. Do not include any explanation before or after the list.`;
   const textContent = assistantMessage.content
     .map((part) => (part.type === "text" ? part.text.value : ""))
     .join("\n");
+
+  console.log(JSON.stringify(assistantMessage, null, 2));
 
   return textContent.split("\n").filter((line) => line.trim());
 }
