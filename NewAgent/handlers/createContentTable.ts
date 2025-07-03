@@ -43,10 +43,9 @@ export async function handleCreateContentTable(
   console.log(" uploadedFiles: ", uploadedFiles);
   const fileIds = uploadedFiles.map((f) => f.id);
 
-  let contentTable: string[] | null;
+  let contentTable: { sectionTitle: string; sectionContent: string }[] | null;
 
   if (uploadedFiles.length === 0) {
-    
   } else {
     contentTable = await generateContentTable(
       fileIds,
@@ -64,7 +63,8 @@ export async function handleCreateContentTable(
         voice,
         language,
         languageName,
-        isFinishedUploadingOpenAiFiles: uploadedFiles.length === 0 ? false : true,
+        isFinishedUploadingOpenAiFiles:
+          uploadedFiles.length === 0 ? false : true,
       },
     }
   );

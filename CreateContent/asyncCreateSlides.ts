@@ -178,9 +178,9 @@ export async function asyncCreateSlides(
       // });
       // console.log("Assistant created:", assistant.id);
       const assistantId = "asst_sGLc3ETSkz55UWGp8I9q5Vnv";
+      return;
 
       const thread = await openai.beta.threads.create();
-
       const newAgentPrompt = `
 Extract all information in the attached documents directly related to the subject of "${formattedText}". 
 Write it in ${languageName}. 

@@ -8,29 +8,33 @@ export async function generateContentTable(
   course: CourseData,
   languageName: string,
   maxSections: string
-): Promise<string[]> {
+): Promise<{ sectionTitle: string; sectionContent: string }[]> {
   const assistantId = "asst_ioyW0EqK0BeCORRCmJRDC8dA";
 
   const thread = await client.beta.threads.create();
 
   const prompt = `
-Use the file search tool to analyze the attached PDF and generate a table of contents based on its content.
+Use the file search tool to analyze the attached PDF and generate a table of contents with relevant content extracted from the file for each section.
 
 - Write in ${languageName}, with a maximum of ${maxSections} sections.
 - Only include sections that are clearly supported by the file search results.
 - Start with an introduction and end with a conclusion, only if supported.
 - Do not hallucinate or guess any content.
-- Respond with a numbered list only — no extra commentary.
+- Respond only in JSON format as an array of objects with the following structure:
 
-Write the table of contents in the following format:
+[
+  {
+    "sectionTitle": "Introduction",
+    "sectionContent": "..."
+  },
+  {
+    "sectionTitle": "Section 1 Title",
+    "sectionContent": "..."
+  },
+  ...
+]
 
-1. Introduction.
-2. Title of section 2.
-3. Title of section 3.
-...
-n. Conclusion.
-
-Only return the list. Do not include any explanation before or after the list.`;
+Return only valid JSON. Do not include any commentary, explanation, or markdown formatting.`;
 
   await client.beta.threads.messages.create(thread.id, {
     role: "user",
@@ -77,12 +81,16 @@ Only return the list. Do not include any explanation before or after the list.`;
   if (!assistantMessage) {
     throw new Error("No assistant message found in response.");
   }
-
   const textContent = assistantMessage.content
     .map((part) => (part.type === "text" ? part.text.value : ""))
     .join("\n");
 
-  console.log(JSON.stringify(assistantMessage, null, 2));
-
-  return textContent.split("\n").filter((line) => line.trim());
+  try {
+    const sections: { sectionTitle: string; sectionContent: string }[] =
+      JSON.parse(textContent);
+    return sections;
+  } catch (e) {
+    console.error("Failed to parse assistant response:", textContent);
+    throw new Error("Assistant did not return valid JSON.");
+  }
 }
