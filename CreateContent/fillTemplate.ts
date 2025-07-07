@@ -108,13 +108,17 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
                 sections: metaTag.elements.sections
             };
 
+            // Get how many media elements (without icons) are in the template
+            const mediaCount = metaTag.elements.media.filter((item: string) => /^(image|video)/.test(item)).length;
+            let mediaCounter = 0;
+
             // Create a deep copy of the template to modify
             const processedTemplate = JSON.parse(JSON.stringify(template));
             
             // Process each component in the template
-            return processedTemplate.map((component: any) => {
+            processedTemplate.map((component: any) => {
 
-                if (component.component === "meta-tag") {
+                if (component.component === "meta-tag" || component.component === "svg") {
                     return component;
                 }
 
@@ -145,26 +149,28 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
                 };
 
                 // Process media replacements
-                if (component.video) {
+                if (component.video && mediaCounter < mediaCount) {
                     const videoType = component.video.slice(1, -1);
                     const matchingAssetIndex = slide.assets.findIndex((asset: any) =>
                         asset.assetType === "video" && mediaTypes[videoType](asset.assetType, asset.orientation)
                     );
 
                     if (matchingAssetIndex !== -1) {
+                        mediaCounter++;
                         component.video = slide.assets[matchingAssetIndex].url;
                         // Remove the asset from slide.assets
                         slide.assets.splice(matchingAssetIndex, 1);
                     }
                 }
 
-                if (component.image) {
+                if (component.image && mediaCounter < mediaCount) {
                     const imageType = component.image.slice(1, -1);
                     const matchingAssetIndex = slide.assets.findIndex((asset: any) =>
                         asset.assetType === "photo" && mediaTypes[imageType](asset.assetType, asset.orientation)
                     );
 
                     if (matchingAssetIndex !== -1) {
+                        mediaCounter++;
                         component.image = slide.assets[matchingAssetIndex].url;
                         // Remove the asset from slide.assets
                         slide.assets.splice(matchingAssetIndex, 1);
@@ -231,6 +237,7 @@ export async function fillTemplate(slides: any, globalData: any, presentationNam
                 }
                 return component;
             });
+            return processedTemplate
         });
 
         processedSlides = replaceTemplateColors(processedSlides, globalData.defaultTheme.colors);
