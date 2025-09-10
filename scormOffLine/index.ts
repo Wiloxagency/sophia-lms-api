@@ -19,11 +19,13 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZU
 const containerName = "scormol";
 const scormBaseFilesPath = "scorm_base_files"; // Base folder in the container
 
-async function createScorm(context: Context, course: any, selectedElements: any[], userEmail: string, userName: string) {
+async function createScorm(context: Context, course: any, selectedElements: any[], userEmail: string, userName: string): Promise<string> {
     
+    console.log("THIS RUNS: createScorm")
     const courseCode = course.code;
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
+    console.log("🚀 ~ containerClient: ", containerClient)
 
     // Delete existing course directory if it exists
     for await (const blob of containerClient.listBlobsFlat({ prefix: `${courseCode}/` })) {
@@ -163,7 +165,14 @@ async function createScorm(context: Context, course: any, selectedElements: any[
     // Delete individual Section<m> zip files
     await deleteLessonZips(containerClient, courseCode);
 
+    const downloadLink = 
+        "https://sophiaassetsv2.blob.core.windows.net/scormol/" +
+      course.code + ".zip"
+
+    return downloadLink
+      
     sendSCORMDownloadLinkEmail(userEmail, userName, course.details.title, course.code + ".zip")
+
 }
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -181,22 +190,25 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return;
     }
 
-    sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
+    console.log("START OF SCORM PROCESS")
+    // sendScormUnderConstructionEmail(userEmail, userName, course.details.title);
+
+    let downloadLink
 
     if ( course.isNewSlideStructure===true) {
-        createScormV2  (course, selectedElements, userEmail, userName)
+        console.log('RUNNING createaScormV2()')
+        downloadLink = await createScormV2  (course, selectedElements, userEmail, userName)
     } else {
-        createScorm(context, course, selectedElements, userEmail, userName);
+        console.log('RUNNING createaScorm()')
+       downloadLink = await createScorm(context, course, selectedElements, userEmail, userName);
     }
     
     context.res = {
         status: 200,
         headers: {
-            "Content-Type": "application/xml",
+            "Content-Type": "application/json",
         },
-        body: {
-            message: "Start scorm creation"
-        },
+        body: {downloadLink},
     };
 };
 
