@@ -17,8 +17,9 @@ import { GlassTemplate } from "../themesTemplates/GlassTemplate";
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   process.env.AZURE_STORAGE_CONNECTION_STRING
 );
-const containerName = "scormv2";
 const scormBaseFilesPath = "scorm_base_files";
+
+const SCORM_BLOB_CONTAINER = process.env.SCORM_BLOB_CONTAINER;
 
 export async function createScormV2(
   course: any,
@@ -34,7 +35,8 @@ export async function createScormV2(
     .collection("courseTheme")
     .findOne({ code: course.slideshowColorThemeName });
 
-  const containerClient = blobServiceClient.getContainerClient(containerName);
+  const containerClient =
+    blobServiceClient.getContainerClient(SCORM_BLOB_CONTAINER);
 
   console.log("START OF createScormV2");
 
@@ -522,7 +524,9 @@ export async function createScormV2(
   await deleteLessonZips(containerClient, courseCode);
 
   const downloadLink =
-    "https://sophiaassetsv2.blob.core.windows.net/scormol/" +
+    "https://sophiaassetsv2.blob.core.windows.net/" +
+    SCORM_BLOB_CONTAINER +
+    "/" +
     course.code +
     ".zip";
   console.log("🚀 ~ downloadLink: ", downloadLink);

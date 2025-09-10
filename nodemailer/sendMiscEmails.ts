@@ -10,6 +10,9 @@ const nodemailer = require("nodemailer");
 
 const AWS_SES_ACCESS_KEY = process.env.AWS_SES_ACCESS_KEY;
 const AWS_SES_SECRET_ACCESS_KEY = process.env.AWS_SES_SECRET_ACCESS_KEY;
+
+const SCORM_BLOB_CONTAINER = process.env.SCORM_BLOB_CONTAINER;
+
 let htmlToSend;
 
 const ses = new aws.SES({
@@ -107,7 +110,9 @@ export async function sendSCORMDownloadLinkEmail(
       "El enlace de descarga de tu SCORM para el curso " +
       courseName +
       " es: " +
-      "https://sophiaassetsv2.blob.core.windows.net/scormol/" +
+      "https://sophiaassetsv2.blob.core.windows.net/" +
+      SCORM_BLOB_CONTAINER +
+      "/" +
       SCORMFileName,
   };
   htmlToSend = template(replacements);
