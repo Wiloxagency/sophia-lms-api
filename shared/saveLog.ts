@@ -9,6 +9,7 @@ export async function saveLog(
   functionName: string,
   endpoint: string
 ) {
+  return;
   let date = new Date();
   const logPayload = {
     message: message,
@@ -49,6 +50,7 @@ export async function saveCourseCreationLog(
   isSelfManageable: boolean,
   userCode: string
 ) {
+  return;
   let date = new Date();
   const logPayload = {
     courseCode: courseCode,
@@ -74,6 +76,7 @@ export async function deleteCourseCreationLog(
   courseCode: string,
   sections: any
 ) {
+  return
   try {
     let complete = true;
     sections.forEach((section: any) => {
